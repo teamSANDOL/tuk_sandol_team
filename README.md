@@ -1,5 +1,5 @@
 # TUK_산돌이
-<center><img src="https://github.com/teamSANDOL/kpu_sandol_team/raw/main/img/logo_profile3.png?raw=true" width="300" height="300"></center>
+<p align="center"><img src="https://github.com/teamSANDOL/kpu_sandol_team/raw/main/img/logo_profile3.png?raw=true" width="300" height="300"></p>
 
 # 산돌이
 - 산돌이는 학생들에게 편의 기능을 제공하기 위해 2021년 산돌팀을 구성한 이후 현재 누적 6200명의 학생 및 학교 관계자가 이용하는 카카오톡 챗봇 서비스입니다.
