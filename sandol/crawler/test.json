@@ -1,0 +1,29 @@
+[
+  {
+    "name": "미가",
+    "registration_time": "2024-03-27T10:00:00",
+    "opening_time": "2024-03-27T11:00:00",
+    "lunch_menu": ["된장찌개", "제육볶음", "김치찌개"],
+    "dinner_menu": ["생선구이", "돼지고기국밥", "비빔밥"],
+    "location": "교외",
+    "price_per_person": 7000
+  },
+  {
+    "name": "세미콘",
+    "registration_time": "2024-03-27T09:30:00",
+    "opening_time": "2024-03-27T11:30:00",
+    "lunch_menu": ["카레라이스", "짜장면", "갈비탕"],
+    "dinner_menu": ["삼계탕", "순대국", "고등어조림"],
+    "location": "교외",
+    "price_per_person": 8000
+  },
+  {
+    "name": "수호",
+    "registration_time": "2024-03-27T08:00:00",
+    "opening_time": "2024-03-27T10:30:00",
+    "lunch_menu": ["불고기", "김치찌개", "제육덮밥"],
+    "dinner_menu": ["해물찜", "양념치킨", "매운탕"],
+    "location": "교내",
+    "price_per_person": 7500
+  }
+]
