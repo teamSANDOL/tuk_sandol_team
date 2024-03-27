@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 
-from .api_server import make_TextCard
+from .api_server import make_textcard
 from .crawler import Restaurant, get_meals
 
 app = Flask(__name__)
@@ -45,11 +45,11 @@ def meal_view():
         temp_carousel = carousel.copy()
 
         # 식단 정보를 TextCard 형태로 변환합니다.
-        lunch = make_TextCard(
+        lunch = make_textcard(
             title=f"{restaurant.name}(점심)",
             description="\n".join(restaurant.lunch)
         )
-        dinner = make_TextCard(
+        dinner = make_textcard(
             title=f"{restaurant.name}(저녁)",
             description="\n".join(restaurant.dinner)
         )

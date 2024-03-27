@@ -1,1 +1,1 @@
-from utils import make_TextCard
+from utils import make_textcard
