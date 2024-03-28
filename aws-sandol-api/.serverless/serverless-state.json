@@ -1,25 +1,14 @@
 {
   "service": {
-<<<<<<< HEAD
     "service": "aws-sandol",
     "serviceObject": {
       "name": "aws-sandol"
-=======
-    "service": "aws-sandol-api",
-    "serviceObject": {
-      "name": "aws-sandol-api"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
     },
     "provider": {
       "name": "aws",
       "runtime": "python3.9",
-<<<<<<< HEAD
       "region": "ap-northeast-2",
       "stage": "dev",
-=======
-      "stage": "dev",
-      "region": "us-east-1",
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
         "AWSTemplateFormatVersion": "2010-09-09",
@@ -97,11 +86,7 @@
           "ApiLogGroup": {
             "Type": "AWS::Logs::LogGroup",
             "Properties": {
-<<<<<<< HEAD
               "LogGroupName": "/aws/lambda/aws-sandol-dev-api"
-=======
-              "LogGroupName": "/aws/lambda/aws-sandol-api-dev-api"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
             }
           },
           "IamRoleLambdaExecution": {
@@ -129,11 +114,7 @@
                     "Fn::Join": [
                       "-",
                       [
-<<<<<<< HEAD
                         "aws-sandol",
-=======
-                        "aws-sandol-api",
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
                         "dev",
                         "lambda"
                       ]
@@ -151,11 +132,7 @@
                         ],
                         "Resource": [
                           {
-<<<<<<< HEAD
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-sandol-dev*:*"
-=======
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-sandol-api-dev*:*"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
                           }
                         ]
                       },
@@ -166,11 +143,7 @@
                         ],
                         "Resource": [
                           {
-<<<<<<< HEAD
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-sandol-dev*:*:*"
-=======
-                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-sandol-api-dev*:*:*"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
                           }
                         ]
                       }
@@ -183,11 +156,7 @@
                 "Fn::Join": [
                   "-",
                   [
-<<<<<<< HEAD
                     "aws-sandol",
-=======
-                    "aws-sandol-api",
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
                     "dev",
                     {
                       "Ref": "AWS::Region"
@@ -198,55 +167,6 @@
               }
             }
           },
-<<<<<<< HEAD
-=======
-          "EnterpriseLogAccessIamRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-              "AssumeRolePolicyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                  {
-                    "Effect": "Allow",
-                    "Principal": {
-                      "AWS": "arn:aws:iam::802587217904:root"
-                    },
-                    "Action": "sts:AssumeRole",
-                    "Condition": {
-                      "StringEquals": {
-                        "sts:ExternalId": "ServerlessEnterprise-294fba6a-090e-4ce6-ae53-5af205b91d7d"
-                      }
-                    }
-                  }
-                ]
-              },
-              "Policies": [
-                {
-                  "PolicyName": "LogFilterAccess",
-                  "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                      {
-                        "Effect": "Allow",
-                        "Action": [
-                          "logs:FilterLogEvents"
-                        ],
-                        "Resource": [
-                          {
-                            "Fn::GetAtt": [
-                              "ApiLogGroup",
-                              "Arn"
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          },
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
           "ApiLambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -254,19 +174,11 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-<<<<<<< HEAD
-                "S3Key": "serverless/aws-sandol/dev/1711529535295-2024-03-27T08:52:15.295Z/aws-sandol.zip"
+                "S3Key": "serverless/aws-sandol/dev/1711598758817-2024-03-28T04:05:58.817Z/aws-sandol.zip"
               },
               "Handler": "wsgi_handler.handler",
               "Runtime": "python3.9",
               "FunctionName": "aws-sandol-dev-api",
-=======
-                "S3Key": "serverless/aws-sandol-api/dev/1711517666043-2024-03-27T05:34:26.043Z/aws-sandol-api.zip"
-              },
-              "Handler": "wsgi_handler.handler",
-              "Runtime": "python3.9",
-              "FunctionName": "aws-sandol-api-dev-api",
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
               "MemorySize": 1024,
               "Timeout": 6,
               "Role": {
@@ -280,44 +192,23 @@
               "ApiLogGroup"
             ]
           },
-<<<<<<< HEAD
-          "ApiLambdaVersion5HgZTm6vtHPcGlNSdrb7wOhYKa9hC6QxIr5w4HBss": {
-=======
-          "ApiLambdaVersionW8jPsAFOLnppd098fVZ8dY7HQDlcnk7DGrPmC6lzY": {
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
+          "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-<<<<<<< HEAD
-              "CodeSha256": "y5MzgseTyMlyp5ajsdRZaPZ7fPF3e88gy0LLeSATC4I="
-=======
-              "CodeSha256": "4sNoBwhI5u5S8swtXzb/xApGLbqgxdnsTxoNByl0u0Q="
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
+              "CodeSha256": "9tsXl4QNcNu5HsQJJyIzR0lOS2aXUUFwGIH2M6ps7M4="
             }
           },
           "HttpApi": {
             "Type": "AWS::ApiGatewayV2::Api",
             "Properties": {
-<<<<<<< HEAD
               "Name": "dev-aws-sandol",
               "ProtocolType": "HTTP"
             }
           },
-=======
-              "Name": "dev-aws-sandol-api",
-              "ProtocolType": "HTTP"
-            }
-          },
-          "HttpApiLogGroup": {
-            "Type": "AWS::Logs::LogGroup",
-            "Properties": {
-              "LogGroupName": "/aws/http-api/aws-sandol-api-dev"
-            }
-          },
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
           "HttpApiStage": {
             "Type": "AWS::ApiGatewayV2::Stage",
             "Properties": {
@@ -328,23 +219,8 @@
               "AutoDeploy": true,
               "DefaultRouteSettings": {
                 "DetailedMetricsEnabled": false
-<<<<<<< HEAD
               }
             }
-=======
-              },
-              "AccessLogSettings": {
-                "DestinationArn": {
-                  "Fn::GetAtt": [
-                    "HttpApiLogGroup",
-                    "Arn"
-                  ]
-                },
-                "Format": "{\"requestTime\":\"$context.requestTime\",\"requestId\":\"$context.requestId\",\"apiId\":\"$context.apiId\",\"resourcePath\":\"$context.routeKey\",\"path\":\"$context.path\",\"httpMethod\":\"$context.httpMethod\",\"stage\":\"$context.stage\",\"status\":\"$context.status\",\"integrationStatus\":\"$context.integrationStatus\",\"integrationLatency\":\"$context.integrationLatency\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"errorMessage\":\"$context.error.message\",\"format\":\"SLS_HTTP_API_LOG\",\"version\":\"1.0.0\"}"
-              }
-            },
-            "DependsOn": "HttpApiLogGroup"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
           },
           "ApiLambdaPermissionHttpApi": {
             "Type": "AWS::Lambda::Permission",
@@ -425,38 +301,16 @@
               "Ref": "ServerlessDeploymentBucket"
             },
             "Export": {
-<<<<<<< HEAD
               "Name": "sls-aws-sandol-dev-ServerlessDeploymentBucketName"
-=======
-              "Name": "sls-aws-sandol-api-dev-ServerlessDeploymentBucketName"
-            }
-          },
-          "EnterpriseLogAccessIamRole": {
-            "Value": {
-              "Fn::GetAtt": [
-                "EnterpriseLogAccessIamRole",
-                "Arn"
-              ]
-            },
-            "Export": {
-              "Name": "sls-aws-sandol-api-dev-EnterpriseLogAccessIamRole"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
             }
           },
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-<<<<<<< HEAD
-              "Ref": "ApiLambdaVersion5HgZTm6vtHPcGlNSdrb7wOhYKa9hC6QxIr5w4HBss"
+              "Ref": "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ"
             },
             "Export": {
               "Name": "sls-aws-sandol-dev-ApiLambdaFunctionQualifiedArn"
-=======
-              "Ref": "ApiLambdaVersionW8jPsAFOLnppd098fVZ8dY7HQDlcnk7DGrPmC6lzY"
-            },
-            "Export": {
-              "Name": "sls-aws-sandol-api-dev-ApiLambdaFunctionQualifiedArn"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
             }
           },
           "HttpApiId": {
@@ -465,11 +319,7 @@
               "Ref": "HttpApi"
             },
             "Export": {
-<<<<<<< HEAD
               "Name": "sls-aws-sandol-dev-HttpApiId"
-=======
-              "Name": "sls-aws-sandol-api-dev-HttpApiId"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
             }
           },
           "HttpApiUrl": {
@@ -494,11 +344,7 @@
               ]
             },
             "Export": {
-<<<<<<< HEAD
               "Name": "sls-aws-sandol-dev-HttpApiUrl"
-=======
-              "Name": "sls-aws-sandol-api-dev-HttpApiUrl"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
             }
           }
         }
@@ -585,24 +431,12 @@
           }
         }
       },
-<<<<<<< HEAD
-=======
-      "logs": {
-        "httpApi": {
-          "format": "{\"requestTime\":\"$context.requestTime\",\"requestId\":\"$context.requestId\",\"apiId\":\"$context.apiId\",\"resourcePath\":\"$context.routeKey\",\"path\":\"$context.path\",\"httpMethod\":\"$context.httpMethod\",\"stage\":\"$context.stage\",\"status\":\"$context.status\",\"integrationStatus\":\"$context.integrationStatus\",\"integrationLatency\":\"$context.integrationLatency\",\"responseLatency\":\"$context.responseLatency\",\"responseLength\":\"$context.responseLength\",\"errorMessage\":\"$context.error.message\",\"format\":\"SLS_HTTP_API_LOG\",\"version\":\"1.0.0\"}"
-        }
-      },
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
       "vpc": {}
     },
     "custom": {
       "wsgi": {
-<<<<<<< HEAD
         "app": "app.app",
         "pythonBin": "python"
-=======
-        "app": "app.app"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
       }
     },
     "plugins": [
@@ -619,31 +453,19 @@
             "resolvedMethod": "ANY"
           }
         ],
-<<<<<<< HEAD
         "name": "aws-sandol-dev-api",
-=======
-        "name": "aws-sandol-api-dev-api",
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
         "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-<<<<<<< HEAD
-        "versionLogicalId": "ApiLambdaVersion5HgZTm6vtHPcGlNSdrb7wOhYKa9hC6QxIr5w4HBss"
-=======
-        "versionLogicalId": "ApiLambdaVersionW8jPsAFOLnppd098fVZ8dY7HQDlcnk7DGrPmC6lzY"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
+        "versionLogicalId": "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ"
       }
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yml",
     "initialServerlessConfig": {
-<<<<<<< HEAD
       "service": "aws-sandol",
-=======
-      "service": "aws-sandol-api",
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
       "frameworkVersion": "3",
       "custom": {
         "$ref": "$[\"service\"][\"custom\"]"
@@ -656,33 +478,14 @@
       },
       "plugins": {
         "$ref": "$[\"service\"][\"plugins\"]"
-<<<<<<< HEAD
       }
     },
     "layers": {},
     "isDashboardMonitoringPreconfigured": false,
-    "artifact": "/Users/cycrpto/Desktop/tuk_sandol_team/aws-sandol-api/.serverless/aws-sandol.zip"
+    "artifact": "/Users/cycrpto/Desktop/tuk_sandol_main/aws-sandol-api/.serverless/aws-sandol.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/aws-sandol/dev/1711529535295-2024-03-27T08:52:15.295Z",
+    "artifactDirectoryName": "serverless/aws-sandol/dev/1711598758817-2024-03-28T04:05:58.817Z",
     "artifact": "aws-sandol.zip"
-=======
-      },
-      "org": "sandol",
-      "app": "aws-sandol-api"
-    },
-    "app": "aws-sandol-api",
-    "org": "sandol",
-    "layers": {},
-    "isDashboardMonitoringPreconfigured": true,
-    "isDashboardAppPreconfigured": true,
-    "orgUid": "294fba6a-090e-4ce6-ae53-5af205b91d7d",
-    "appUid": "ZtXryLr6fPJbmZNJbz",
-    "artifact": "/Users/cycrpto/Desktop/tuk_sandol_team/aws-sandol-api/.serverless/aws-sandol-api.zip"
-  },
-  "package": {
-    "artifactDirectoryName": "serverless/aws-sandol-api/dev/1711517666043-2024-03-27T05:34:26.043Z",
-    "artifact": "aws-sandol-api.zip"
->>>>>>> 0af3c18c2db4fb98040dd3660f0c1581c16af5e1
   }
 }

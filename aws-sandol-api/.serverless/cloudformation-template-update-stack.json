@@ -162,7 +162,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/aws-sandol/dev/1711529535295-2024-03-27T08:52:15.295Z/aws-sandol.zip"
+          "S3Key": "serverless/aws-sandol/dev/1711598758817-2024-03-28T04:05:58.817Z/aws-sandol.zip"
         },
         "Handler": "wsgi_handler.handler",
         "Runtime": "python3.9",
@@ -180,14 +180,14 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersion5HgZTm6vtHPcGlNSdrb7wOhYKa9hC6QxIr5w4HBss": {
+    "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "y5MzgseTyMlyp5ajsdRZaPZ7fPF3e88gy0LLeSATC4I="
+        "CodeSha256": "9tsXl4QNcNu5HsQJJyIzR0lOS2aXUUFwGIH2M6ps7M4="
       }
     },
     "HttpApi": {
@@ -298,7 +298,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersion5HgZTm6vtHPcGlNSdrb7wOhYKa9hC6QxIr5w4HBss"
+        "Ref": "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ"
       },
       "Export": {
         "Name": "sls-aws-sandol-dev-ApiLambdaFunctionQualifiedArn"
