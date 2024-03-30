@@ -9,7 +9,7 @@ app = Flask(__name__)
 def root():
     return "Hello Sandol"
 
-
+@app.route("/meal_view")
 def meal_view():
     output: dict = {
         "version": "2.0",
