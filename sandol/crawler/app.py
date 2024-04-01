@@ -1,8 +1,5 @@
-import os
 import json
-import boto3
-from bs4 import BeautifulSoup
-import requests
+
 
 filename = r'test.json'
 
@@ -18,15 +15,13 @@ class Restaurant:   #식당 개체 생성(정보: 식당명, 점심리스트, �
         self.dinner = dinner
         self.location = location
 
-
-def read_json(filename):
+def get_meals() -> list:
+    filename = r'test.json'
     with open(filename, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    return data
 
-
-def get_meals(data) -> list:
     restaurants = []
+
     for item in data:
         name = item.get('name', '')
         lunch = item.get('lunch_menu', [])
@@ -34,19 +29,20 @@ def get_meals(data) -> list:
         location = item.get('location', '')
         restaurant = Restaurant(name, lunch, dinner, location)
         restaurants.append(restaurant)
+
     return restaurants
 
 
 
 
 
+if __name__ == "__main__":
+    restaurants = get_meals()
 
-data = read_json(filename)
-restaurants = get_meals(data)
-#
-# 결과 출력
-for restaurant in restaurants:
-    lunch = ', '.join(restaurant.lunch)
-    dinner = ', '.join(restaurant.dinner)
-    print(f"Restaurant: {restaurant.name}, Lunch: {lunch}, Dinner: {dinner}, Location: {restaurant.location}")
+    # 결과 출력
+    for restaurant in restaurants:
+        lunch = ', '.join(restaurant.lunch)
+        dinner = ', '.join(restaurant.dinner)
+        print(f"Restaurant: {restaurant.name}, Lunch: {lunch}, Dinner: {dinner}, Location: {restaurant.location}")
+
 
