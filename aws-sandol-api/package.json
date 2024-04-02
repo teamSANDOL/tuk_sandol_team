@@ -2,12 +2,26 @@
   "name": "aws-sandol-api",
   "version": "1.0.0",
   "description": "Example of a Python Flask API service with traditional Serverless Framework",
-  "author": "",
+  "author": "cycrypto",
   "devDependencies": {
     "serverless-python-requirements": "^6.0.1",
     "serverless-wsgi": "^3.0.3"
   },
   "dependencies": {
     "fs-extra": "^11.2.0"
-  }
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teamSANDOL/tuk_sandol_team.git"
+  },
+  "bugs": {
+    "url": "https://github.com/teamSANDOL/tuk_sandol_team/issues"
+  },
+  "homepage": "https://github.com/teamSANDOL/tuk_sandol_team#readme"
 }

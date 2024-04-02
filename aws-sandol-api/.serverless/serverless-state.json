@@ -174,7 +174,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/aws-sandol/dev/1711598758817-2024-03-28T04:05:58.817Z/aws-sandol.zip"
+                "S3Key": "serverless/aws-sandol/dev/1712028662196-2024-04-02T03:31:02.196Z/aws-sandol.zip"
               },
               "Handler": "wsgi_handler.handler",
               "Runtime": "python3.9",
@@ -192,14 +192,14 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ": {
+          "ApiLambdaVersionDp3DNtxQTQJ2twNdZqlNAckAEjbDluYPnkh021Yfo": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "9tsXl4QNcNu5HsQJJyIzR0lOS2aXUUFwGIH2M6ps7M4="
+              "CodeSha256": "ehUkykDmYIhEroICy7mOluRq5HL5WhD4SHFKDo0Cb9A="
             }
           },
           "HttpApi": {
@@ -307,7 +307,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ"
+              "Ref": "ApiLambdaVersionDp3DNtxQTQJ2twNdZqlNAckAEjbDluYPnkh021Yfo"
             },
             "Export": {
               "Name": "sls-aws-sandol-dev-ApiLambdaFunctionQualifiedArn"
@@ -459,7 +459,7 @@
         "timeout": 6,
         "runtime": "python3.9",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersionEpJS8D3Dnc0BIeENQXlo8c1MwKuXxFzBeCOu6rNQ"
+        "versionLogicalId": "ApiLambdaVersionDp3DNtxQTQJ2twNdZqlNAckAEjbDluYPnkh021Yfo"
       }
     },
     "configValidationMode": "warn",
@@ -485,7 +485,7 @@
     "artifact": "/Users/cycrpto/Desktop/tuk_sandol_main/aws-sandol-api/.serverless/aws-sandol.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/aws-sandol/dev/1711598758817-2024-03-28T04:05:58.817Z",
+    "artifactDirectoryName": "serverless/aws-sandol/dev/1712028662196-2024-04-02T03:31:02.196Z",
     "artifact": "aws-sandol.zip"
   }
 }
