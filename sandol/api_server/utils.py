@@ -36,3 +36,23 @@ def add_quick_replies(output: dict, quick_replies: list) -> dict:
     # quickReplies 추가
     output["template"]["quickReplies"] += quick_replies
     return output
+
+
+def add_help_quick_reply(output: dict) -> dict:
+    """도움말 QuickReply를 추가합니다.
+
+    도움말을 발화하는 QuickReply를 추가합니다.
+    ouput은 version, template 키가 있는 최상위 dict입니다.
+    add_quick_replies함수를 사용합니다.
+
+    Args:
+        output (dict): 응답 dict로 version, template 키가 있는 최상위 dict입니다.
+    """
+    quick_replies = [
+        {
+            "messageText": "도움말",
+            "action": "message",
+            "label": "도움말"
+        }
+    ]
+    return add_quick_replies(output, quick_replies)
