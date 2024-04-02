@@ -1,11 +1,11 @@
 name: Deploy sls app
 
-on: 
+on:
   push:
     branches:
       - feature/deploy
 
-jobs:     
+jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
@@ -13,14 +13,14 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
-    - uses: actions/checkout@v3
-    - name: install-python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-    - name: install serverless
-      run: npm i -g serverless
-    - run: serverless plugin install -n serverless-wsgi
-    - name: severless deploy
-      run: sls deploy --verbose --force
+      - uses: actions/checkout@v3
+      - name: Install Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install serverless
+        run: cd aws-sandol-api && npm install -g serverless
+      - run: serverless plugin install -n serverless-wsgi
+      - name: Deploy with serverless
+        run: sls deploy --verbose --force
 
