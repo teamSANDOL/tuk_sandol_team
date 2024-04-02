@@ -17,11 +17,17 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20' # Node.js 버전을 20.x LTS로 설정
+        node-version: '20'
     - name: install-python
-      uses: actions/setup-python@v2 # Python 버전 3.9가 기본적으로 제공되므로 별도의 버전 명시 생략
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    - name: install serverless
+      run: npm install -g serverless
     - name: serverless plugin install
-      run: npm install -g serverless # serverless CLI 전역 설치
-    - run: cd aws-sandol-api && serverless plugin install -n serverless-wsgi # serverless-wsgi 플러그인 설치
+      run: |
+        cd aws-sandol-api
+        npm install # 프로젝트 의존성 설치
+        serverless plugin install -n serverless-wsgi # serverless-wsgi 플러그인 설치
     - name: severless deploy
-      run: cd aws-sandol-api && serverless deploy # serverless로 배포 명령 실행
+      run: cd aws-sandol-api && serverless deploy
