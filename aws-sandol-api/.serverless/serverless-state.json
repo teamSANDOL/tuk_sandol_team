@@ -174,7 +174,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/aws-sandol/dev/1712028662196-2024-04-02T03:31:02.196Z/aws-sandol.zip"
+                "S3Key": "serverless/aws-sandol/dev/1712028996769-2024-04-02T03:36:36.769Z/aws-sandol.zip"
               },
               "Handler": "wsgi_handler.handler",
               "Runtime": "python3.9",
@@ -485,7 +485,7 @@
     "artifact": "/Users/cycrpto/Desktop/tuk_sandol_main/aws-sandol-api/.serverless/aws-sandol.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/aws-sandol/dev/1712028662196-2024-04-02T03:31:02.196Z",
+    "artifactDirectoryName": "serverless/aws-sandol/dev/1712028996769-2024-04-02T03:36:36.769Z",
     "artifact": "aws-sandol.zip"
   }
 }

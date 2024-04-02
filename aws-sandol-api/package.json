@@ -8,7 +8,8 @@
     "serverless-wsgi": "^3.0.3"
   },
   "dependencies": {
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "process-utils": "^4.0.0"
   },
   "main": "index.js",
   "scripts": {
