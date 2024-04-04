@@ -1,6 +1,11 @@
-from flask import Flask, jsonify
 
-from .api_server import make_textcard
+from flask import Flask, request
+
+
+from .api_server import HELP, CAFETERIA_WEB, make_meal_cards
+from .api_server.kakao import Payload
+from .api_server.kakao.response import KakaoResponse
+from .api_server.kakao.skill import TextCard
 from .crawler import Restaurant, get_meals
 
 app = Flask(__name__)
@@ -11,65 +16,49 @@ def root():
     return "Hello Sandol"
 
 
-@app.route("/meal/view")
+@app.post("/meal/view")
 def meal_view():
     """식단 정보를 Carousel TextCard 형태로 반환합니다."""
-    restaurants: list[Restaurant] = get_meals()  # 식당 정보를 가져옵니다.
+    assert request.json is not None
+    payload = Payload.from_dict(request.json)  # 요청 Payload를 파싱합니다.
 
-    # 출력 형식을 만듭니다.
-    output: dict = {
-        "version": "2.0",
-        "template": {
-            "outputs": []
-        }
-    }
-    carousel = {
-        "type": "TextCard",
-        "items": []
-    }
+    # payload에서 cafeteria 값 추출
+    cafeteria = getattr(payload.params, "식당", None) or getattr(
+        payload.params, "cafeteria", None)
 
-    on_cam = [{
-        "simpleText": {
-            "text": "교내 식당"
-        }
-    }]
+    # 식당 정보를 가져옵니다.
+    restaurants: list[Restaurant] = get_meals()
 
-    off_cam = [{
-        "simpleText": {
-            "text": "교외 식당"
-        }
-    }]
-
-    # 식당 정보를 출력 형식에 맞게 변환합니다.
-    for restaurant in restaurants:
-        temp_carousel: dict = carousel.copy()
-
-        # 식단 정보를 TextCard 형태로 변환합니다.
-        lunch = make_textcard(
-            title=f"{restaurant.name}(점심)",
-            description="\n".join(restaurant.lunch)
-        )
-        dinner = make_textcard(
-            title=f"{restaurant.name}(저녁)",
-            description="\n".join(restaurant.dinner)
-        )
-
-        assert isinstance(temp_carousel["items"], list)
-        # Carousel에 Card를 추가합니다.
-        temp_carousel["items"].append(lunch)
-        temp_carousel["items"].append(dinner)
-
-        # Carousel을 출력 형식에 추가합니다.
-        if restaurant.location == "교내":
-            on_cam.append(temp_carousel)
-        elif restaurant.location == "교외":
-            off_cam.append(temp_carousel)
+    # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
+    if cafeteria:
+        if cafeteria.value in ["미가", "세미콘", "수호"]:
+            # 식단 정보를 해당 식당 정보로 필터링
+            restaurants = [r for r in restaurants if r.name == cafeteria.value]
         else:
-            raise ValueError(f"Invalid location: {restaurant.location}")
+            # TIP 또는 E동 식당인 경우
+            return CAFETERIA_WEB.get_json()
 
-    output["template"]["outputs"] = on_cam + off_cam
+    # 점심과 저녁 메뉴를 담은 Carousel 생성
+    lunch_carousel, dinner_carousel = make_meal_cards(restaurants)
 
-    return jsonify(output)  # JSON 형태로 반환합니다.
+    response = KakaoResponse()  # 응답 객체 생성
+
+    # 점심과 저녁 메뉴 Carousel을 SkillList에 추가
+    # 모듈에서 자동으로 비어있는 Carousel은 추가하지 않음
+    response.add_skill(lunch_carousel)
+    response.add_skill(dinner_carousel)
+    if not cafeteria or cafeteria.value not in ["미가", "세미콘", "수호"]:
+        response.add_skill(CAFETERIA_WEB)
+
+    # 식단 정보가 없는 경우 정보 없음 TextCard 추가
+    if response.is_empty:
+        response.add_skill(TextCard("식단 정보가 없습니다."))
+
+    # 도움말 추가
+    response.add_quick_reply(HELP)
+
+    return response.get_json()
 
 
-app.run()
+if __name__ == "__main__":
+    app.run()
