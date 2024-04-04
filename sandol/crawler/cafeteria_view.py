@@ -8,8 +8,7 @@ class Restaurant:   #식당 개체 생성(정보: 아이디, 식당명, 점심�
     temp_menu, final_menu = {}, {}
 
 
-    def __init__(self, id, name, lunch, dinner, location):
-        self.id = id
+    def __init__(self, name, lunch, dinner, location):
         self.name = name
         self.lunch = lunch
         self.dinner = dinner
@@ -17,11 +16,9 @@ class Restaurant:   #식당 개체 생성(정보: 아이디, 식당명, 점심�
 
 
     @classmethod
-    def by_id(cls, identification):
-        #settings. RESTAURANT_ACCESS_ID : {id : name}
-        restaurant_name = settings.RESTAURANT_ACCESS_ID.get(identification)
-
-        if restaurant_name:
+    def by_id(cls, rest_name):
+        nametable = ['미가', '세미콘', '수호']
+        if rest_name in nametable:
             #test.json : {id:"", name: "", lunch : "" ...}
             filename = r'test.json'
             with open(filename, 'r', encoding='utf-8') as file:
@@ -29,12 +26,12 @@ class Restaurant:   #식당 개체 생성(정보: 아이디, 식당명, 점심�
 
                 for restaurant_data in data:
                     #id 검사
-                    if restaurant_data["identification"] == identification:
+                    if restaurant_data["name"] == rest_name:
                         #초깃값 할당 및 객체 생성
-                        return cls(restaurant_data["identification"], restaurant_name, restaurant_data["lunch_menu"],
+                        return cls(rest_name, restaurant_data["lunch_menu"],
                                    restaurant_data["dinner_menu"], restaurant_data["location"])
         else:
-            raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{identification}'")
+            raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{rest_name}'")
 
 
 
@@ -84,8 +81,9 @@ class Restaurant:   #식당 개체 생성(정보: 아이디, 식당명, 점심�
 
 
 if __name__ == "__main__":
-    id = "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6"
-    rest = Restaurant.by_id(id)
+    restaurant = "미가"
+    rest = Restaurant.by_id(restaurant)
+
 
     # print(rest.get_temp_menus())
     #
