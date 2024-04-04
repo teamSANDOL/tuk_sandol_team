@@ -1,4 +1,4 @@
-import settings
+import os
 import json
 
 class Restaurant:   #식당 개체 생성(정보: 아이디, 식당명, 점심리스트, 저녁리스트, 교내외 위치)
@@ -20,7 +20,9 @@ class Restaurant:   #식당 개체 생성(정보: 아이디, 식당명, 점심�
         nametable = ['미가', '세미콘', '수호']
         if rest_name in nametable:
             #test.json : {id:"", name: "", lunch : "" ...}
-            filename = r'test.json'
+            current_dir = os.path.dirname(__file__)
+            filename = os.path.join(current_dir, 'test.json')
+
             with open(filename, 'r', encoding='utf-8') as file:
                 data = json.load(file)
 
@@ -30,6 +32,7 @@ class Restaurant:   #식당 개체 생성(정보: 아이디, 식당명, 점심�
                         #초깃값 할당 및 객체 생성
                         return cls(rest_name, restaurant_data["lunch_menu"],
                                    restaurant_data["dinner_menu"], restaurant_data["location"])
+
         else:
             raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{rest_name}'")
 
