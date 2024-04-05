@@ -25,18 +25,23 @@ def meal_view():
     # payload에서 cafeteria 값 추출
     cafeteria = getattr(payload.params, "식당", None) or getattr(
         payload.params, "cafeteria", None)
+    target_cafeteria = getattr(cafeteria, "value", None)
 
     # 식당 정보를 가져옵니다.
-    restaurants: list[Restaurant] = get_meals()
+    cafeteria_list: list[Restaurant] = get_meals()
 
     # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
-    if cafeteria:
-        if cafeteria.value in ["미가", "세미콘", "수호"]:
+    if target_cafeteria:
+        if target_cafeteria in ["미가", "세미콘", "수호"]:
             # 식단 정보를 해당 식당 정보로 필터링
-            restaurants = [r for r in restaurants if r.name == cafeteria.value]
+            restaurants = [
+                r for r in cafeteria_list if r.name == target_cafeteria]
         else:
             # TIP 또는 E동 식당인 경우
             return CAFETERIA_WEB.get_json()
+    else:
+        # cafeteria 값이 없을 경우 전체 식당 정보 반환
+        restaurants = cafeteria_list
 
     # 점심과 저녁 메뉴를 담은 Carousel 생성
     lunch_carousel, dinner_carousel = make_meal_cards(restaurants)
@@ -56,6 +61,18 @@ def meal_view():
 
     # 도움말 추가
     response.add_quick_reply(HELP)
+    response.add_quick_reply(
+        label="모두 보기",
+        action="message",
+        messageText="테스트 학식",
+    )
+    for rest in cafeteria_list:
+        if rest.name != target_cafeteria:
+            response.add_quick_reply(
+                label=rest.name,
+                action="message",
+                messageText=f"테스트 학식 {rest.name}",
+            )
 
     return response.get_json()
 
