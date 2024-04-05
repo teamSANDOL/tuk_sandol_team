@@ -34,12 +34,12 @@ class Action(Enum):
         SHARE (str): 말풍선을 다른 유저에게 공유
         OPERATOR (str): 상담원 연결
     """
-    WEBLINK = 'webLink'
-    MESSAGE = 'message'
-    PHONE = 'phone'
-    BLOCK = 'block'
-    SHARE = 'share'
-    OPERATOR = 'operator'
+    WEBLINK = "webLink"
+    MESSAGE = "message"
+    PHONE = "phone"
+    BLOCK = "block"
+    SHARE = "share"
+    OPERATOR = "operator"
 
 
 class QuickReply(Common):
@@ -52,15 +52,12 @@ class QuickReply(Common):
     Args:
         label (str): 사용자에게 보여질 버튼의 텍스트
         action (str | Action): 바로가기 응답의 기능, 문자열 또는 Action 열거형, 기본값은 "Message"
-        messageText (Optional[str]): action이 "Message"인 경우 사용자가 챗봇에게 전달할 메시지
-        blockId (Optional[str]): action이 "Block"인 경우 호출할 블록의 ID
-        extra (Optional[dict]): 블록을 호출 시 스킬 서버에 추가로 전달할 데이터
+        messageText (str | None): action이 "Message"인 경우 사용자가 챗봇에게 전달할 메시지
+        blockId (str | None): action이 "Block"인 경우 호출할 블록의 ID
+        extra (dict | None): 블록을 호출 시 스킬 서버에 추가로 전달할 데이터
     """
     # QuickReply의 action에 따라 필요한 필드를 매핑하는 딕셔너리
-    action_field_map = {
-        Action.MESSAGE: "messageText",
-        Action.BLOCK: "blockId"
-    }
+    action_field_map = {Action.MESSAGE: "messageText", Action.BLOCK: "blockId"}
 
     def __init__(
             self,
@@ -139,16 +136,16 @@ class QuickReply(Common):
         """
         self.validate()
         self.response_content_obj = {
-            'label': self.label,
-            'action': self.action.value,
+            "label": self.label,
+            "action": self.action.value,
         }
 
-        self.response_content_obj[
-            QuickReply.action_field_map[self.action]] = getattr(
-            self, QuickReply.action_field_map[self.action])
+        self.response_content_obj[QuickReply.action_field_map[
+            self.action]] = getattr(self,
+                                    QuickReply.action_field_map[self.action])
 
         if self.extra is not None:
-            self.response_content_obj['extra'] = self.extra
+            self.response_content_obj["extra"] = self.extra
 
         return self.response_content_obj
 
@@ -290,16 +287,17 @@ class QuickReplies(Common):
         Raises:
             InvalidTypeError: buttons의 각 요소가 Button 객체가 아닌 경우
         """
-        quickReplies = []
+        quick_replies = []
         for button in buttons:
             assert isinstance(button, Button)
-            quickReplies.append(QuickReply(
-                label=button.label,
-                action=button.action,
-                messageText=button.messageText,
-                blockId=button.blockId,)
-            )
-        return cls(quickReplies)
+            quick_replies.append(
+                QuickReply(
+                    label=button.label,
+                    action=button.action,
+                    messageText=button.messageText,
+                    blockId=button.blockId,
+                ))
+        return cls(quick_replies)
 
 
 class Button(Common):
@@ -329,9 +327,15 @@ class Button(Common):
         Action.BLOCK: "blockId"
     }
 
-    def __init__(self, label: str, action: str | Action, webLinkUrl: Optional[str] = None,
-                 messageText: Optional[str] = None, phoneNumber: Optional[str] = None, blockId: Optional[str] = None,
-                 extra: Optional[dict] = None):
+    def __init__(
+            self,
+            label: str,
+            action: str | Action,
+            webLinkUrl: Optional[str] = None,
+            messageText: Optional[str] = None,
+            phoneNumber: Optional[str] = None,
+            blockId: Optional[str] = None,
+            extra: Optional[dict] = None):
 
         super().__init__()
         self.label = label
@@ -398,13 +402,12 @@ class Button(Common):
         """
         self.validate()
         self.response_content_obj = {
-            'label': self.label,
-            'action': self.action.value,
+            "label": self.label,
+            "action": self.action.value,
         }
 
-        self.response_content_obj[
-            Button.action_field_map[self.action]] = getattr(
-            self, Button.action_field_map[self.action])
+        self.response_content_obj[Button.action_field_map[
+            self.action]] = getattr(self, Button.action_field_map[self.action])
 
         if self.extra is not None:
             self.response_content_obj.update(self.extra)
@@ -421,12 +424,12 @@ class Buttons(Common):
     add_button 메서드를 통해 Button 객체를 추가하고,
     delete_button 메서드를 통해 Button 객체를 삭제할 수 있습니다.
     render 메서드를 통해 Buttons 객체를 response 객체에 넣을 수 있는 형태로 변환합니다.
-
-    Args:
-        Common (_type_): _description_
     """
 
-    def __init__(self, buttons: Optional[list[Button]] = None, max_buttons: int = 3):
+    def __init__(
+            self,
+            buttons: Optional[list[Button]] = None,
+            max_buttons: int = 3):
         super().__init__()
         self._buttons = buttons or []
         self.max_buttons = max_buttons
@@ -457,24 +460,25 @@ class Buttons(Common):
             InvalidTypeError: 버튼이 Button 객체가 아닌 경우
         """
         if len(self._buttons) > self.max_buttons:
-            raise InvalidTypeError(
-                "버튼은 최대 {}개까지 가능합니다.".format(self.max_buttons))
+            raise InvalidTypeError(f"버튼은 최대 {self.max_buttons}개까지 가능합니다.")
         if False in [isinstance(button, Button) for button in self._buttons]:
             raise InvalidTypeError("self._buttons는 Button으로 이루어져야 합니다.")
 
     @overload
-    def add_button(self, button: Button) -> None: ...
+    def add_button(self, button: Button) -> None:
+        ...
 
     @overload
     def add_button(
-        self,
-        label: str,
-        action: str | Action,
-        webLinkUrl: Optional[str] = None,
-        messageText: Optional[str] = None,
-        phoneNumber: Optional[str] = None,
-        blockId: Optional[str] = None,
-        extra: Optional[dict] = None): ...
+            self,
+            label: str,
+            action: str | Action,
+            webLinkUrl: Optional[str] = None,
+            messageText: Optional[str] = None,
+            phoneNumber: Optional[str] = None,
+            blockId: Optional[str] = None,
+            extra: Optional[dict] = None):
+        ...
 
     def add_button(self, *args, **kwargs) -> None:
         """버튼을 추가합니다.
@@ -546,7 +550,11 @@ class Link(Common):
         mobile (Optional[str]): 모바일 링크
     """
 
-    def __init__(self, web: Optional[str] = None, pc: Optional[str] = None, mobile: Optional[str] = None):
+    def __init__(
+            self,
+            web: Optional[str] = None,
+            pc: Optional[str] = None,
+            mobile: Optional[str] = None):
         super().__init__()
         self.web = web
         self.pc = pc
@@ -590,14 +598,18 @@ class Thumbnail(Common):
     Args:
         image_url (str): 썸네일 이미지 URL
         link (Link): 썸네일 이미지 클릭 시 이동할 링크, 기본값은 None
-        fixedRatio (bool): 이미지의 비율을 고정할지 여부, 기본값은 False
+        fixed_ratio (bool): 이미지의 비율을 고정할지 여부, 기본값은 False
     """
 
-    def __init__(self, image_url: str, link: Optional[Link] = None, fixedRatio: bool = False):
+    def __init__(
+            self,
+            image_url: str,
+            link: Optional[Link] = None,
+            fixed_ratio: bool = False):
         super().__init__()
         self.image_url = image_url
         self.link = link
-        self.fixedRatio = fixedRatio
+        self.fixed_ratio = fixed_ratio
 
     def validate(self):
         """Thumbnail 객체의 유효성을 검사합니다.
@@ -605,29 +617,28 @@ class Thumbnail(Common):
         Raises:
             InvalidTypeError: image_url이 문자열이 아닌 경우
             InvalidTypeError: link가 Link 객체가 아닌 경우
-            InvalidTypeError: fixedRatio가 bool이 아닌 경우
+            InvalidTypeError: fixed_ratio가 bool이 아닌 경우
         """
         validate_str(self.image_url)
         validate_type(Link, self.link, disallow_none=False)
-        validate_type(bool, self.fixedRatio)
+        validate_type(bool, self.fixed_ratio)
 
     def render(self) -> dict:
         """Thumbnail 객체를 카카오톡 응답 형식에 맞게 딕셔너리로 변환합니다.
 
-        response_content_obj에 image_url, fixedRatio, link를 저장합니다.
+        response_content_obj에 image_url, fixed_ratio, link를 저장합니다.
 
         Returns:
             dict: 카카오톡 응답 형식에 맞게 변환된 Thumbnail 딕셔너리
         """
         self.validate()
         self.response_content_obj = {
-            'imageUrl': self.image_url,
-            'fixedRatio': self.fixedRatio,
+            "imageUrl": self.image_url,
+            "fixedRatio": self.fixed_ratio,
         }
         self.create_dict_with_non_none_values(
             base=self.response_content_obj,
-            link=self.link.render() if self.link is not None else None
-        )
+            link=self.link.render() if self.link is not None else None)
         return self.response_content_obj
 
 
@@ -658,8 +669,7 @@ class Thumbnails(Common):
             InvalidTypeError: 썸네일 이미지의 개수가 최대 개수를 초과하는 경우
         """
         if len(self._thubnails) > self.max_thumbnails:
-            raise InvalidTypeError(
-                "버튼은 최대 {}개까지 가능합니다.".format(self.max_thumbnails))
+            raise InvalidTypeError(f"버튼은 최대 {self.max_thumbnails}개까지 가능합니다.")
         for thumbnail in self._thubnails:
             validate_type(Thumbnail, thumbnail)
 
@@ -756,7 +766,7 @@ class ListItem(Common):
     Args:
         title (str): header에 들어가는 경우, listCard의 제목, items에 들어가는 경우, 해당 항목의 제목
         description (Optional[str]): items에 들어가는 경우, 해당 항목의 설명
-        imageUrl (Optional[str]): items에 들어가는 경우, 해당 항목의 우측 안내 사진
+        image_url (Optional[str]): items에 들어가는 경우, 해당 항목의 우측 안내 사진
         link (Optional[Link]): 리스트 아이템 클릭 시 동작할 링크
         action (Optional[str | Action]): 리스트 아이템 클릭시 수행될 작업(block 또는 message)
         block_id (Optional[str]): action이 block인 경우 block_id를 갖는 블록을 호출
@@ -764,13 +774,20 @@ class ListItem(Common):
         extra (Optional[dict]): 블록 호출시, 스킬 서버에 추가적으로 제공하는 정보
     """
 
-    def __init__(self, title: str, description: Optional[str] = None, imageUrl: Optional[str] = None,
-                 link: Optional[Link] = None, action: Optional[str | Action] = None, block_id: Optional[str] = None,
-                 message_text: Optional[str] = None, extra: Optional[dict] = None):
+    def __init__(
+            self,
+            title: str,
+            description: Optional[str] = None,
+            image_url: Optional[str] = None,
+            link: Optional[Link] = None,
+            action: Optional[str | Action] = None,
+            block_id: Optional[str] = None,
+            message_text: Optional[str] = None,
+            extra: Optional[dict] = None):
         super().__init__()
         self.title = title
         self.description = description
-        self.imageUrl = imageUrl
+        self.image_url = image_url
         self.link = link
         self.action = action
         self.block_id = block_id
@@ -783,11 +800,11 @@ class ListItem(Common):
         Raises:
             InvalidTypeError: title이 문자열이 아닌 경우
             InvalidTypeError: description이 문자열이 아닌 경우
-            InvalidTypeError: imageUrl이 문자열이 아닌 경우
+            InvalidTypeError: image_url이 문자열이 아닌 경우
             InvalidTypeError: link가 Link 객체가 아닌 경우
         """
         validate_str(
-            self.title, self.description, self.imageUrl,
+            self.title, self.description, self.image_url,
             self.block_id, self.message_text)
         validate_type(Link, self.link)
 
@@ -799,9 +816,9 @@ class ListItem(Common):
         """
         self.validate()
         self.response_content_obj = {
-            'title': self.title,
-            'description': self.description,
-            'imageUrl': self.imageUrl,
+            "title": self.title,
+            "description": self.description,
+            "imageUrl": self.image_url,
         }
 
         self.create_dict_with_non_none_values(
@@ -825,7 +842,10 @@ class ListItems(Common):
         max_list_items (int): ListItem의 최대 개수, 기본값은 5
     """
 
-    def __init__(self, list_items: Optional[list[ListItem]] = None, max_list_items: int = 5):
+    def __init__(
+            self,
+            list_items: Optional[list[ListItem]] = None,
+            max_list_items: int = 5):
         super().__init__()
         if list_items is None:
             list_items = []
@@ -887,10 +907,9 @@ class ListItems(Common):
 
 
 if __name__ == "__main__":
-    button = Button(
+    testbutton = Button(
         label="구경하기",
         action="webLink",
         webLinkUrl="https://sio2.pe.kr/login",
-        messageText=None
-    )
-    print(button.render())
+        messageText=None)
+    print(testbutton.render())

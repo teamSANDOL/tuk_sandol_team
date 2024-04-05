@@ -2,7 +2,6 @@ import json
 from abc import abstractmethod
 from typing import Any, Optional, Union, overload
 
-from .skill import Carousel
 from .common import QuickReplies, QuickReply
 from .base import BaseModel
 
@@ -137,8 +136,8 @@ class BaseResponse(BaseModel):
             self,
             label: str,
             action: str,
-            message_text: Optional[str] = None,
-            block_id: Optional[str] = None,
+            messageText: Optional[str] = None,
+            blockId: Optional[str] = None,
             extra: Optional[dict] = None) -> "BaseResponse":
         """
         QuickReplies에 QuickReply를 인자로 객체를 생성하여 추가합니다.
@@ -147,7 +146,7 @@ class BaseResponse(BaseModel):
             label (str): QuickReply의 라벨
             action (str): QuickReply의 액션
             messageText (str): QuickReply의 messageText
-            block_id (str): QuickReply의 blockId
+            blockId (str): QuickReply의 blockId
             extra (dict): QuickReply의 extra
         """
 
@@ -380,6 +379,7 @@ class KakaoResponse(BaseResponse):
         Returns:
             BaseResponse: ParentSkill 객체가 추가된 BaseResponse 객체
         """
+        from .skill import Carousel  # 순환 참조 방지
         skill.solo_mode = False
         if isinstance(skill, Carousel):
             if skill.is_empty:

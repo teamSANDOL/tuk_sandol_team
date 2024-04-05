@@ -7,12 +7,12 @@ from .customerror import InvalidPayloadError
 
 class ParentPayload(ABC):
     @classmethod
-    @abstractmethod
-    def from_json(cls, json_payload: str): ...
+    def from_json(cls, data: str):
+        return cls.from_dict(json.loads(data))
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, dict_payload: dict): ...
+    def from_dict(cls, data: dict): ...
 
 
 class Param(ParentPayload):
@@ -29,19 +29,14 @@ class Param(ParentPayload):
             setattr(self, key, value)
 
     @classmethod
-    def from_json(cls, detail_param_json: str):
-        detail_param_dict = json.loads(detail_param_json)
-        return cls.from_dict(detail_param_dict)
-
-    @classmethod
-    def from_dict(cls, detail_param_dict: dict):
+    def from_dict(cls, data: dict):
         # value가 딕셔너리 타입이면, 이를 **kwargs로 전달
-        additional_params = detail_param_dict['value'] if isinstance(
-            detail_param_dict.get('value'), dict) else {}
+        additional_params = data['value'] if isinstance(
+            data.get('value'), dict) else {}
         try:
-            origin = detail_param_dict['origin']
-            value = detail_param_dict['value']
-            group_name = detail_param_dict['groupName']
+            origin = data['origin']
+            value = data['value']
+            group_name = data['groupName']
             return cls(
                 origin=origin,
                 value=value,
@@ -50,7 +45,7 @@ class Param(ParentPayload):
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "Param 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+                'Param 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class Params(ParentPayload):
@@ -59,15 +54,10 @@ class Params(ParentPayload):
             setattr(self, key, value)
 
     @classmethod
-    def from_json(cls, action_json: str):
-        params_dict = json.loads(action_json)
-        return cls.from_dict(params_dict)
-
-    @classmethod
-    def from_dict(cls, action_dict: dict):
+    def from_dict(cls, data: dict):
         params = {
             key: Param.from_dict(value)
-            for key, value in action_dict.get("detailParams", {}).items()
+            for key, value in data.get('detailParams', {}).items()
         }
         return cls(**params)
 
@@ -102,18 +92,13 @@ class Action(ParentPayload):
         self.clientExtra = client_extra
 
     @classmethod
-    def from_json(cls, action_json: str):
-        action_dict = json.loads(action_json)
-        return cls.from_dict(action_dict)
-
-    @classmethod
-    def from_dict(cls, action_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            _id = action_dict['id']
-            name = action_dict['name']
-            params = Params.from_dict(action_dict)
-            detail_params = action_dict['detailParams']
-            client_extra = action_dict['clientExtra']
+            _id = data['id']
+            name = data['name']
+            params = Params.from_dict(data)
+            detail_params = data['detailParams']
+            client_extra = data['clientExtra']
             return cls(
                 id=_id,
                 name=name,
@@ -123,7 +108,7 @@ class Action(ParentPayload):
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "Action 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+                'Action 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class Bot(ParentPayload):
@@ -132,21 +117,16 @@ class Bot(ParentPayload):
         self.name = name
 
     @classmethod
-    def from_json(cls, bot_json: str):
-        bot_dict = json.loads(bot_json)
-        return cls.from_dict(bot_dict)
-
-    @classmethod
-    def from_dict(cls, bot_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            _id = bot_dict['id']
-            name = bot_dict['name']
+            _id = data['id']
+            name = data['name']
             return cls(
                 id=_id,
                 name=name
             )
         except KeyError as err:
-            raise InvalidPayloadError("Bot 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+            raise InvalidPayloadError('Bot 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class IntentExtra(ParentPayload):
@@ -155,22 +135,17 @@ class IntentExtra(ParentPayload):
         self.knowledge = knowledge
 
     @classmethod
-    def from_json(cls, intent_extra_json: str):
-        intent_extra_dict = json.loads(intent_extra_json)
-        return cls.from_dict(intent_extra_dict)
-
-    @classmethod
-    def from_dict(cls, intent_extra_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            reason = intent_extra_dict['reason']
-            knowledge = intent_extra_dict.get('knowledge')
+            reason = data['reason']
+            knowledge = data.get('knowledge')
             return cls(
                 reason=reason,
                 knowledge=knowledge
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "IntentExtra 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+                'IntentExtra 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class Intent(ParentPayload):
@@ -184,16 +159,11 @@ class Intent(ParentPayload):
         self.extra = extra
 
     @classmethod
-    def from_json(cls, intent_json: str):
-        intent_dict = json.loads(intent_json)
-        return cls.from_dict(intent_dict)
-
-    @classmethod
-    def from_dict(cls, intent_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            _id = intent_dict['id']
-            name = intent_dict['name']
-            extra = IntentExtra.from_dict(intent_dict['extra'])
+            _id = data['id']
+            name = data['name']
+            extra = IntentExtra.from_dict(data['extra'])
             return cls(
                 id=_id,
                 name=name,
@@ -201,7 +171,7 @@ class Intent(ParentPayload):
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "Intent 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+                'Intent 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class UserProperties(ParentPayload):
@@ -216,11 +186,11 @@ class UserProperties(ParentPayload):
         self.is_friend = is_friend
 
     @classmethod
-    def from_dict(cls, user_properties_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            plusfriend_user_key = user_properties_dict['plusfriendUserKey']
-            app_user_id = user_properties_dict['appUserId']
-            is_friend = user_properties_dict['isFriend']
+            plusfriend_user_key = data['plusfriendUserKey']
+            app_user_id = data['appUserId']
+            is_friend = data['isFriend']
             return cls(
                 plusfriend_user_key=plusfriend_user_key,
                 app_user_id=app_user_id,
@@ -228,12 +198,7 @@ class UserProperties(ParentPayload):
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "UserProperties 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
-
-    @classmethod
-    def from_json(cls, user_properties_json: str):
-        user_properties_dict = json.loads(user_properties_json)
-        return cls.from_dict(user_properties_dict)
+                'UserProperties 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class User(ParentPayload):
@@ -251,16 +216,11 @@ class User(ParentPayload):
         self.properties = properties
 
     @classmethod
-    def from_json(cls, user_request_json: str):
-        user_request_dict = json.loads(user_request_json)
-        return cls.from_dict(user_request_dict)
-
-    @classmethod
-    def from_dict(cls, user_request_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            _id = user_request_dict['id']
-            _type = user_request_dict['type']
-            properties = user_request_dict.get('properties', {})
+            _id = data['id']
+            _type = data['type']
+            properties = data.get('properties', {})
             return cls(
                 id=_id,
                 type=_type,
@@ -268,7 +228,7 @@ class User(ParentPayload):
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "User 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+                'User 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class UserRequest(ParentPayload):
@@ -290,20 +250,15 @@ class UserRequest(ParentPayload):
         self.callback_url = callback_url
 
     @classmethod
-    def from_json(cls, user_request_json: str):
-        user_request_dict = json.loads(user_request_json)
-        return cls.from_dict(user_request_dict)
-
-    @classmethod
-    def from_dict(cls, user_request_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            timezone = user_request_dict['timezone']
-            block = user_request_dict['block']
-            utterance = user_request_dict['utterance']
-            lang = user_request_dict['lang']
-            user = User.from_dict(user_request_dict['user'])
-            params = user_request_dict['params']
-            callback_url = user_request_dict.get('callbackUrl')
+            timezone = data['timezone']
+            block = data['block']
+            utterance = data['utterance']
+            lang = data['lang']
+            user = User.from_dict(data['user'])
+            params = data['params']
+            callback_url = data.get('callbackUrl')
             return cls(
                 timezone=timezone,
                 block=block,
@@ -315,7 +270,7 @@ class UserRequest(ParentPayload):
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "UserRequest 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+                'UserRequest 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
 
 class Payload(ParentPayload):
@@ -331,17 +286,12 @@ class Payload(ParentPayload):
         self.action = action
 
     @classmethod
-    def from_json(cls, payload_json: str):
-        payload_dict = json.loads(payload_json)
-        return cls.from_dict(payload_dict)
-
-    @classmethod
-    def from_dict(cls, payload_dict: dict):
+    def from_dict(cls, data: dict):
         try:
-            intent = Intent.from_dict(payload_dict['intent'])
-            user_request = UserRequest.from_dict(payload_dict['userRequest'])
-            bot = Bot.from_dict(payload_dict['bot'])
-            action = Action.from_dict(payload_dict['action'])
+            intent = Intent.from_dict(data['intent'])
+            user_request = UserRequest.from_dict(data['userRequest'])
+            bot = Bot.from_dict(data['bot'])
+            action = Action.from_dict(data['action'])
             return cls(
                 intent=intent,
                 user_request=user_request,
@@ -350,7 +300,7 @@ class Payload(ParentPayload):
             )
         except KeyError as err:
             raise InvalidPayloadError(
-                "Payload 객체를 생성하기 위한 키가 존재하지 않습니다.") from err
+                'Payload 객체를 생성하기 위한 키가 존재하지 않습니다.') from err
 
     @property
     def user_id(self):

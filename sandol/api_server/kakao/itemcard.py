@@ -5,8 +5,11 @@ from .validatiion import validate_str, validate_int, validate_type
 
 
 class Thumbnail(Common):
-    def __init__(self, image_url: str, wdith: Optional[int] = None, height: Optional[int] = None,
-                 link: Optional[Link] = None):
+    def __init__(
+            self, image_url: str,
+            wdith: Optional[int] = None,
+            height: Optional[int] = None,
+            link: Optional[Link] = None):
         super().__init__()
         self.image_url = image_url
         self.width = wdith
@@ -23,7 +26,7 @@ class Thumbnail(Common):
             imageUrl=self.image_url,
             width=self.width,
             height=self.height,
-            link=self.link.render()
+            link=self.link.render() if self.link is not None else None
         )
 
 
