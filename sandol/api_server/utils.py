@@ -1,3 +1,4 @@
+"""API 서버에서 사용하는 유틸리티 함수들을 정의합니다."""
 from sandol.crawler.cafeteria_view import Restaurant
 from .kakao.skill import Carousel, TextCard
 

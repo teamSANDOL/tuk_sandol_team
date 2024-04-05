@@ -1,4 +1,4 @@
-
+"""Sandol API 서버를 실행하는 파일입니다."""
 from flask import Flask, request
 
 

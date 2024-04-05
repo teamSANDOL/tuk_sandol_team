@@ -1,3 +1,4 @@
+"""응답에 사용되는 상수들을 정의합니다."""
 from .kakao.response import QuickReply
 from .kakao.skill import TextCard
 
