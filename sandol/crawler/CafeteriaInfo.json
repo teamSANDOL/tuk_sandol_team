@@ -1,0 +1,21 @@
+[
+  {
+    "cafeteria_name": "미가",
+    "lunch_menu": ["된장찌개", "제육볶음", "김치찌개"],
+    "dinner_menu": ["생선구이", "돼지고기국밥", "비빔밥"],
+    "location": "학교 정문 앞"
+  },
+  {
+    "cafeteria_name": "세미콘",
+    "lunch_menu": ["세미콘점심", "세미콘점심2", "세미콘점심3"],
+    "dinner_menu": ["세미콘저녁", "세미콘저녁2", "세미콘저녁3"],
+    "location": "산융 건너편"
+  },
+  {
+    "cafeteria_name": "수호식당",
+    "lunch_menu": ["흰쌀밥", "족발", "보쌈"],
+    "dinner_menu": ["짜파게티", "파김치", "수육"],
+    "location": "TIP 1층"
+  }
+]
+
