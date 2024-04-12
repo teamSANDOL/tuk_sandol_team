@@ -46,9 +46,15 @@ class Restaurant:
                 "meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
-            self.lunch.append(menu)
+            if menu in self.lunch:
+                print("해당 메뉴는 이미 메뉴 목록에 존재 합니다.")
+            else:
+                self.lunch.append(menu)
         elif meal_time.lower() == "dinner":
-            self.dinner.append(menu)
+            if menu in self.dinner:
+                print("해당 메뉴는 이미 메뉴 목록에 존재 합니다.")
+            else:
+                self.dinner.append(menu)
         else:
             print("[ValueError]: First value should be 'lunch' or 'dinner'.")
 
@@ -135,9 +141,16 @@ class Restaurant:
             else:
                 print("[Error]: Restaurant doesn't exist in test.json file.")
 
-        self.lunch = []
-        self.dinner = []
-        self.save_temp_menu()
+        current_dir = os.path.dirname(__file__)
+        temp_menu_path = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        if os.path.exists(temp_menu_path):
+            self.lunch, self.dinner = [], []
+            self.save_temp_menu()
+            # 임시 파일 삭제
+            os.remove(temp_menu_path)
+            # print("temp_menu.json 파일이 삭제 되었습니다.")
+        else:
+            print("temp_menu.json 파일이 존재하지 않습니다.")
 
     def __str__(self):
         return f"Restaurant: {self.name}, Lunch: {self.lunch}, Dinner: {self.dinner}, Location: {self.location}"
