@@ -41,22 +41,22 @@ class Restaurant:
         else:
             raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{id_address}'")
 
-    def add_menu(self, meal_time, menu):         # 단일 메뉴 추가 메서드
+    def add_menu(self, meal_time, menu):        # 단일 메뉴 추가 메서드
         if not isinstance(meal_time, str):
             raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.lunch:
-                print("해당 메뉴는 이미 메뉴 목록에 존재 합니다.")
+                raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
             else:
                 self.lunch.append(menu)
         elif meal_time.lower() == "dinner":
             if menu in self.dinner:
-                print("해당 메뉴는 이미 메뉴 목록에 존재 합니다.")
+                raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
             else:
                 self.dinner.append(menu)
         else:
-            print("[ValueError]: First value should be 'lunch' or 'dinner'.")
+            raise ValueError("meal_time should be 'lunch' or 'dinner'.")
 
         # save temp_menu.json
         self.save_temp_menu()
@@ -69,16 +69,14 @@ class Restaurant:
             if menu in self.lunch:
                 self.lunch.remove(menu)
             else:
-                print("해당 메뉴는 등록되지 않은 메뉴입니다.")
-
+                raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
         elif meal_time.lower() == "dinner":
             if menu in self.dinner:
                 self.dinner.remove(menu)
             else:
-                print("해당 메뉴는 등록되지 않은 메뉴입니다.")
-
+                raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
         else:
-            print("[ValueError]: First value should be 'lunch' or 'dinner'.")
+            raise ValueError("meal_time should be 'lunch' or 'dinner'.")
 
         # save temp_menu.json
         self.save_temp_menu()
@@ -121,7 +119,7 @@ class Restaurant:
         filename = os.path.join(current_dir, 'test.json')
 
         # read and write
-        with open(filename, 'r+', encoding='utf-8') as file:
+        with open(filename, 'r', encoding='utf-8') as file:
             try:
                 data = json.load(file)
             except json.decoder.JSONDecodeError:
@@ -134,7 +132,7 @@ class Restaurant:
                     restaurant_data["dinner_menu"] = self.temp_menu["dinner"]
                     break
             else:
-                print("[Error]: Restaurant doesn't exist in test.json file.")
+                raise ValueError("Restaurant doesn't exist in test.json file.")
 
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
@@ -148,7 +146,7 @@ class Restaurant:
         if os.path.exists(temp_menu_path):
             os.remove(temp_menu_path)
         else:
-            print("temp_menu.json 파일이 존재하지 않습니다.")
+            raise ValueError("temp_menu.json file doesn't exist")
 
     def __str__(self):
         return f"Restaurant: {self.name}, Lunch: {self.lunch}, Dinner: {self.dinner}, Location: {self.location}"
