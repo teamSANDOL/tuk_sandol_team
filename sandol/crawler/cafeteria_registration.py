@@ -9,8 +9,9 @@ class Restaurant:
         self.lunch = lunch
         self.dinner = dinner
         self.location = location
-        self.id = ""
         self.temp_menu = {"lunch": lunch, "dinner": dinner}
+        self.temp_lunch = []
+        self.temp_dinner = []
         self.final_menu = []
 
     @classmethod
@@ -42,8 +43,7 @@ class Restaurant:
 
     def add_menu(self, meal_time, menu):         # 단일 메뉴 추가 메서드
         if not isinstance(meal_time, str):
-            raise TypeError(
-                "meal_time should be a string 'lunch' or 'dinner'.")
+            raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.lunch:
@@ -63,8 +63,7 @@ class Restaurant:
 
     def delete_menu(self, meal_time, menu):         # 단일 메뉴 삭제 메서드
         if not isinstance(meal_time, str):
-            raise TypeError(
-                "meal_time should be a string 'lunch' or 'dinner'.")
+            raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.lunch:
@@ -94,24 +93,24 @@ class Restaurant:
             temp_menu saving method
             using in add_menu(), delete_menu() method
         """
-        self.temp_menu = {"lunch": self.lunch, "dinner": self.dinner}
-
+        # only write
+        temp_menu = {"lunch": self.temp_lunch, "dinner": self.temp_dinner}
         current_dir = os.path.dirname(__file__)
         filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
-        # only write
+
         with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(self.temp_menu, file, ensure_ascii=False, indent=4)
+            json.dump(temp_menu, file, ensure_ascii=False, indent=4)
 
     def load_temp_menu(self):
-        self.temp_menu = {"lunch": self.lunch, "dinner": self.dinner}
-
+        # only read
         current_dir = os.path.dirname(__file__)
         filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
 
         if os.path.exists(filename):
-            # only read
             with open(filename, 'r', encoding='utf-8') as file:
-                self.temp_menu = json.load(file)
+                temp_menu = json.load(file)
+                self.temp_lunch = temp_menu.get('lunch', [])
+                self.temp_dinner = temp_menu.get('dinner', [])
 
     def submit(self):
         """
@@ -133,22 +132,21 @@ class Restaurant:
                 if restaurant_data["name"] == self.name:
                     restaurant_data["lunch_menu"] = self.temp_menu["lunch"]
                     restaurant_data["dinner_menu"] = self.temp_menu["dinner"]
-                    # 파일 내용을 처음으로 되돌림
-                    file.seek(0)
-                    # 수정된 데이터를 파일에 씀
-                    json.dump(data, file, ensure_ascii=False, indent=4)
                     break
             else:
                 print("[Error]: Restaurant doesn't exist in test.json file.")
 
-        current_dir = os.path.dirname(__file__)
+        with open(filename, 'w', encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
+
+        # 임시 메뉴 초기화
+        self.temp_menu = {}
+
+        # 임시 파일 삭제
         temp_menu_path = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+
         if os.path.exists(temp_menu_path):
-            self.lunch, self.dinner = [], []
-            self.save_temp_menu()
-            # 임시 파일 삭제
             os.remove(temp_menu_path)
-            # print("temp_menu.json 파일이 삭제 되었습니다.")
         else:
             print("temp_menu.json 파일이 존재하지 않습니다.")
 
