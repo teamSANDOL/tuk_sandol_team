@@ -1,6 +1,8 @@
 import os
 import json
-from . import settings
+import settings
+    # from sandol.crawler import settings
+    # from . import settings : ImportError 발생
 
 
 class Restaurant:
@@ -9,7 +11,6 @@ class Restaurant:
         self.lunch = lunch
         self.dinner = dinner
         self.location = location
-        self.temp_menu = {"lunch": lunch, "dinner": dinner}
         self.temp_lunch = []
         self.temp_dinner = []
         self.final_menu = []
@@ -46,13 +47,13 @@ class Restaurant:
             raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
-            if menu in self.lunch:
+            if menu in self.temp_lunch:
                 raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
             else:
                 self.temp_lunch.append(menu)
 
         elif meal_time.lower() == "dinner":
-            if menu in self.dinner:
+            if menu in self.temp_dinner:
                 raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
             else:
                 self.temp_dinner.append(menu)
@@ -68,13 +69,13 @@ class Restaurant:
             raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
-            if menu in self.lunch:
+            if menu in self.temp_lunch:
                 self.temp_lunch.remove(menu)
             else:
                 raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
         elif meal_time.lower() == "dinner":
-            if menu in self.dinner:
+            if menu in self.temp_dinner:
                 self.temp_dinner.remove(menu)
             else:
                 raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
@@ -88,7 +89,8 @@ class Restaurant:
     def clear_menu(self):       # lunch, dinner, temp all clear
         self.lunch = []
         self.dinner = []
-        self.temp_menu = {}
+        self.temp_lunch = []
+        self.temp_dinner = []
 
     def save_temp_menu(self):
         """
@@ -97,6 +99,7 @@ class Restaurant:
         """
         # only write
         temp_menu = {"lunch": self.temp_lunch, "dinner": self.temp_dinner}
+
         current_dir = os.path.dirname(__file__)
         filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
 
@@ -111,19 +114,20 @@ class Restaurant:
         if os.path.exists(filename):
             with open(filename, 'r', encoding='utf-8') as file:
                 temp_menu = json.load(file)
+
                 self.temp_lunch = temp_menu.get('lunch', [])
                 self.temp_dinner = temp_menu.get('dinner', [])
 
-    def submit_update_menu(self, restaurant_data, menu_type):
+    def submit_update_menu(self, menu_type):
         """
             submit(self)에서 사용. (복잡도 완화 목적)
-                :param restaurant_data: test.json 레스토랑 element.
-                :param menu_type: 업데이트할 메뉴 타입 ("lunch" 또는 "dinner").
+            :param menu_type: 업데이트할 메뉴 시간정보 ("lunch" 또는 "dinner").
             example: self.update_menu(restaurant_data, "lunch")
         """
-        # "lunch"가 temp_menu에 존재하고, value도 존재할 때
-        if menu_type in self.temp_menu and self.temp_menu[menu_type]:
-            restaurant_data[f"{menu_type}_menu"] = self.temp_menu[menu_type]
+        if menu_type == "lunch" and self.temp_lunch:
+            return self.temp_lunch
+        elif menu_type == "dinner" and self.temp_dinner:
+            return self.temp_dinner
 
     def submit(self):
         """
@@ -145,8 +149,8 @@ class Restaurant:
         restaurant_found = False
         for restaurant_data in data:
             if restaurant_data["name"] == self.name:    # 식당 검색
-                self.submit_update_menu(restaurant_data, "lunch")   # 점심 메뉴 변경 사항 존재 시 submit
-                self.submit_update_menu(restaurant_data, "dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
+                restaurant_data["lunch_menu"] = self.submit_update_menu("lunch")   # 점심 메뉴 변경 사항 존재 시 submit
+                restaurant_data["dinner_menu"] = self.submit_update_menu("dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
                 restaurant_found = True
                 break
 
@@ -155,9 +159,6 @@ class Restaurant:
 
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
-
-        # 임시 메뉴 초기화
-        self.temp_menu = {}
 
         # 임시 파일 삭제
         temp_menu_path = os.path.join(current_dir, f'{self.name}_temp_menu.json')
