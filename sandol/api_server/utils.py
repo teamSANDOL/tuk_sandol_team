@@ -1,5 +1,9 @@
 import re
-from .kakao.response.components import CarouselComponent, TextCardComponent
+
+from .kakao.response import KakaoResponse, QuickReply
+from .kakao.response.interactiron import ActionEnum
+from .kakao.response.components import (
+    CarouselComponent, TextCardComponent, SimpleTextComponent)
 from ..crawler import RegistrationRestaurant
 
 
@@ -90,6 +94,41 @@ def make_meal_cards(
         dinner.add_item(make_meal_card("dinner", restaurant, is_temp))
 
     return lunch, dinner
+
+
+def meal_response_maker(
+    lunch: CarouselComponent,
+    dinner: CarouselComponent
+) -> KakaoResponse:
+    """식단 정보 미리보기를 반환하는 응답을 생성합니다.
+
+    Args:
+        lunch (CarouselComponent): 점심 식단 카드
+        dinner (CarouselComponent): 저녁 식단 카드
+
+    Returns:
+        KakaoResponse: 식단 정보 미리보기 응답
+    """
+    # 임시 저장된 메뉴를 불러와 카드를 생성
+    response = KakaoResponse()
+    simple_text = SimpleTextComponent("식단 정보 미리보기")
+
+    # 퀵리플라이 정의
+    add_lunch_quick_reply = QuickReply(
+        "점심 메뉴 추가", ActionEnum.BLOCK, block_id="660e009c30bfc84fad05dcbf")
+    add_dinner_quick_reply = QuickReply(
+        "저녁 메뉴 추가", ActionEnum.BLOCK, block_id="660e00a8d837db3443451ef9")
+    submit_quick_reply = QuickReply(
+        "확정", ActionEnum.BLOCK, block_id="661bccff4df3202baf9e8bdd")
+    delete_quick_reply = QuickReply(
+        "메뉴 삭제", ActionEnum.BLOCK, block_id="66438b74334aaa30751802e9")
+
+    # 응답에 카드와 퀵리플라이 추가
+    response = (
+        response + simple_text + lunch + dinner +
+        submit_quick_reply + add_lunch_quick_reply + add_dinner_quick_reply +
+        delete_quick_reply)
+    return response
 
 
 def error_message(message: str | BaseException) -> TextCardComponent:
