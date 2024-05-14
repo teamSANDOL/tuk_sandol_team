@@ -90,3 +90,18 @@ def make_meal_cards(
         dinner.add_item(make_meal_card("dinner", restaurant, is_temp))
 
     return lunch, dinner
+
+
+def error_message(message: str | BaseException) -> TextCardComponent:
+    """에러 메시지를 반환합니다.
+
+    에러 메시지를 받아 추가 정보를 덧붙인 후 TextCardComponent로 반환합니다.
+    만약 message가 BaseException 객체일 경우 문자열로 변환하여 사용합니다.
+
+    Args:
+        message (str): 에러 메시지
+    """
+    if isinstance(message, BaseException):
+        message = str(message)
+    message += "\n 죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
+    return TextCardComponent(title="오류 발생", description=message)
