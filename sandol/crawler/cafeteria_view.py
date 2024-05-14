@@ -10,9 +10,9 @@ class Restaurant:
         self.lunch = lunch
         self.dinner = dinner
         self.location = location
-        self.id = ""
-        self.temp = []
-        self.menu = []
+        self.temp_menu = {"lunch": lunch, "dinner": dinner}
+        self.temp_lunch = []
+        self.temp_dinner = []
         self.final_menu = []
 
     @classmethod
