@@ -2,7 +2,8 @@
 from flask import Flask, request
 
 from .api_server.utils import (
-    meal_response_maker, make_meal_cards, split_string, error_message)
+    meal_response_maker, make_meal_cards, split_string, handle_errors,
+    error_message)
 from .crawler import get_registration, RegistrationRestaurant
 
 from .api_server.kakao import Payload
@@ -19,6 +20,7 @@ def root():
 
 
 @app.post("/meal/register/<meal_type>")
+@handle_errors
 def meal_register(meal_type: str):
     """식단 정보를 등록합니다.
 
@@ -53,9 +55,6 @@ def meal_register(meal_type: str):
             if str(e) != "해당 메뉴는 이미 메뉴 목록에 존재합니다.":
                 error_msg = error_message(e)
                 return KakaoResponse().add_component(error_msg).get_json()
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            error_msg = error_message(e)
-            return KakaoResponse().add_component(error_msg).get_json()
 
     # 임시 저장된 메뉴를 저장
     restaurant.save_temp_menu()
@@ -70,6 +69,7 @@ def meal_register(meal_type: str):
 
 
 @app.post("/meal/register/delete/<meal_type>")
+@handle_errors
 def meal_delete(meal_type: str):
     """삭제할 메뉴를 선택하는 API입니다.
 
@@ -106,6 +106,7 @@ def meal_delete(meal_type: str):
 
 
 @app.post("/meal/register/delete_all")
+@handle_errors
 def meal_delete_all():
     """모든 메뉴를 삭제하는 API입니다.
 
@@ -122,6 +123,7 @@ def meal_delete_all():
 
 
 @app.post("/meal/register/delete_menu")
+@handle_errors
 def meal_menu_delete():
     """선택한 메뉴를 삭제하는 API입니다.
 
@@ -145,9 +147,6 @@ def meal_menu_delete():
         else:
             error_msg = error_message(e)
             return KakaoResponse().add_component(error_msg).get_json()
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        error_msg = error_message(e)
-        return KakaoResponse().add_component(error_msg).get_json()
     restaurant.save_temp_menu()
 
     # 임시 저장된 메뉴를 불러와 카드를 생성
@@ -160,6 +159,7 @@ def meal_menu_delete():
 
 
 @app.post("/meal/submit")
+@handle_errors
 def meal_submit():
     """식단 정보를 확정하는 API입니다.
 
@@ -184,9 +184,6 @@ def meal_submit():
         else:
             error_msg = error_message(str(e))
             return KakaoResponse().add_component(error_msg).get_json()
-    except Exception as e:  # pylint: disable=broad-exception-caught
-        error_msg = error_message(str(e))
-        return KakaoResponse().add_component(error_msg).get_json()
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
     restaurant: RegistrationRestaurant = get_registration(  # type: ignore

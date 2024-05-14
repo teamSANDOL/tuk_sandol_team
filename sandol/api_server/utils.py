@@ -151,3 +151,13 @@ def error_message(message: str | BaseException) -> TextCardComponent:
         message = str(message)
     message += "\n 죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
     return TextCardComponent(title="오류 발생", description=message)
+
+
+def handle_errors(func):
+    """공통 오류 처리를 위한 데코레이터"""
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            return KakaoResponse().add_component(error_message(e)).get_json()
+    return wrapper
