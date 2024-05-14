@@ -1,6 +1,7 @@
 """Component의 ItemCard를 구성하는 클래스들을 담고 있는 모듈입니다.
 
-Common 파일에서 독립적인 파일로 분리하여 ItemCard를 구성하는 클래스들을 담고 있습니다.
+ItemCard는 구성 요소가 다양하며 각 구성 요소는 ItemCard에서만 사용되기 떄문에
+Common 모듈에서 독립적인 모듈로 분리하여 ItemCard를 구성하는 클래스들을 담고 있습니다.
 
 classes:
     ItemThumbnail: ItemCard의 썸네일을 담는 클래스
@@ -61,7 +62,7 @@ class ItemThumbnail(Common):
         Raises:
             AssertionError: image_url이 None이거나 str이 아닐 경우 발생합니다.
             AssertionError: width 또는 height가 int가 아닐 경우 발생합니다.
-            """
+        """
         validate_str(self.image_url, disallow_none=True)
         validate_int(self.width, self.height)
 
@@ -204,7 +205,7 @@ class Item(Common):
 class ItemListSummary(Item):
     """ItemCard의 아이템 리스트 요약을 담는 클래스입니다.
 
-    Item과 구조가 같지만, ItemListSummary는 ItemCard의 아이템 리스트 요약을 담습니다.
+    Item과 구조가 같지만, ItemListSummary는 아이템 가격 정보를 의미합니다.
     """
 
 

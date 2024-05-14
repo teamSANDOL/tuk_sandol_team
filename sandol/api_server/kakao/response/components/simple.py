@@ -1,8 +1,18 @@
-from .base import ParentComponent
-from .card import (
-    TextCardComponent, BasicCard,
-    CommerceCardComponent, ItemCardComponent, ListCardComponent)
+"""카카오톡 간단 출력 요소를 생성하는 클래스를 포함하는 모듈
+
+이 모듈은 카카오톡 챗봇 응답을 위한 간단한 출력 요소를 생성하는 클래스를 포함합니다.
+공통 출력 요소 Common과 카드 출력 요소 Card가 아닌 간단 출력 요소를 포함합니다.
+
+Classes:
+    CarouselComponent: 가로로 출력 요소(ParentComponent)를 나열할 때 사용하는 클래스
+    SimpleTextComponent: 텍스트만을 출력하는 요소를 생성하는 클래스
+    SimpleImageComponent: 이미지만을 출력하는 요소를 생성하는 클래스
+"""
 from ...validation import validate_str, validate_type
+from ..base import ParentComponent
+from .card import (
+    TextCardComponent, BasicCardComponent,
+    CommerceCardComponent, ItemCardComponent, ListCardComponent)
 
 
 class CarouselComponent(ParentComponent):
@@ -13,9 +23,9 @@ class CarouselComponent(ParentComponent):
 
     Attributes:
         items (list[ParentComponent]): CarouselComponent에 포함된 객체 리스트
-        solo_mode (bool): CarouselComponent 내부 객체의 solo_mode 설정
+        type (type[ParentComponent]): CarouselComponent 내부 객체의 타입
 
-    example:
+    Examples:
         >>> carousel = CarouselComponent()
         >>> carousel.add_item(TextCard(title="제목", description="설명"))
         >>> carousel.add_item(TextCard(title="제목2", description="설명2"))
@@ -115,7 +125,7 @@ class CarouselComponent(ParentComponent):
         assert self.type is not None
 
         if self.type not in (
-                TextCardComponent, BasicCard, CommerceCardComponent,
+                TextCardComponent, BasicCardComponent, CommerceCardComponent,
                 ListCardComponent, ItemCardComponent):
             raise AssertionError((
                 "CarouselComponent 내부 객체는 "
@@ -161,7 +171,7 @@ class SimpleTextComponent(ParentComponent):
     Raises:
         ValueError: text가 문자열이 아닌 경우
 
-    example:
+    Examples:
         >>> simple_text = SimpleTextComponent("안녕하세요")
         >>> simple_text.render()
         {
@@ -214,7 +224,7 @@ class SimpleImageComponent(ParentComponent):
     Raises:
         ValueError: image_url, alt_text가 문자열이 아닌 경우
 
-    example:
+    Examples:
         >>> simple_image = SimpleImageComponent(
                 image_url="http://example.com/image.jpg",
                 alt_text="이미지 설명"

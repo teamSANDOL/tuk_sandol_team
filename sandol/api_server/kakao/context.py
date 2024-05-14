@@ -1,16 +1,15 @@
 """컨텍스트 정보를 담는 클래스를 정의하는 모듈입니다.
 
 컨텍스틑 정보는 Payload 및 Response에서 동일한 형태의 데이터로 사용되기 떄문에,
-이를 통일된 형태로 관리하기 위해 별도의 클래스로 정의합니다.
+이를 통일된 형태로 관리하기 위해 별도의 모듈 및 클래스로 정의합니다.
 """
 
 from typing import Optional
-from .base import ParentPayload
-from .response.components.common import Common
+from .base import ParentPayload, SkillTemplate
 from .validation import validate_int, validate_str, validate_type
 
 
-class Context(ParentPayload, Common):
+class Context(ParentPayload, SkillTemplate):
     """컨텍스트 정보를 담는 클래스입니다.
 
     컨텍스트 정보는 봇과 사용자간의 문맥적 상황 공유를 위해 사용됩니다.
@@ -52,6 +51,14 @@ class Context(ParentPayload, Common):
             lifespan: int,
             ttl: Optional[int] = None,
             params: Optional[dict] = None):
+        """Context 객체를 초기화합니다.
+
+        Args:
+            name (str): 컨텍스트의 이름
+            lifespan (int): 컨텍스트의 남은 횟수
+            ttl (int, optional): 컨텍스트가 유지되는 시간
+            params (dict, optional): 컨텍스트의 추가 정보
+        """
         super().__init__()
         self.name = name
         self.lifespan = lifespan
@@ -98,7 +105,7 @@ class Context(ParentPayload, Common):
         """
         response = {
             "name": self.name,
-            "lifespan": self.lifespan,
+            "lifeSpan": self.lifespan,
             "ttl": self.ttl,
             "params": self.params
         }

@@ -118,7 +118,7 @@ class Action(ParentPayload):
         """Action 클래스의 인스턴스를 초기화합니다.
 
         Args:
-            id (str): 액션의 고유 ID.
+            ID (str): 액션의 고유 ID.
             name (str): 액션의 이름.
             params (Params): 액션에 포함된 파라미터 정보.
             client_extra (dict): 클라이언트 추가 정보.
@@ -146,7 +146,6 @@ class Action(ParentPayload):
         ID = data.get('id', '')  # pylint: disable=invalid-name
         name = data.get('name', '')
         params = data.get('params', {})
-        print(data.get('detailParams', {}))
         detail_params = {
             key: Param.from_dict(value)
             for key, value in data.get('detailParams', {}).items()
@@ -176,7 +175,7 @@ class Bot(ParentPayload):
         """Bot 클래스의 인스턴스를 초기화합니다.
 
         Args:
-            id (str): 봇의 고유 ID.
+            ID (str): 봇의 고유 ID.
             name (str): 봇의 이름.
         """
         self.id = ID
@@ -266,6 +265,7 @@ class IntentExtra(ParentPayload):
     이 클래스는 Intent 객체의 extra 속성으로 사용됩니다.
     extra 항목에는 발화에서 지식+와 일치하는 지식의 목록을 담고 있습니다.
     Payload의 'intent' 항목에서 'extra'를 받아 객체로 변환하기 위해 사용됩니다.
+    단독으로 사용되지 않습니다.
 
     Attributes:
         reson (dict): 정보 없음(Kakao에서 정보를 제공하지 않습니다.)
@@ -311,6 +311,7 @@ class Intent(ParentPayload):
     발화와 일치하는 블록이나 지식의 정보를 담고 있는 객체입니다.
     발화가 지식+에 일치하는 경우, 일치하는 지식의 목록을 포함합니다.
     extra는 발화에 일치한 지식 목록을 포함하는 IntentExtra 객체로 구성됩니다.
+    단독으로 사용되지 않습니다.
 
     Attributes:
         id (str): Intent의 고유 ID입니다.
@@ -356,6 +357,7 @@ class UserProperties(ParentPayload):
 
     UserRequest 객체의 user 속성으로 사용됩니다.
     추가적으로 제공하는 사용자의 속성 정보를 담고 있습니다.
+    단독으로 사용되지 않습니다.
 
     Attributes:
         plusfriend_user_key (str): 카카오톡 채널에서 제공하는 사용자 식별키
@@ -367,7 +369,7 @@ class UserProperties(ParentPayload):
             self,
             plusfriend_user_key: str,
             app_user_id: str,
-            is_friend: bool):
+            is_friend: Optional[bool] = None):
         """UserProperties 객체를 생성하는 메서드"""
         self.plusfriend_user_key = plusfriend_user_key
         self.app_user_id = app_user_id
@@ -385,7 +387,7 @@ class UserProperties(ParentPayload):
         """
         plusfriend_user_key = data.get('plusfriendUserKey', '')
         app_user_id = data.get('appUserId', '')
-        is_friend = data.get('isFriend', '')
+        is_friend = data.get('isFriend', None)
         return cls(
             plusfriend_user_key=plusfriend_user_key,
             app_user_id=app_user_id,
@@ -397,11 +399,20 @@ class User(ParentPayload):
     """Payload의 User 값을 저장하는 클래스입니다.
 
     UserRequest 객체의 user 속성으로 사용됩니다.
+    단독으로 사용되지 않습니다.
 
     Attributes:
         id (str): 사용자를 식별할 수 있는 key로 최대 70자의 값
         type (str): 현재는 botUserKey만 제공
         properties (dict): 추가적으로 제공하는 사용자의 속성 정보
+
+    Examples:
+    >>> User('user_id', 'botUserKey')
+    >>> user.id
+    'user_id'
+    >>> user.type
+    'botUserKey'
+
     """
 
     def __init__(
@@ -446,6 +457,7 @@ class UserRequest(ParentPayload):
     """Payload의 userRequest 항목을 받아 객체로 변환하는 클래스입니다.
 
     Payload 객체의 user_request 속성으로 사용됩니다.
+    단독으로 사용되지 않으며, User 객체를 속성으로 가지고 있습니다.
 
     Attributes:
         timezone (str): 사용자의 시간대
@@ -455,6 +467,18 @@ class UserRequest(ParentPayload):
         user (User): 사용자 정보
         params (dict): 정보 없음(Kakao에서 정보를 제공하지 않습니다.)
         callback_url (str): AI 콜백 요청을 전송할 URL
+
+    Examples:
+    >>> payload.user_request.timezone
+    'Asia/Seoul'
+    >>> payload.user_request.block
+    {'id': 'block_id', 'name': 'block_name'}
+    >>> payload.user_request.utterance
+    '사용자 발화'
+    >>> payload.user_request.lang
+    'ko'
+    >>> payload.user_request.user.id
+    'user_id'
     """
 
     def __init__(
@@ -520,6 +544,51 @@ class Payload(ParentPayload):
         user_id (str): 사용자의 ID == user_request.user.id
         params (Params): 액션에 포함된 파라미터 정보 == action.params
         utterance (str): 사용자 발화
+
+    Examples:
+    >>> response_json = {
+    ...     "intent": {
+    ...         "id": "intent_id",
+    ...         "name": "intent_name",
+    ...         "extra": {
+    ...             "reason": {},
+    ...             "matched_knowledges": []
+    ...         }
+    ...     },
+    ...     "userRequest": {
+    ...         "timezone": "Asia/Seoul",
+    ...         "block": {
+    ...             "id": "block_id",
+    ...             "name": "block_name"
+    ...         },
+    ...         "utterance": "사용자 발화",
+    ...         "lang": "ko",
+    ...         "user": {
+    ...             "id": "user_id",
+    ...             "type": "botUserKey",
+    ...             "properties": {}
+    ...         },
+    ...         "params": {},
+    ...         "callbackUrl": "https://www.example.com"
+    ...     },
+    ...     "bot": {
+    ...         "id": "bot_id",
+    ...         "name": "bot_name"
+    ...     },
+    ...     "action": {
+    ...         "id": "action_id",
+    ...         "name": "action_name",
+    ...         "params": {},
+    ...         "detailParams": {},
+    ...         "clientExtra": {}
+    ...     },
+    ...     "contexts": []
+    ... }
+    >>> payload = Payload.from_dict(response_json)
+    >>> payload.intent.name
+    'intent_name'
+    >>> payload.user_request.utterance
+    '사용자 발화'
     """
 
     def __init__(
@@ -528,10 +597,17 @@ class Payload(ParentPayload):
             user_request: UserRequest,
             bot: Bot,
             action: Action,
-            contexts: Optional[list] = None):
+            contexts: Optional[list[Context]] = None):
         """Payload 객체를 생성하는 메서드
 
         context가 None인 경우 빈 딕셔너리로 초기화합니다.
+
+        Args:
+            intent (Intent): 발화와 일치하는 블록이나 지식의 정보를 담고 있는 객체
+            user_request (UserRequest): 사용자의 요청 정보를 담고 있는 객체
+            bot (Bot): 봇 정보를 담고 있는 객체
+            action (Action): 사용자의 요청에 대한 액션 정보를 담고 있는 객체
+            contexts (list[Context]): 컨텍스트 정보를 담고 있는 객체 배열
         """
         self.intent = intent
         self.user_request = user_request
@@ -581,7 +657,7 @@ class Payload(ParentPayload):
         return cls.from_dict(json.loads(data))
 
     @property
-    def user_id(self):
+    def user_id(self) -> Optional[str]:
         """사용자의 ID를 반환합니다.
 
         사용자의 ID는 user_request.user.id로부터 가져옵니다.
@@ -598,13 +674,13 @@ class Payload(ParentPayload):
         return None
 
     @property
-    def params(self):
+    def params(self) -> Optional[dict[str, str]]:
         """액션에 포함된 파라미터 정보를 반환합니다.
 
         액션에 포함된 파라미터 정보는 action.params로부터 가져옵니다.
 
         Returns:
-            Params: 액션에 포함된 파라미터 정보
+            dict: 액션에 포함된 파라미터 정보
             None: 액션이 없거나 파라미터 정보가 없는 경우
         """
         if hasattr(self, 'action') and hasattr(self.action, 'params'):
@@ -612,7 +688,7 @@ class Payload(ParentPayload):
         return None
 
     @property
-    def detail_params(self):
+    def detail_params(self) -> Optional[dict[str, Param]]:
         """액션에 포함된 파라미터 세부 정보를 반환합니다.
 
         액션에 포함된 파라미터 세부 정보는 action.detail_params로부터 가져옵니다.
@@ -626,7 +702,7 @@ class Payload(ParentPayload):
         return None
 
     @property
-    def utterance(self):
+    def utterance(self) -> Optional[str]:
         """사용자 발화를 반환합니다.
 
         사용자 발화는 user_request.utterance로부터 가져옵니다.

@@ -1,18 +1,156 @@
+"""카카오톡 출력 요소 Card 관련 클래스를 정의한 모듈입니다.
+
+카카오톡 출력 요소 Card는 텍스트, 이미지, 버튼 등을 포함하는 카드 컴포넌트입니다.
+
+Classes:
+    TextCardComponent: 카카오톡 출력 요소 TextCard의 객체를 생성하는 클래스
+    BasicCardComponent: 카카오톡 출력 요소 BasicCard의 객체를 생성하는 클래스
+    CommerceCardComponent: 카카오톡 출력 요소 CommerceCard의 객체를 생성하는 클래스
+    ListCardComponent: 카카오톡 출력 요소 ListCard의 객체를 생성하는 클래스
+    ItemCardComponent: 카카오톡 출력 요소 ItemCard의 객체를 생성하는 클래스
+"""
+from abc import ABCMeta, abstractmethod
 from typing import Optional, overload
 
 
-from .base import ParentCardComponent
+from ..base import ParentComponent
 from .common import Button, Link, ListItem, Profile, Thumbnail
 from ..interactiron import ActionEnum
 from .itemcard import (
     ImageTitle, Item, ItemListSummary, ItemProfile, ItemThumbnail)
 from ...validation import validate_int, validate_str, validate_type
 
+__all__ = [
+    "TextCardComponent",
+    "BasicCardComponent",
+    "CommerceCardComponent",
+    "ListCardComponent",
+    "ItemCardComponent",
+]
+
+
+class ParentCardComponent(ParentComponent, metaclass=ABCMeta):
+    """Component 출력 요소중 Card 종류의 부모 클래스입니다.
+
+    Card 출력 요소는 TextCardComponent, BasicCardComponent,
+    CommerceCardComponent, ListCardComponent, ItemCardComponent가 있습니다.
+    이 클래스는 Card 출력 요소의 공통 속성과 메서드를 정의합니다.
+    주로 Button 객체를 조작하는 메서드를 제공합니다.
+
+    Attributes:
+        buttons (list[Button], optional): 버튼 객체입니다.
+    """
+
+    def __init__(self, buttons: Optional[list[Button]] = None):
+        """ParentCard 객체를 생성합니다.
+
+        buttons가 None인 경우 빈 리스트로 초기화합니다.
+
+        Args:
+            buttons (Optional[list[Button]], optional): 버튼 객체.
+        """
+        if buttons is None:
+            buttons = []
+        self.buttons = buttons
+
+    def validate(self):
+        """객체가 카카오톡 출력 요소에 맞는지 확인합니다.(super 참고)
+
+        Raises:
+            InvalidTypeError: 받거나 생성한 Button 객체가 Button이 아닌 경우
+        """
+        super().validate()
+        if self.buttons:
+            for button in self.buttons:
+                validate_type(Button, button)
+
+    @overload
+    def add_button(self, button: Button) -> "ParentCardComponent":
+        """버튼을 객체로 입력받아 추가합니다.
+
+        Args:
+            button (Button): 추가할 Button 객체
+
+        Returns:
+            ParentCardComponent: Button이 추가된 객체
+        """
+
+    @overload
+    def add_button(
+            self,
+            label: str,
+            action: str | ActionEnum,
+            web_link_url: Optional[str] = None,
+            message_text: Optional[str] = None,
+            phone_number: Optional[str] = None,
+            block_id: Optional[str] = None,
+            extra: Optional[dict] = None) -> "ParentCardComponent":
+        """버튼 생성 인자로 버튼을 추가합니다.
+
+        버튼 생성 인자를 받아 Button 객체를 생성하여 버튼 리스트에 추가합니다.
+
+        Args:
+            label (str): 버튼에 적히는 문구입니다.
+            action (str | Action): 버튼 클릭시 수행될 작업입니다.
+                                    (webLink, message, phone,
+                                    block, share, operator)
+            web_link_url (Optional[str]): 웹 브라우저를 열고 이동할 주소입니다.
+                                            (action이 webLink일 경우 필수)
+            message_text (Optional[str]): action이 message인 경우 사용자의 발화로
+                                            messageText를 내보냅니다. (이 경우 필수)
+                                        action이 block인 경우 블록 연결시
+                                            사용자의 발화로 노출됩니다. (이 경우 필수)
+            phone_number (Optional[str]): 전화번호 (action이 phone일 경우 필수)
+            block_id (Optional[str]): 호출할 block_id. (action이 block일 경우 필수)
+            extra (Optional[dict]): 스킬 서버에 추가로 전달할 데이터
+
+        Returns:
+            ParentCard: Button이 추가된 객체
+        """
+
+    def add_button(self, *args, **kwargs) -> "ParentCardComponent":
+        """버튼을 추가합니다.
+
+        Button 객체 또는 Button 생성 인자를 받아 버튼 리스트에 추가합니다.
+
+        Args:
+            *args: Button 생성 인자
+            **kwargs: Button 생성 인자
+
+        Returns:
+            ParentCard: Button이 추가된 객체
+
+        Raises:
+            InvalidTypeError: 받거나 생성한 Button 객체가 Button이 아닌 경우
+        """
+        if len(args) == 1 and isinstance(args[0], Button):
+            self.buttons.append(args[0])
+        elif len(args) == 0 and "button" in kwargs:
+            self.buttons.append(kwargs["button"])
+        else:
+            button = Button(*args, **kwargs)
+            self.buttons.append(button)
+        return self
+
+    def remove_button(self, button: Button):
+        """버튼을 제거합니다.
+
+        Button 객체를 받아 버튼 리스트에서 제거합니다.
+
+        Parameters:
+            button: 제거할 버튼 객체
+        """
+        self.buttons.remove(button)
+
+    @abstractmethod
+    def render(self): ...
+
 
 class TextCardComponent(ParentCardComponent):
     """카카오톡 출력 요소 TextCard의 객체를 생성하는 클래스
 
     TextCardComponent는 제목과 설명을 출력하는 요소입니다.
+    텍스트 카드는 간단한 텍스트에 버튼을 추가하거나, 텍스트를 케로셀형으로 전달하고자 할 때 사용됩니다.
     title과 description 중 최소 하나는 None이 아니어야 합니다.
 
     Args:
@@ -20,7 +158,7 @@ class TextCardComponent(ParentCardComponent):
         description (Optional[str], optional): 카드 설명. Defaults to None.
         buttons (Optional[list[Button]], optional): 버튼 리스트. Defaults to None.
 
-    example:
+    Examples:
         >>> text_card = TextCardComponent(title="제목", description="설명")
         >>> text_card.add_button(
                 label="버튼 1", action="message", message_text="버튼 1 클릭"
@@ -47,10 +185,12 @@ class TextCardComponent(ParentCardComponent):
             buttons: Optional[list[Button]] = None):
         """TextCardComponent 객체를 생성합니다.
 
+        title과 description 중 최소 하나는 None이 아니어야 합니다.
+
         Args:
-            title (Optional[str], optional): 카드의 제목. Defaults to None.
-            description (Optional[str], optional): 카드 상세 설명. Defaults to None.
-            buttons (Optional[Buttons], optional): 카드의 버튼들. Defaults to None.
+            title (Optional[str], optional): 카드의 제목.
+            description (Optional[str], optional): 카드 상세 설명.
+            buttons (Optional[list[Button]], optional): 카드의 버튼들.
         """
         super().__init__(buttons=buttons)
         self.title = title
@@ -96,7 +236,7 @@ class TextCardComponent(ParentCardComponent):
         return self.remove_none_item(response)
 
 
-class BasicCard(ParentCardComponent):
+class BasicCardComponent(ParentCardComponent):
     """카카오톡 출력 요소 BasicCard의 객체를 생성하는 클래스
 
     BasicCardComponent는 소셜, 썸네일, 프로필 등을 통해서 사진이나 글, 인물 정보 등을 공유할 수 있습니다.
@@ -109,18 +249,18 @@ class BasicCard(ParentCardComponent):
         description (Optional[str] optional): 카드 상세 설명. Defaults to None.
         buttons (Optional[list[Button]], optional): 버튼 리스트. Defaults to None.
 
-    example:
+    Examples:
         >>> basic_card = BasicCardComponent(
-                thumbnail=Thumbnail(
-                    image_url="http://example.com/image.jpg",
-                    link=Link(web="http://example.com")
-                ),
-                title="제목",
-                description="설명"
-            )
+        ...     thumbnail=Thumbnail(
+        ...         image_url="http://example.com/image.jpg",
+        ...         link=Link(web="http://example.com")
+        ...     ),
+        ...     title="제목",
+        ...     description="설명"
+        ... )
         >>> basic_card.add_button(
-                label="버튼 1", action="message", message_text="버튼 1 클릭"
-            )
+        ...     label="버튼 1", action="message", message_text="버튼 1 클릭"
+        ... )
         >>> basic_card.render()
         {
             "thumbnail": {
@@ -200,7 +340,7 @@ class BasicCard(ParentCardComponent):
             "description": self.description,
             "buttons": ([button.render() for button in self.buttons]
                         if self.buttons else None),
-            "forwardable": self.forwardable
+            "forwardable": self.forwardable if self.forwardable else None
         }
         return self.remove_none_item(response)
 
@@ -234,30 +374,29 @@ class CommerceCardComponent(ParentCardComponent):
                                                     discountRate을 쓰는 경우 필수.
                                                     Defaults to None.
 
-    example:
+    Examples:
         >>> commerce_card = CommerceCardComponent(
-                price=10999,
-                thumbnails=[
-                    Thumbnail(image_url="http://example.com/image1.jpg"),
-                ],
-                title="커머스 카드",
-                description="커머스 카드 설명",
-                buttons=Buttons(
-                    buttons=[
-                        Button(
-                            label="구매하기", action="webLink",
-                            web_link_url="http://example.com")
-                    ]
-                ),
-                profile=Profile(
-                    nickname="제품 이름",
-                    image_url="http://example.com/image.jpg"
-                ),
-                currency="won",
-                discount=1000,
-                discount_rate=10,
-                discount_price=9000
-            )
+        ...     price=10999,
+        ...     thumbnails=[
+        ...         Thumbnail(image_url="http://example.com/image1.jpg"),
+        ...     ],
+        ...     title="커머스 카드",
+        ...     description="커머스 카드 설명",
+        ...     buttons=[
+    ...             Button(
+    ...                 label="구매하기", action="webLink",
+    ...                 web_link_url="http://example.com")
+        ...         ]
+        ...     ),
+        ...     profile=Profile(
+        ...         nickname="제품 이름",
+        ...         image_url="http://example.com/image.jpg"
+        ...     ),
+        ...     currency="won",
+        ...     discount=1000,
+        ...     discount_rate=10,
+        ...     discount_price=9000
+        ... )
         >>> commerce_card.render()
         {
             "price": 10999,
@@ -397,17 +536,17 @@ class ListCardComponent(ParentCardComponent):
                 ListCardComponent가 Carousel로 나타나는 경우 최대 4개로 제한되어 있기 때문에,
                 값을 4로 수정해야 합니다.
 
-    example:
+    Examples:
         >>> list_card = ListCardComponent(
-            header="리스트 카드"
-        )
+        ...     header="리스트 카드"
+        ... )
         >>> list_card.add_item(
-                ListItem(
-                    title="아이템 1",
-                    description="아이템 1 설명",
-                    image_url="http://example.com/image1.jpg"
-                )
-            )
+        ...     ListItem(
+        ...         title="아이템 1",
+        ...         description="아이템 1 설명",
+        ...         image_url="http://example.com/image1.jpg"
+        ...     )
+        ... )
         >>> list_card.render()
         {
             "header": {
@@ -437,7 +576,7 @@ class ListCardComponent(ParentCardComponent):
         Args:
             header (ListItem | str): 리스트 카드의 상단 항목 str인 경우 ListItem으로 변환됩니다.
             items (ListItems): 리스트 카드의 각각 아이템
-            buttons (Optional[Buttons], optional): 리스트 카드의 버튼들.
+            buttons (Optional[list[Button]], optional): 리스트 카드의 버튼들.
                                                     Defaults to None.
             max_buttons (int, optional): 버튼 최대 개수. Defaults to 2.
             max_items (int, optional): 아이템 최대 개수. Defaults to 5.
@@ -507,7 +646,7 @@ class ListCardComponent(ParentCardComponent):
             title: str,
             description: Optional[str] = None,
             image_url: Optional[str] = None,
-            link: Optional[Link] = None,  # TODO: 순환참조 주의
+            link: Optional[Link] = None,
             action: Optional[str | ActionEnum] = None,
             block_id: Optional[str] = None,
             message_text: Optional[str] = None,
@@ -604,6 +743,83 @@ class ItemCardComponent(ParentCardComponent):
         buttons (Optional[list[Button]], optional): 버튼 리스트. Defaults to None.
                             단일형: 최대 3개까지 사용 가능
                             케로셀형: 최대 2개까지 사용 가능
+
+    Examples:
+        >>> item_card = ItemCardComponent(
+        ...     item_list=[
+        ...         Item(title="아이템 1", description="아이템 1 설명"),
+        ...         Item(title="아이템 2", description="아이템 2 설명")
+        ...     ],
+        ...     thumbnail=ItemThumbnail(
+        ...         image_url="http://example.com/image.jpg"
+        ...     ),
+        ...     head="헤드",
+        ...     profile=ItemProfile(
+        ...         title="프로필",
+        ...         image_url="http://example.com/image.jpg"
+        ...     ),
+        ...     image_title=ImageTitle(
+        ...         title="이미지 타이틀",
+        ...         description="이미지 타이틀 설명",
+        ...         image_url="http://example.com/image.jpg"
+        ...     ),
+        ...     item_list_alignment="left",
+        ...     item_list_summary=ItemListSummary(
+        ...         price=10000
+        ...     ),
+        ...     title="타이틀",
+        ...     description="설명",
+        ...     buttons=[
+        ...         Button(
+        ...             label="버튼 1",
+        ...             action="message",
+        ...             message_text="버튼 1 클릭"
+        ...         )
+        ...     ],
+        ...     button_layout="vertical"
+        ... )
+        >>> item_card.render()
+        {
+            "thumbnail": {
+                "imageUrl": "http://example.com/image.jpg"
+            },
+            "head": {
+                "title": "헤드"
+            },
+            "profile": {
+                "title": "프로필",
+                "imageUrl": "http://example.com/image.jpg"
+            },
+            "imageTitle": {
+                "title": "이미지 타이틀",
+                "description": "이미지 타이틀 설명",
+                "imageUrl": "http://example.com/image.jpg"
+            },
+            "itemList": [
+                {
+                    "title": "아이템 1",
+                    "description": "아이템 1 설명"
+                },
+                {
+                    "title": "아이템 2",
+                    "description": "아이템 2 설명"
+                }
+            ],
+            "itemListAlignment": "left",
+            "itemListSummary": {
+                "price": 10000
+            },
+            "title": "타이틀",
+            "description": "설명",
+            "buttonLayout": "vertical",
+            "buttons": [
+                {
+                    "label": "버튼 1",
+                    "action": "message",
+                    "messageText": "버튼 1 클릭"
+                }
+            ]
+        }
     """
     name = "itemCard"
 

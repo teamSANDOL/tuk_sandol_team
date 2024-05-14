@@ -1,29 +1,37 @@
+"""카카오톡 응답을 위한 기본 클래스를 정의합니다.
+
+Classes:
+    QuickReply: 카카오톡 출력 요소 QuickReply의 객체를 생성하는 클래스
+    KakaoResponse: 복수개의 ParentComponent 반환하기 위한 응답 객체
+"""
+from abc import ABCMeta
 import json
 from typing import Optional, Union, overload
 
-from .components.base import ParentComponent
 
-from .interactiron import ActionEnum, Interaction
-from ..base import BaseModel
-from ..context import Context
+from ..base import BaseModel, SkillTemplate
 from ..validation import validate_str, validate_type
-from ..base import SkillTemplate
+from ..context import Context
+from .interactiron import ActionEnum, Interaction
 
 
 class QuickReply(SkillTemplate, Interaction):
     """카카오톡 출력 요소 QuickReply의 객체를 생성하는 클래스입니다.
 
     QuickReply(바로가기)는 사용자가 챗봇에게 빠르게 응답할 수 있도록 도와주는 버튼입니다.
-    quickReplies(바로가기 버튼리스트가 담긱 객체)의 속성으로 사용됩니다.
+    quickReplies(바로가기 버튼리스트가 담긴 객체)의 속성으로 사용됩니다.
 
-    Args:
+    Class Attributes:
+        available_action_enums (list[ActionEnum]): 사용 가능한 ActionEnum 리스트
+
+    Attributes:
         label (str): 사용자에게 보여질 버튼의 텍스트
-        action (str | Action): 바로가기 응답의 기능, 문자열 또는 Action 열거형, 기본값은 "Message"
-        message_text (str | None): action이 "Message"인 경우 사용자가 챗봇에게 전달할 메시지
-        block_id (str | None): action이 "Block"인 경우 호출할 블록의 ID
-        extra (dict | None): 블록을 호출 시 스킬 서버에 추가로 전달할 데이터
+        action (str | ActionEnum): 바로가기 응답의 기능, 문자열 또는 Action 열거형
+        message_text (str): action이 "Message"인 경우 사용자가 챗봇에게 전달할 메시지
+        block_id (str): action이 "Block"인 경우 호출할 블록의 ID
+        extra (dict): 블록을 호출 시 스킬 서버에 추가로 전달할 데이터
 
-    example:
+    Examples:
         >>> quick_reply = QuickReply(
         ...     label="바로가기 1",
         ...     action="message",
@@ -61,10 +69,10 @@ class QuickReply(SkillTemplate, Interaction):
     def validate(self):
         """QuickReply 객체의 유효성을 검사합니다.
 
+        label, message_text, block_id이 문자열인지 검증합니다.
+
         Raises:
-            InvalidTypeError: label이 문자열이 아닌 경우
-            InvalidTypeError: message_text가 문자열이 아닌 경우
-            InvalidTypeError: block_id가 문자열이 아닌 경우
+            InvalidTypeError: label, message_text, block_id이 문자열이 아닌 경우
         """
         validate_str(self.label, self.message_text, self.block_id)
         Interaction.validate(self)
@@ -89,23 +97,70 @@ class QuickReply(SkillTemplate, Interaction):
         return response
 
 
+class ParentComponent(SkillTemplate, metaclass=ABCMeta):
+    """카카오톡 출력 요소의 객체를 생성하는 추상 클래스
+
+    SkillTemplate을 상속받아 카카오톡 출력 요소의 객체를 생성합니다.
+    Component 출력 요소는 이 클래스를 상속받아 구현합니다.
+
+    simple.SimpleTextComponent, simple.SimpleImageComponent,
+    card.ParentCardComponent, common.CommonComponent가 있습니다.
+
+    Class Attributes:
+        name (str): 응답 객체의 템플릿 이름 (상속 클래스에서 오버라이딩 필요,
+                                            Carousel이 사용)
+
+    Examples:
+        >>> class TextCard(ParentComponent):
+        ...     name = "textCard"   # 응답 객체의 템플릿 이름
+        >>> print(TextCard.name)
+        ... "textCard"
+    """
+    name = "ParentComponent"  # 응답 객체의 템플릿 이름 (상속 클래스에서 오버라이딩 필요/ Carousel이 사용)
+
+    def validate(self):
+        """객체를 카카오톡 응답 규칙에 알맞은지 검증합니다.
+
+        하위 클래스에서 이 메서드를 오버라이딩하여 구현해야 합니다.
+        하위 클래스에서 super().validate()를 호출하여
+        클래스 속성인 name이 구현되어 있는지 검증하고,
+        quick_replies 객체의 검증을 수행합니다.
+
+        검증에 실패할 경우 예외를 발생시킵니다.
+        검증 내용은 카카오톡 응답 규칙에 따라 구현되어야 합니다.
+
+        (예) 객체 속성의 타입이 올바른지, 값이 올바른지,
+            응답의 길이가 적절한지 등을 검증합니다.
+        """
+        if "Parent" in self.__class__.name:
+            raise NotImplementedError("name 속성을 구현해야 합니다.")
+
+
 class KakaoResponse(BaseModel):
     """복수개의 ParentComponent 반환하기 위한 응답 객체
 
-    여러 ParentComponent 객체를 카카오톡 출력 요소 형식에 맞게 변환합니다.
+    여러 ParentComponent 객체를 카카오톡 최종 출력 요소 형식에 맞게 변환합니다.
+    ParentComponent 객체를 component_list에 추가하고,
+    QuickReply 객체를 quick_replies에 추가합니다.
+    각 Component 객체는 render 메서드를 호출하여 카카오톡 출력 요소 형식에 맞게 변환됩니다.
 
     Attributes:
         component_list (list[ParentComponent]): ParentComponent 객체들을 담는 리스트
         quick_replies (list[QuickReply]): QuickReply 객체들을 담는 리스트
-        response_content_obj (dict): 카카오톡 출력 요소의 객체
-        max_component_count (int): 포함할 수 있는 ParentComponent 객체의 최대 개수
-        max_quick_reply_count (int): 포함할 수 있는 QuickReply 객체의 최대 개수
+        contexts (list[Context]): Context 객체들을 담는 리스트
+        data (dict): SkillTemplate을 사용하지 않고, OpenBuilder에서 응답을 보낼 때 사용할 데이터
+        max_component_count (int): 최대 ParentComponent 개수, 3 고정
+        max_quick_reply_count (int): 최대 QuickReply 개수, 10 고정
+        response_content_obj (dict): 카카오톡 출력 요소의 객체, 빈 딕셔너리로 초기화
 
-    example:
+    Examples:
         >>> from kakao import KakaoResponse, SimpleText
         >>> response = KakaoResponse()
         >>> response += SimpleTextComponent("안녕하세요!")
         >>> response.add_component(SimpleText("반가워요!"))
+        >>> response.add_component(CarouselComponent(
+        ...     items=[TextCardComponent("첫 번째"), TextCardComponent("두 번째")]
+        ... ))
         >>> response += QuickReply("안녕", "message", "안녕하세요!")
         >>> response.get_dict()
         {
@@ -121,6 +176,21 @@ class KakaoResponse(BaseModel):
                         "simpleText": {
                             "text": "반가워요!"
                         }
+                    },
+                    {
+                        "carousel": {
+                            "type": "textCard",
+                            "items": [
+                                {
+
+                                    "title": "첫 번째"
+
+                                },
+                                {
+                                    "title": "두 번째"
+                                }
+                            ]
+                        }
                     }
                 ],
                 "quickReplies": [
@@ -131,7 +201,6 @@ class KakaoResponse(BaseModel):
                     }
                 ]
             }
-        }
     """
 
     def __init__(
@@ -144,13 +213,16 @@ class KakaoResponse(BaseModel):
             data: Optional[dict[str, str]] = None):
         """KakaoResponse 객체를 생성합니다.
 
+        component_list, quick_replies, contexts가 주어지지 않은 경우 빈 리스트로 초기화합니다.
+        아닌 경우, 각 리스트에 포함된 객체들을 저장합니다.
+
         Args:
             component_list (list[ParentComponent], optional): ParentComponent
                                                         객체들을 담는 리스트 (기본값: None)
             quick_replies (list[QuickReply] , optional): QuickReply
                                                         객체들을 담는 리스트 (기본값: None)
             contexts (list[dict], optional): Context 객체들을 담는 리스트 (기본값: None)
-            data (dict, optional): 추가적인 데이터 (기본값: None)
+            data (dict, optional): OpenBuilder에서 응답을 보낼 때 사용할 데이터
         """
         if component_list is None:
             component_list = []
@@ -226,10 +298,15 @@ class KakaoResponse(BaseModel):
         validate_type(dict, self.data)
 
     def render(self) -> dict:
-        """객체를 카카오톡 출력 요소 형식에 맞게 변환합니다. (super 참고)
+        """객체를 카카오톡 출력 요소 형식에 맞게 변환합니다.
 
-        component_list의 render 메서드를 호출하여 카카오톡 출력 요소 형식에 맞게 변환합니다.
-        이를 response_content_obj에 저장합니다.
+        component_list의 render 메서드를 호출하여 카카오톡 출력 요소 형식에 맞게 변환하여
+            template['outputs']에 추가 합니다.
+        quick_replies의 render 메서드를 호출하여 카카오톡 출력 요소 형식에 맞게 변환하여
+            quickReplies에 추가합니다.
+
+        최종 출력 요소 구성을 위해 template, quickReplies, context, data를
+            response_content_obj에 저장합니다.
 
         Returns:
             dict: 카카오톡 출력 요소의 객체
@@ -251,15 +328,20 @@ class KakaoResponse(BaseModel):
             template['quickReplies'] = [quick_reply.render()
                                         for quick_reply in self.quick_replies]
 
+        contexts = None
+        if self.contexts:
+            contexts = {
+                "values": [context.render() for context in self.contexts]
+            }
+
         # 최종 출력 요소 구성
         self.response_content_obj = {
             'version': '2.0',
+            # template이 있는 경우 추가
             'template': template if template else None,
-            'context': (
-                [context.render() for context in self.contexts]
-                if self.contexts else None
-            ),
-            'data': self.data
+            # contexts가 있는 경우 추가
+            'context': contexts,
+            'data': self.data if self.data else None
         }
         self.response_content_obj = self.remove_none_item(
             self.response_content_obj)
@@ -267,20 +349,16 @@ class KakaoResponse(BaseModel):
         return self.response_content_obj
 
     def add_component(self, component: "ParentComponent") -> "KakaoResponse":
-        """ParentComponent 추가합니다.
-
-        반환할 ParentComponent 객체를 component_list에 추가합니다.
+        """반환할 ParentComponent 객체를 component_list에 추가합니다.
 
         Args:
             component (ParentComponent): 추가할 ParentComponent 객체
 
         Returns:
             KakaoResponse: ParentComponent 객체가 추가된 KakaoResponse 객체
+
         """
 
-        # 추가할 ParentComponent Carousel인 경우
-        # Carousel에 포함된 ParentComponent solo_mode를 False로 설정
-        # Carousel이 비어있는 경우 추가하지 않음
         self.component_list.append(component)
         return self
 
@@ -303,11 +381,13 @@ class KakaoResponse(BaseModel):
             self.render()
         return self.response_content_obj
 
-    def get_json(self, ensure_ascii: bool = True, **kwargs) -> str:
+    def get_json(self, ensure_ascii: bool = False, **kwargs) -> str:
         """카카오톡 출력 요소 형식에 알맞은 JSON 문자열을 반환합니다.
 
         get_dict() 메서드를 호출하여 dict를 반환한 후,
         json.dumps() 함수를 사용하여 JSON 문자열로 변환합니다.
+
+        kwarg를 통해 json.dumps() 함수에 전달되는 인자를 추가할 수 있습니다.
 
         Args:
             ensure_ascii (bool): json.dumps() 함수에 전달되는 인자입니다. 기본값은 True입니다.
@@ -349,15 +429,27 @@ class KakaoResponse(BaseModel):
         Args:
             *args: QuickReply 객체 또는 QuickReply 생성 인자
             **kwargs: QuickReply 객체 또는 QuickReply 생성 인자
-        """
-        if len(args) == 1 and isinstance(args[0], QuickReply):
-            quick_reply = args[0]
-        elif len(args) == 0 and "quick_reply" in kwargs:
-            quick_reply = kwargs["quick_reply"]
-        else:
-            quick_reply = QuickReply(*args, **kwargs)
-        self.quick_replies.append(quick_reply)
 
+        Returns:
+            KakaoResponse: QuickReply 객체가 추가된 KakaoResponse 객체
+
+        Raises:
+            ValueError: QuickReply 객체와 함께 다른 인자를 주는 경우
+            ValueError: quick_reply 키워드에 QuickReply 객체가 아닌 것을 주거나,
+                        다른 키워드가 있는 경우
+        """
+        if args and isinstance(args[0], QuickReply):
+            if len(args) > 1 or kwargs:
+                raise ValueError("QuickReply 객체와 함께 다른 인자를 주면 안 됩니다.")
+            quick_reply = args[0]
+        elif "quick_reply" in kwargs and len(kwargs) == 1 and not args:
+            quick_reply = kwargs["quick_reply"]
+            if not isinstance(quick_reply, QuickReply):
+                raise ValueError("quick_reply 키워드는 QuickReply 객체만 받아야 합니다.")
+        else:
+            quick_reply = QuickReply(*args, **kwargs)  # 이를 통해 나머지 모든 케이스를 처리
+
+        self.quick_replies.append(quick_reply)
         return self
 
     @overload
@@ -378,7 +470,7 @@ class KakaoResponse(BaseModel):
 
     @overload
     def add_context(self, context: Context) -> "KakaoResponse":
-        """Context를 추가합니다.
+        """Context를 contexts에 추가합니다.
 
         Args:
             context (Context): 추가할 Context 객체
@@ -391,10 +483,15 @@ class KakaoResponse(BaseModel):
             *args: Context 객체 또는 Context 생성 인자
             **kwargs: Context 객체 또는 Context 생성 인자
         """
-        if len(args) == 1 and isinstance(args[0], Context):
+        if args and isinstance(args[0], Context):
+            if len(args) > 1 or kwargs:
+                raise ValueError("Context 객체와 함께 다른 인자를 주면 안 됩니다.")
             context = args[0]
-        elif len(args) == 0 and "context" in kwargs:
+
+        elif "context" in kwargs and len(kwargs) == 1 and not args:
             context = kwargs["context"]
+            if not isinstance(context, Context):
+                raise ValueError("context 키워드는 Context 객체만 받아야 합니다.")
         else:
             context = Context(*args, **kwargs)
 
