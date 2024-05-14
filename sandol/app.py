@@ -5,7 +5,7 @@ from flask import Flask, request
 from .api_server import HELP, CAFETERIA_WEB, make_meal_cards
 from .api_server.kakao import Payload
 from .api_server.kakao.response import KakaoResponse
-from .api_server.kakao.skill import TextCard
+from .api_server.kakao.response.components import TextCardComponent
 from .crawler import Restaurant, get_meals
 
 app = Flask(__name__)
@@ -38,7 +38,7 @@ def meal_view():
                 r for r in cafeteria_list if r.name == target_cafeteria]
         else:
             # TIP 또는 E동 식당인 경우
-            return CAFETERIA_WEB.get_json()
+            return KakaoResponse().add_component(CAFETERIA_WEB).get_json()
     else:
         # cafeteria 값이 없을 경우 전체 식당 정보 반환
         restaurants = cafeteria_list
@@ -50,28 +50,28 @@ def meal_view():
 
     # 점심과 저녁 메뉴 Carousel을 SkillList에 추가
     # 모듈에서 자동으로 비어있는 Carousel은 추가하지 않음
-    response.add_skill(lunch_carousel)
-    response.add_skill(dinner_carousel)
+    response.add_component(lunch_carousel)
+    response.add_component(dinner_carousel)
     if not cafeteria or cafeteria.value not in ["미가", "세미콘", "수호"]:
-        response.add_skill(CAFETERIA_WEB)
+        response.add_component(CAFETERIA_WEB)
 
     # 식단 정보가 없는 경우 정보 없음 TextCard 추가
-    if response.is_empty:
-        response.add_skill(TextCard("식단 정보가 없습니다."))
+    elif response.is_empty:
+        response.add_component(TextCardComponent("식단 정보가 없습니다."))
 
     # 도움말 추가
     response.add_quick_reply(HELP)
     response.add_quick_reply(
         label="모두 보기",
         action="message",
-        messageText="테스트 학식",
+        message_text="테스트 학식",
     )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
-                messageText=f"테스트 학식 {rest.name}",
+                message_text=f"테스트 학식 {rest.name}",
             )
 
     return response.get_json()
