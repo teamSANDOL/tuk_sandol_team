@@ -1,402 +1,12 @@
-"""카카오 출력 요소를 생성하는 클래스들을 포함하는 모듈
-
-class:
-    Carousel: 가로로 출력 요소를 나열할 때 사용하는 클래스
-    SimpleText: 텍스트만 출력하는 요소를 생성하는 클래스
-    SimpleImage: 이미지만 출력하는 요소를 생성하는 클래스
-    ParentCard: Card 출력 요소의 부모 클래스
-    TextCard: 제목과 설명을 출력하는 요소를 생성하는 클래스
-    BasicCard: 소셜, 썸네일, 프로필 등을 통해 사진이나 글, 인물 정보 등을 공유하는 요소를 생성하는 클래스
-    CommerceCard: 제품에 대한 소개, 구매 안내 등을 사용자에게 전달하는 요소를 생성하는 클래스
-    ItemCard: 메시지 목적에 따른 유관 정보들을 사용자에게 일목요연한 리스트 형태로 전달하는 요소를 생성하는 클래스
-    ListCard: 헤더와 아이템을 포함하며, 헤더는 리스트 카드의 상단에 위치하는 요소를 생성하는 클래스
-"""
-from abc import abstractmethod
 from typing import Optional, overload
 
+
+from .base import ParentCardComponent
+from .common import Button, Link, ListItem, Profile, Thumbnail
+from ..interactiron import ActionEnum
 from .itemcard import (
     ImageTitle, Item, ItemListSummary, ItemProfile, ItemThumbnail)
-
-from .validation import validate_int, validate_str, validate_type
-from .common import (
-    Action, Button, ListItem, ListItems, Profile, Thumbnail)
-from .response import ParentComponent
-
-
-class CarouselComponent(ParentComponent):
-    """카카오톡 출력 요소 Carousel의 객체를 생성하는 클래스
-
-    가로로 출력 요소(ParentComponent)를 나열할 때 사용합니다.
-    Carousel 내부 객체는 동일한 타입이어야 합니다.
-
-    Attributes:
-        items (list[ParentComponent]): CarouselComponent에 포함된 객체 리스트
-        solo_mode (bool): CarouselComponent 내부 객체의 solo_mode 설정
-
-    example:
-        >>> carousel = CarouselComponent()
-        >>> carousel.add_item(TextCard(title="제목", description="설명"))
-        >>> carousel.add_item(TextCard(title="제목2", description="설명2"))
-        >>> carousel.get_dict()
-        {
-            "version": "2.0",
-            "template": {
-                "outputs": [
-                    {
-                        "carousel": {
-                            "items": [
-                                {
-                                    "title": "제목",
-                                    "description": "설명"
-                                },
-                                {
-                                    "title": "제목2",
-                                    "description": "설명2"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-    """
-    name = "carousel"
-
-    def __init__(
-            self,
-            *items: ParentComponent):
-        """Carousel 객체를 생성합니다.
-
-        items를 받아 객체 리스트를 생성합니다.
-        만약 items가 비어있지 않으면 첫 번째 객체의 타입을 type에 저장합니다.
-        이후 items에 추가되는 객체는 type과 동일한 타입이어야 합니다.
-
-        Args:
-            items (tuple[ParentComponent], optional):
-                        CarouselComponent에 포함할 객체 리스트. Defaults to None.
-        """
-
-        self.items: list[ParentComponent] = [*items]
-        self.type = None
-        if not self.is_empty:
-            self.type = type(self.items[0])
-
-    @property
-    def is_empty(self):
-        """CarouselComponent이 비어있는지 확인합니다.(super 참고)
-
-        Returns:
-            bool: CarouselComponent이 비어있으면 True, 아니면 False
-        """
-        return not bool(self.items)
-
-    def add_item(self, item: ParentComponent):
-        """CarouselComponent에 객체를 추가합니다.
-
-        만약 CarouselComponent이 비어있으면 객체의 타입을 type에 저장합니다.
-        아니면 추가되는 객체가 type과 동일한 타입인지 확인합니다.
-
-        Args:
-            item (ParentComponent): 추가할 객체, 아래 클래스 중 하나
-                        (TextCardComponent, BasicCardComponent,
-                        CommerceCardComponent, ListCardComponent,
-                        ItemCardComponent)
-
-        Raises:
-            AssertionError: CarouselComponent 내부의 객체는 동일한 타입이 아닌 경우
-        """
-        if self.is_empty:
-            self.type = type(item)
-        else:
-            assert self.type is not None
-            assert isinstance(
-                item, self.type), "CarouselComponent 내부의 객체는 동일한 타입이어야 합니다."
-
-        self.items.append(item)
-
-    def remove_item(self, item: ParentComponent):
-        """CarouselComponent에서 객체를 제거합니다.
-
-        Args:
-            item (ParentComponent): 제거할 객체
-        """
-        self.items.remove(item)
-
-    def validate(self):
-        """객체가 카카오톡 출력 요소에 맞는지 확인합니다.(super 참고)
-
-        Raises:
-            AssertionError: CarouselComponent은 최소 1개의 객체를 포함해야 합니다.
-            AssertionError: CarouselComponent 내부 객체는 서로 동일한 타입이어야 합니다.
-        """
-        super().validate()
-        assert len(self.items) > 0, "CarouselComponent은 최소 1개의 객체를 포함해야 합니다."
-        assert self.type is not None
-
-        if self.type not in (
-                TextCardComponent, BasicCard, CommerceCardComponent,
-                ListCardComponent, ItemCardComponent):
-            raise AssertionError((
-                "CarouselComponent 내부 객체는 "
-                "TextCardComponent, BasicCardComponent, "
-                "CommerceCardComponent, ListCardComponent, ItemCardComponent "
-                "중 하나여야 합니다."))
-
-        validate_type(self.type, *self.items, disallow_none=True)
-        for component in self.items:
-            component.validate()
-
-    def render(self):
-        """객체의 응답 내용을 반환합니다.(super 참고)
-
-        CarouselComponent 객체의 응답 내용을 반환합니다.
-        이 응답 내용을 이용하여 render() 메서드에서 최종 응답을 생성합니다.
-        ex) {
-                "type": "carousel",
-                "items": [
-                    item1.get_response_content(), item2.get_response_content(),
-                    ]
-            }
-
-        Returns:
-            dict: 응답 내용
-        """
-        self.validate()
-        assert self.type is not None
-        return {
-            "type": self.type.name,
-            "items": [component.render() for component in self.items]
-        }
-
-
-class SimpleTextComponent(ParentComponent):
-    """카카오톡 출력 요소 SimpleText의 객체를 생성하는 클래스
-
-    SimpleTextComponent는 텍스트 만을 출력하는 요소입니다.
-
-    Attributes:
-        text (str): 응답할 텍스트
-
-    Raises:
-        ValueError: text가 문자열이 아닌 경우
-
-    example:
-        >>> simple_text = SimpleTextComponent("안녕하세요")
-        >>> simple_text.render()
-        {
-            "text": "안녕하세요"
-        }
-    """
-    name = "simpleText"
-
-    def __init__(self, text: str):
-        """SimpleTextComponent 객체를 생성합니다.
-
-        Args:
-            text (str): 응답할 텍스트
-        """
-        self.text = text
-
-    def validate(self):
-        """객체가 카카오톡 출력 요소에 맞는지 확인합니다.(super 참고)
-
-        Raises:
-            ValueError: text가 문자열이 아닌 경우
-        """
-        super().validate()
-        return validate_str(self.text)
-
-    def render(self):
-        """객체의 응답 내용을 반환합니다.(super 참고)
-
-        SimpleTextComponent 객체의 응답 내용을 반환합니다.
-        이 응답 내용을 이용하여 render() 메서드에서 최종 응답을 생성합니다.
-
-        Returns:
-            dict: 응답 내용
-        """
-        self.validate()
-        return {
-            "text": self.text
-        }
-
-
-class SimpleImageComponent(ParentComponent):
-    """카카오톡 출력 요소 SimpleImage의 객체를 생성하는 클래스
-
-    SimpleImageComponent는 이미지 만을 출력하는 요소입니다.
-
-    Attributes:
-        image_url (str): 이미지의 URL
-        alt_text (str): 대체 텍스트
-
-    Raises:
-        ValueError: image_url, alt_text가 문자열이 아닌 경우
-
-    example:
-        >>> simple_image = SimpleImageComponent(
-                image_url="http://example.com/image.jpg",
-                alt_text="이미지 설명"
-            )
-        >>> simple_image.render()
-        {
-            "imageUrl": "http://example.com/image.jpg",
-            "altText": "이미지 설명"
-        }
-    """
-    name = "simpleImage"
-
-    def __init__(self, image_url: str, alt_text: str):
-        """SimpleImageComponent 객체를 생성합니다.
-
-        이미지의 URL과 대체 텍스트를 입력받아 객체를 생성합니다.
-        이미지는 URL로만 제공되며, 이미지 파일 자체는 전달할 수 없습니다.
-
-        Args:
-            image_url (str): 이미지의 URL
-            alt_text (str): 대체 텍스트
-        """
-        super().__init__()
-        self.image_url = image_url
-        self.alt_text = alt_text
-
-    def validate(self):
-        """객체가 카카오톡 출력 요소에 맞는지 확인합니다.(super 참고)
-
-        Raises:
-            ValueError: image_url, alt_text가 문자열이 아닌 경우
-        """
-        super().validate()
-        return validate_str(self.image_url, self.alt_text)
-
-    def render(self):
-        """객체의 응답 내용을 반환합니다.(super 참고)
-
-        SimpleImageComponent 객체의 응답 내용을 반환합니다.
-        이 응답 내용을 이용하여 render() 메서드에서 최종 응답을 생성합니다.
-
-        Returns:
-            dict: 응답 내용
-        """
-        self.validate()
-        return {
-            "imageUrl": self.image_url,
-            "altText": self.alt_text
-        }
-
-
-class ParentCardComponent(ParentComponent):
-    """Component 출력 요소중 Card 종류의 부모 클래스입니다.
-
-    Card 출력 요소는 TextCardComponent, BasicCardComponent,
-    CommerceCardComponent, ListCardComponent, ItemCardComponent가 있습니다.
-    이 클래스는 Card 출력 요소의 공통 속성과 메서드를 정의합니다.
-    주로 Button 객체를 조작하는 메서드를 제공합니다.
-
-    Attributes:
-        buttons (list[Button], optional): 버튼 객체입니다.
-    """
-
-    def __init__(self, buttons: Optional[list[Button]] = None):
-        """ParentCard 객체를 생성합니다.
-
-        Args:
-            buttons (Optional[Buttons], optional): 버튼 객체. Defaults to None.
-        """
-        if buttons is None:
-            buttons = []
-        self.buttons = buttons
-
-    def validate(self):
-        """객체가 카카오톡 출력 요소에 맞는지 확인합니다.(super 참고)
-
-        Raises:
-            InvalidTypeError: 받거나 생성한 Button 객체가 Button이 아닌 경우
-        """
-        super().validate()
-        if self.buttons:
-            for button in self.buttons:
-                validate_type(Button, button)
-
-    @overload
-    def add_button(self, button: Button) -> "ParentCardComponent":
-        """버튼을 객체로 입력받아 추가합니다.
-
-        Args:
-            button (Button): 추가할 Button 객체
-
-        Returns:
-            ParentCardComponent: Button이 추가된 객체
-        """
-
-    @overload
-    def add_button(
-            self,
-            label: str,
-            action: str | Action,
-            web_link_url: Optional[str] = None,
-            message_text: Optional[str] = None,
-            phone_number: Optional[str] = None,
-            block_id: Optional[str] = None,
-            extra: Optional[dict] = None) -> "ParentCardComponent":
-        """버튼 생성 인자로 버튼을 추가합니다.
-
-        버튼 생성 인자를 받아 Button 객체를 생성하여 버튼 리스트에 추가합니다.
-
-        Args:
-            label (str): 버튼에 적히는 문구입니다.
-            action (str | Action): 버튼 클릭시 수행될 작업입니다.
-                                    (webLink, message, phone,
-                                    block, share, operator)
-            web_link_url (Optional[str]): 웹 브라우저를 열고 이동할 주소입니다.
-                                            (action이 webLink일 경우 필수)
-            message_text (Optional[str]): action이 message인 경우 사용자의 발화로
-                                            messageText를 내보냅니다. (이 경우 필수)
-                                        action이 block인 경우 블록 연결시
-                                            사용자의 발화로 노출됩니다. (이 경우 필수)
-            phone_number (Optional[str]): 전화번호 (action이 phone일 경우 필수)
-            block_id (Optional[str]): 호출할 block_id. (action이 block일 경우 필수)
-            extra (Optional[dict]): 스킬 서버에 추가로 전달할 데이터
-
-        Returns:
-            ParentCard: Button이 추가된 객체
-        """
-
-    def add_button(self, *args, **kwargs) -> "ParentCardComponent":
-        """버튼을 추가합니다.
-
-        Button 객체 또는 Button 생성 인자를 받아 버튼 리스트에 추가합니다.
-
-        Args:
-            *args: Button 생성 인자
-            **kwargs: Button 생성 인자
-
-        Returns:
-            ParentCard: Button이 추가된 객체
-
-        Raises:
-            InvalidTypeError: 받거나 생성한 Button 객체가 Button이 아닌 경우
-        """
-        if len(args) == 1 and isinstance(args[0], Button):
-            self.buttons.append(args[0])
-        elif len(args) == 0 and "button" in kwargs:
-            self.buttons.append(kwargs["button"])
-        else:
-            button = Button(*args, **kwargs)
-            self.buttons.append(button)
-        return self
-
-    def remove_button(self, button: Button):
-        """버튼을 제거합니다.
-
-        Button 객체를 받아 버튼 리스트에서 제거합니다.
-
-        Parameters:
-            button: 제거할 버튼 객체
-        """
-        self.buttons.remove(button)
-
-    @abstractmethod
-    def render(self): ...
+from ...validation import validate_int, validate_str, validate_type
 
 
 class TextCardComponent(ParentCardComponent):
@@ -782,7 +392,10 @@ class ListCardComponent(ParentCardComponent):
     Attributes:
         header (ListItem): 리스트 카드의 헤더
         items (ListItems): 리스트 카드의 아이템들
-        max_buttons (int, optional): 버튼 최대 개수. Defaults to 2.
+        max_buttons (int): 버튼 최대 개수. Defaults to 2.
+        max_items (int): 아이템 최대 개수. Defaults to 5.
+                ListCardComponent가 Carousel로 나타나는 경우 최대 4개로 제한되어 있기 때문에,
+                값을 4로 수정해야 합니다.
 
     example:
         >>> list_card = ListCardComponent(
@@ -814,9 +427,11 @@ class ListCardComponent(ParentCardComponent):
     def __init__(
             self,
             header: ListItem | str,
-            items: Optional[ListItems] = None,
+            items: Optional[list[ListItem]] = None,
             buttons: Optional[list[Button]] = None,
-            max_buttons: int = 2):
+            max_buttons: int = 2,
+            max_items: int = 5
+    ):
         """ListCard 객체를 생성합니다.
 
         Args:
@@ -825,6 +440,7 @@ class ListCardComponent(ParentCardComponent):
             buttons (Optional[Buttons], optional): 리스트 카드의 버튼들.
                                                     Defaults to None.
             max_buttons (int, optional): 버튼 최대 개수. Defaults to 2.
+            max_items (int, optional): 아이템 최대 개수. Defaults to 5.
         """
         super().__init__(buttons=buttons)
         if isinstance(header, str):
@@ -832,9 +448,10 @@ class ListCardComponent(ParentCardComponent):
         else:
             self.header = header
         if items is None:
-            items = ListItems()
+            items = []
         self.items = items
         self.max_buttons = max_buttons
+        self.max_items = max_items
 
     def validate(self):
         """객체가 카카오톡 출력 요소에 맞는지 확인합니다.(super 참고)
@@ -845,13 +462,16 @@ class ListCardComponent(ParentCardComponent):
             InvalidTypeError: items가 ListItems가 아닌 경우
         """
         super().validate()
-        if self.items.is_empty:
+        if len(self.items) < 1:
             raise AssertionError("ListCardComponent는 최소 1개의 아이템을 포함해야 합니다.")
+        if len(self.items) > self.max_items:
+            raise AssertionError(
+                f"ListCard는 최대 {self.max_items}개의 아이템을 포함할 수 있습니다.")
         if len(self.buttons) > self.max_buttons:
             raise AssertionError(
                 f"ListCard는 최대 {self.max_buttons}개의 버튼을 포함할 수 있습니다.")
-        validate_type(ListItem, self.header)
-        validate_type(ListItems, self.items)
+        validate_type(ListItem, self.header, disallow_none=True)
+        validate_type(ListItem, *self.items)
 
     def render(self):
         """객체의 응답 내용을 반환합니다.(super 참고)
@@ -870,32 +490,89 @@ class ListCardComponent(ParentCardComponent):
         self.validate()
         response = {
             "header": self.header.render(),
-            "items": self.items.render(),
-            "buttons": ([button.render() for button in self.buttons]
-                        if self.buttons else None)
+            "items": (
+                [item.render() for item in self.items]
+                if self.items else None
+            ),
+            "buttons": (
+                [button.render() for button in self.buttons]
+                if self.buttons else None
+            )
         }
         return self.remove_none_item(response)
 
-    def add_item(self, item: ListItem):
-        """ListCardComponent에 아이템을 추가합니다.
+    @overload
+    def add_item(
+            self,
+            title: str,
+            description: Optional[str] = None,
+            image_url: Optional[str] = None,
+            link: Optional[Link] = None,  # TODO: 순환참조 주의
+            action: Optional[str | ActionEnum] = None,
+            block_id: Optional[str] = None,
+            message_text: Optional[str] = None,
+            extra: Optional[dict] = None) -> "ListCardComponent":
+        """ListCardComponent에 아이템을 ListItem 생성 인자로 추가합니다.
+
+        Args:
+            title (str): item의 제목
+            description (str, optional): item의 설명
+            image_url (str, optional): item의 우측 안내 사진
+            link (Link, optional): item 클릭 시 동작할 링크
+            action (str | Action, optional):
+                            itaem 클릭 시 수행될 작업(block 또는 message)
+            block_id (str, optional): action이 block인 경우 block_id를 갖는 블록을 호출
+            message_text (str, optional):
+                            action이 message인 경우 리스트 아이템 클릭 시 전달할 메시지
+            extra (dict, optional): 블록 호출시, 스킬 서버에 추가적으로 제공하는 정보
+
+        Returns:
+            ListCardComponent: ListItem이 추가된 객체
+        """
+    @overload
+    def add_item(self, item: ListItem) -> "ListCardComponent":
+        """ListCardComponent에 아이템을 ListItem 객체로 추가합니다.
 
         Args:
             item (ListItem): 추가할 ListItem 객체
+
+        Returns:
+            ListCardComponent: ListItem이 추가된 객체
         """
-        assert isinstance(self.items, ListItems)
-        assert isinstance(item, ListItem)
-        self.items.add_item(item)
+
+    def add_item(self, *args, **kwargs) -> "ListCardComponent":
+        """ListCardComponent에 아이템을 추가합니다.
+
+        ListItem 객체 또는 ListItem 생성 인자를 받아 아이템 리스트에 추가합니다.
+
+        Args:
+            *args: ListItem 생성 인자 또는 ListItem 객체
+            **kwargs: ListItem 생성 인자 또는 ListItem 객체
+
+        Returns:
+            ListCardComponent: ListItem이 추가된 객체
+        """
+        if len(args) == 1 and isinstance(args[0], ListItem):
+            self.items.append(args[0])
+        elif len(args) == 0 and "item" in kwargs:
+            self.items.append(kwargs["item"])
+        else:
+            item = ListItem(*args, **kwargs)
+            self.items.append(item)
         return self
 
-    def remove_item(self, item: ListItem):
+    def remove_item(self, item: ListItem) -> "ListCardComponent":
         """ListCardComponent에서 아이템을 제거합니다.
 
         Args:
             item (ListItem): 제거할 ListItem 객체
         """
-        assert isinstance(self.items, ListItems)
         assert isinstance(item, ListItem)
-        self.items.remove_item(item)
+        if item not in self.items:
+            raise ValueError("해당 아이템이 존재하지 않습니다.")
+        self.items.remove(item)
+
+        return self
 
 
 class ItemCardComponent(ParentCardComponent):
@@ -1097,9 +774,3 @@ class ItemCardComponent(ParentCardComponent):
             self.item_list.remove(kwarg['item'])
         elif 'index' in kwarg:
             self.item_list.pop(kwarg['index'])
-
-
-if __name__ == "__main__":
-    # 사용 예시
-    simple_text_response = SimpleTextComponent("이것은 간단한 텍스트 메시지입니다.")
-    print(simple_text_response.render())

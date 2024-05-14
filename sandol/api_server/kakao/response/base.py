@@ -1,10 +1,92 @@
-"""카카오톡 출력 요소의 객체를 생성하는 클래스들을 정의합니다."""
 import json
 from typing import Optional, Union, overload
 
-from .common import QuickReply
-from .context import Context
-from .base import BaseModel, ParentComponent
+from .components.base import ParentComponent
+
+from .interactiron import ActionEnum, Interaction
+from ..base import BaseModel
+from ..context import Context
+from ..validation import validate_str, validate_type
+from ..base import SkillTemplate
+
+
+class QuickReply(SkillTemplate, Interaction):
+    """카카오톡 출력 요소 QuickReply의 객체를 생성하는 클래스입니다.
+
+    QuickReply(바로가기)는 사용자가 챗봇에게 빠르게 응답할 수 있도록 도와주는 버튼입니다.
+    quickReplies(바로가기 버튼리스트가 담긱 객체)의 속성으로 사용됩니다.
+
+    Args:
+        label (str): 사용자에게 보여질 버튼의 텍스트
+        action (str | Action): 바로가기 응답의 기능, 문자열 또는 Action 열거형, 기본값은 "Message"
+        message_text (str | None): action이 "Message"인 경우 사용자가 챗봇에게 전달할 메시지
+        block_id (str | None): action이 "Block"인 경우 호출할 블록의 ID
+        extra (dict | None): 블록을 호출 시 스킬 서버에 추가로 전달할 데이터
+
+    example:
+        >>> quick_reply = QuickReply(
+        ...     label="바로가기 1",
+        ...     action="message",
+        ...     message_text="바로가기 1 클릭"
+        ... )
+        >>> quick_reply.render()
+        {'label': '바로가기 1', 'action': 'message', 'messageText': '바로가기 1 클릭'}
+    """
+    available_action_enums: list[ActionEnum] = [
+        ActionEnum.MESSAGE, ActionEnum.BLOCK]
+
+    def __init__(
+            self,
+            label: str,
+            action: str | ActionEnum = "Message",
+            message_text: Optional[str] = None,
+            block_id: Optional[str] = None,
+            extra: Optional[dict] = None):
+        """QuickReply 클래스의 생성자 메서드입니다.
+
+        Args:
+            label (str): 사용자에게 보여질 버튼의 텍스트
+            action (str | Action, optional): 바로가기 응답의 기능, 문자열 또는 Action 열거형,
+                                                기본값은 "Message"
+            message_text (str, optional): action이 "Message"인 경우
+                                            사용자가 챗봇에게 전달할 메시지, 기본값은 None
+            block_id (str, optional): action이 "Block"인 경우 호출할 블록의 ID, 기본값은 None
+            extra (dict, optional): 블록을 호출 시 스킬 서버에 추가로 전달할 데이터, 기본값은 None
+        """
+        Interaction.__init__(self, action=action, extra=extra)
+        self.label = label
+        self.message_text = message_text
+        self.block_id = block_id
+
+    def validate(self):
+        """QuickReply 객체의 유효성을 검사합니다.
+
+        Raises:
+            InvalidTypeError: label이 문자열이 아닌 경우
+            InvalidTypeError: message_text가 문자열이 아닌 경우
+            InvalidTypeError: block_id가 문자열이 아닌 경우
+        """
+        validate_str(self.label, self.message_text, self.block_id)
+        Interaction.validate(self)
+
+    def render(self) -> dict:
+        """QuickReply 객체를 카카오톡 응답 형식에 맞게 딕셔너리로 변환합니다.
+
+        ex) {
+            "label": "바로가기 1",
+            "action": "message",
+            "messageText": "바로가기 1 클릭"
+        }
+
+        Returns:
+            dict: 렌더링된 QuickReply
+        """
+        self.validate()
+        response = {
+            "label": self.label,
+        }
+        response.update(Interaction.render(self))
+        return response
 
 
 class KakaoResponse(BaseModel):
@@ -12,17 +94,12 @@ class KakaoResponse(BaseModel):
 
     여러 ParentComponent 객체를 카카오톡 출력 요소 형식에 맞게 변환합니다.
 
-    Args:
-        component_list (list[ParentComponent], optional):
-                            ParentComponent 객체들을 담는 리스트 (기본값: None)
-        quick_replies (list[QuickReply], optional):
-                            QuickReply 객체들을 담는 리스트 (기본값: None)
-
     Attributes:
         component_list (list[ParentComponent]): ParentComponent 객체들을 담는 리스트
         quick_replies (list[QuickReply]): QuickReply 객체들을 담는 리스트
         response_content_obj (dict): 카카오톡 출력 요소의 객체
         max_component_count (int): 포함할 수 있는 ParentComponent 객체의 최대 개수
+        max_quick_reply_count (int): 포함할 수 있는 QuickReply 객체의 최대 개수
 
     example:
         >>> from kakao import KakaoResponse, SimpleText
@@ -63,7 +140,8 @@ class KakaoResponse(BaseModel):
                 list[ParentComponent] | ParentComponent
             ] = None,
             quick_replies: Optional[list[QuickReply] | QuickReply] = None,
-            contexts: Optional[list[Context]] = None):
+            contexts: Optional[list[Context]] = None,
+            data: Optional[dict[str, str]] = None):
         """KakaoResponse 객체를 생성합니다.
 
         Args:
@@ -72,6 +150,7 @@ class KakaoResponse(BaseModel):
             quick_replies (list[QuickReply] , optional): QuickReply
                                                         객체들을 담는 리스트 (기본값: None)
             contexts (list[dict], optional): Context 객체들을 담는 리스트 (기본값: None)
+            data (dict, optional): 추가적인 데이터 (기본값: None)
         """
         if component_list is None:
             component_list = []
@@ -88,8 +167,10 @@ class KakaoResponse(BaseModel):
         if contexts is None:
             contexts = []
         self.contexts = contexts
+        self.data = data
 
         self.max_component_count = 3
+        self.max_quick_reply_count = 10
         self.response_content_obj: dict = {}
 
     @property
@@ -104,12 +185,16 @@ class KakaoResponse(BaseModel):
     def validate(self):
         """객체를 카카오톡 응답 규칙에 알맞은지 검증합니다. (super 참고)
 
-        component_list의 길이가 max_component_count를 초과하는 경우 예외를 발생시킵니다.
         component_list에 포함된 ParentComponent 객체들을 검증합니다.
-        quick_replies에 포함된 QuickReplies 객체를 검증합니다.
+        quick_replies에 포함된 QuickReply 객체들을 검증합니다.
+        contexts에 포함된 Context 객체들을 검증합니다.
+        data가 dict 타입인지 검증합니다.
+
 
         Raises:
             ValueError: 최대 ParentComponent 개수를 초과하는 경우
+            ValueError: 최대 QuickReply 개수를 초과하는 경우
+            InvalidTypeError: data가 dict 타입이 아닌 경우
         """
 
         # component_list의 길이 검증
@@ -123,10 +208,22 @@ class KakaoResponse(BaseModel):
             assert isinstance(component, ParentComponent)
             component.validate()
 
+        # quick_replys의 길이 검증
+        if len(self.quick_replies) > self.max_quick_reply_count:
+            raise ValueError(
+                f"최대 {self.max_quick_reply_count}개의 QuickReply를 포함할 수 있습니다.")
+
         # quick_replies에 포함된 QuickReplies 객체를 검증
         for quick_reply in self.quick_replies:
             assert isinstance(quick_reply, QuickReply)
             quick_reply.validate()
+
+        # contexts에 포함된 Context 객체를 검증
+        for context in self.contexts:
+            assert isinstance(context, Context)
+            context.validate()
+
+        validate_type(dict, self.data)
 
     def render(self) -> dict:
         """객체를 카카오톡 출력 요소 형식에 맞게 변환합니다. (super 참고)
@@ -141,11 +238,13 @@ class KakaoResponse(BaseModel):
 
         template = {}
 
-        # component_list의 각 ParentComponent 객체를 렌더링하여 outputs에 추가
-        template['outputs'] = [
-            {component.__class__.name: component.render()}
-            for component in self.component_list
-        ]
+        # component_list가 있는 경우 추가
+        if self.component_list:
+            # component_list의 각 ParentComponent 객체를 렌더링하여 outputs에 추가
+            template['outputs'] = [
+                {component.__class__.name: component.render()}
+                for component in self.component_list
+            ]
 
         # quick_replies가 있는 경우 추가
         if self.quick_replies:
@@ -155,11 +254,12 @@ class KakaoResponse(BaseModel):
         # 최종 출력 요소 구성
         self.response_content_obj = {
             'version': '2.0',
-            'template': template,
+            'template': template if template else None,
             'context': (
                 [context.render() for context in self.contexts]
                 if self.contexts else None
-            )
+            ),
+            'data': self.data
         }
         self.response_content_obj = self.remove_none_item(
             self.response_content_obj)

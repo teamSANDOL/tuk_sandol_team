@@ -17,7 +17,6 @@ classes:
 import json
 from typing import Optional
 
-
 from .base import ParentPayload
 from .context import Context
 from .customerror import InvalidPayloadError
@@ -147,6 +146,7 @@ class Action(ParentPayload):
         ID = data.get('id', '')  # pylint: disable=invalid-name
         name = data.get('name', '')
         params = data.get('params', {})
+        print(data.get('detailParams', {}))
         detail_params = {
             key: Param.from_dict(value)
             for key, value in data.get('detailParams', {}).items()

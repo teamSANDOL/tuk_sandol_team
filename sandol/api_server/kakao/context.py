@@ -6,8 +6,8 @@
 
 from typing import Optional
 from .base import ParentPayload
-from .common import Common
-from .validation import validate_str, validate_type
+from .response.components.common import Common
+from .validation import validate_int, validate_str, validate_type
 
 
 class Context(ParentPayload, Common):
@@ -113,5 +113,6 @@ class Context(ParentPayload, Common):
             InvalidTypeError: ttl이 int가 아닐 경우 발생합니다.
             InvalidTypeError: params가 dict가 아닐 경우 발생합니다.
         """
-        validate_str(self.name, self.lifespan, self.ttl)
-        validate_type(dict, self)
+        validate_str(self.name)
+        validate_int(self.lifespan, self.ttl)
+        validate_type(dict, self.params)
