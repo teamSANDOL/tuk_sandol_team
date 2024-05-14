@@ -103,6 +103,22 @@ def meal_delete(meal_type: str):
     return response.get_json()
 
 
+@app.post("/meal/register/delete_all")
+def meal_delete_all():
+    """모든 메뉴를 삭제하는 API입니다.
+
+    모든 메뉴를 삭제하고 삭제된 결과를 응답으로 반환합니다.
+    """
+    payload = Payload.from_dict(request.json)  # type: ignore
+    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant.clear_menu()
+    restaurant.save_temp_menu()
+    response = KakaoResponse().add_component(
+        SimpleTextComponent("모든 메뉴가 삭제되었습니다.")
+    )
+    return response.get_json()
+
+
 @app.post("/meal/register/delete_menu")
 def meal_menu_delete():
     """선택한 메뉴를 삭제하는 API입니다.
