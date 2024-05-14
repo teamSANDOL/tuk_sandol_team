@@ -1,7 +1,7 @@
 """Sandol의 메인 애플리케이션 파일입니다."""
 from flask import Flask, request
 
-from .api_server.utils import make_meal_cards, split_string, error_message
+from .api_server.utils import meal_response_maker, make_meal_cards, split_string, error_message
 from .crawler import get_registration, RegistrationRestaurant
 
 from .api_server.kakao import Payload
@@ -30,7 +30,7 @@ def meal_register(meal_type: str):
     """
 
     # 요청을 받아 Payload 객체로 변환
-    payload = Payload.from_dict(request.json)
+    payload = Payload.from_dict(request.json)  # type: ignore
 
     # 사용자의 ID로 등록된 식당 객체를 불러옴
     restaurant: RegistrationRestaurant = get_registration(
@@ -59,24 +59,85 @@ def meal_register(meal_type: str):
     restaurant.save_temp_menu()
 
     # 임시 저장된 메뉴를 불러와 카드를 생성
-    response = KakaoResponse()
-    simple_text = SimpleTextComponent("식단 정보 등록")
     lunch, dinner = make_meal_cards([restaurant], is_temp=True)
 
-    # 퀵리플라이 정의
-    add_lunch_quick_reply = QuickReply(
-        "중식 메뉴 추가", ActionEnum.BLOCK, block_id="660e009c30bfc84fad05dcbf")
-    add_dinner_quick_reply = QuickReply(
-        "석식 메뉴 추가", ActionEnum.BLOCK, block_id="660e00a8d837db3443451ef9")
-    submit_quick_reply = QuickReply(
-        "확정", ActionEnum.BLOCK, block_id="661bccff4df3202baf9e8bdd")
+    # 식단 미리보기 응답 생성
+    response = meal_response_maker(lunch, dinner)
 
-    # 응답에 카드와 퀵리플라이 추가
-    response = (
-        response + simple_text + lunch + dinner +
-        submit_quick_reply + add_lunch_quick_reply + add_dinner_quick_reply)
+    return response.get_json()
 
-    # 응답 반환
+
+@app.post("/meal/register/delete/<meal_type>")
+def meal_delete(meal_type: str):
+    """삭제할 메뉴를 선택하는 API입니다.
+
+    meal_type에 해당하는 식사 종류의 메뉴를 삭제할 수 있도록
+    각 메뉴를 퀵리플라이로 반환합니다.
+    퀵리플라이를 통해 삭제할 메뉴를 선택하면 meal_menu_delete API로 이동합니다.
+    삭제할 메뉴가 없을 경우 "삭제할 메뉴가 없습니다."를 반환합니다.
+
+    Args:
+        meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
+            lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
+    """
+    payload = Payload.from_dict(request.json)  # type: ignore
+    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
+
+    memu_list = getattr(restaurant, f"temp_{meal_type}")
+    if not memu_list:
+        return KakaoResponse().add_component(
+            SimpleTextComponent("삭제할 메뉴가 없습니다.")
+        ).get_json()
+    response = KakaoResponse()
+    simple_text = SimpleTextComponent("삭제할 메뉴를 선택해주세요.")
+    response = response.add_component(simple_text)
+    for menu in memu_list:
+        quick_reply = QuickReply(
+            label=menu,
+            action=ActionEnum.BLOCK,
+            block_id="66437f48dc3e762a0216a3e0",
+            extra={"meal_type": meal_type, "menu": menu},
+        )
+        response += quick_reply
+    return response.get_json()
+
+
+@app.post("/meal/register/delete_menu")
+def meal_menu_delete():
+    """선택한 메뉴를 삭제하는 API입니다.
+
+    meal_delete API에서 선택한 메뉴를 삭제합니다.
+    삭제된 결과를 응답으로 반환합니다.
+    """
+    payload = Payload.from_dict(request.json)  # type: ignore
+    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
+
+    meal_type = payload.action.client_extra["meal_type"]
+    menu = payload.action.client_extra["menu"]
+
+    try:
+        restaurant.delete_menu(meal_type, menu)
+    except ValueError as e:
+        if str(e) == "해당 메뉴는 등록되지 않은 메뉴입니다.":
+            return KakaoResponse().add_component(
+                SimpleTextComponent("등록되지 않은 메뉴입니다.")
+            ).get_json()
+        else:
+            error_msg = error_message(e)
+            return KakaoResponse().add_component(error_msg).get_json()
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        error_msg = error_message(e)
+        return KakaoResponse().add_component(error_msg).get_json()
+    restaurant.save_temp_menu()
+
+    # 임시 저장된 메뉴를 불러와 카드를 생성
+    lunch, dinner = make_meal_cards([restaurant], is_temp=True)
+
+    # 식단 미리보기 응답 생성
+    response = meal_response_maker(lunch, dinner)
+
     return response.get_json()
 
 
@@ -88,7 +149,7 @@ def meal_submit():
     """
 
     # 요청을 받아 Payload 객체로 변환 및 사용자의 ID로 등록된 식당 객체를 불러옴
-    payload = Payload.from_dict(request.json)
+    payload = Payload.from_dict(request.json)  # type: ignore
     restaurant: RegistrationRestaurant = get_registration(payload.user_id)
     restaurant.load_temp_menu()
 
@@ -110,7 +171,8 @@ def meal_submit():
         return KakaoResponse().add_component(error_msg).get_json()
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
-    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant: RegistrationRestaurant = get_registration(  # type: ignore
+        payload.user_id)
     lunch, dinner = make_meal_cards([restaurant])
 
     # 응답 생성
