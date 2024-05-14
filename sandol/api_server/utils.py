@@ -1,3 +1,7 @@
+"""API 서버에서 사용하는 유틸리티 함수들이 정의되어 있습니다.
+
+주로 코드 중복을 줄이고 가독성을 높이기 위한 함수들이 정의되어 있습니다.
+"""
 import re
 
 from .kakao.response import KakaoResponse, QuickReply
@@ -21,18 +25,18 @@ def split_string(s: str) -> list[str]:
     """
     # 여러 구분자를 개행 문자로 변경
     delimiters = [r",\s*", r";", r":", r"\|", r"-", r"/"]
-    regex_pattern = '|'.join(delimiters)
-    modified_str = re.sub(regex_pattern, '\n', s)
+    regex_pattern = "|".join(delimiters)
+    modified_str = re.sub(regex_pattern, "\n", s)
 
     # 개행 문자가 있는지 확인
-    if '\n' in modified_str:
+    if "\n" in modified_str:
         # 개행 문자를 기준으로 분리하고, 각 항목의 양 끝 공백 제거
         return [
-            item.strip() for item in modified_str.split('\n') if item.strip()
+            item.strip() for item in modified_str.split("\n") if item.strip()
         ]
     else:
         # white-space를 기준으로 분리하고, 각 항목의 양 끝 공백 제거
-        return [item.strip() for item in re.split(r'\s+', s) if item.strip()]
+        return [item.strip() for item in re.split(r"\s+", s) if item.strip()]
 
 
 def make_meal_card(
