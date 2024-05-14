@@ -1,8 +1,6 @@
 import os
 import json
-import settings
-    # from sandol.crawler import settings
-    # from . import settings : ImportError 발생
+from . import settings
 
 
 class Restaurant:
