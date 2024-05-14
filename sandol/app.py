@@ -1,7 +1,8 @@
 """Sandol의 메인 애플리케이션 파일입니다."""
 from flask import Flask, request
 
-from .api_server.utils import meal_response_maker, make_meal_cards, split_string, error_message
+from .api_server.utils import (
+    meal_response_maker, make_meal_cards, split_string, error_message)
 from .crawler import get_registration, RegistrationRestaurant
 
 from .api_server.kakao import Payload
@@ -38,7 +39,8 @@ def meal_register(meal_type: str):
     restaurant.load_temp_menu()
 
     # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
-    menu_list = split_string(payload.detail_params["menu"].origin)
+    menu_list = split_string(
+        payload.detail_params["menu"].origin)  # type: ignore
 
     # 메뉴를 등록
     for menu in menu_list:
