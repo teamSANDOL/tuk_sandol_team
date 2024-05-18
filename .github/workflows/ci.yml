@@ -14,6 +14,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
 <<<<<<< HEAD
+<<<<<<< HEAD
       - uses: actions/checkout@v3
       - name: Install Python 3.10
         uses: actions/setup-python@v4
@@ -25,6 +26,8 @@ jobs:
       - name: Deploy with serverless
         run: sls deploy --verbose --force
 =======
+=======
+>>>>>>> parent of a22703c (modify cd directory path)
     - uses: actions/checkout@v3
     - name: install-python
       uses: actions/setup-python@v4
@@ -35,5 +38,8 @@ jobs:
     - run: serverless plugin install -n serverless-wsgi
     - name: severless deploy
       run: sls deploy --verbose --force
+<<<<<<< HEAD
+>>>>>>> parent of a22703c (modify cd directory path)
+=======
 >>>>>>> parent of a22703c (modify cd directory path)
 
