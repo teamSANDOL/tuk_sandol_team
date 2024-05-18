@@ -166,3 +166,5 @@ instance/*
 .webassets-cache
 .env
 
+### others
+**/node_mudules/
