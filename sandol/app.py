@@ -1,9 +1,6 @@
 """Sandol API 서버를 실행하는 파일입니다."""
 from flask import Flask, request
 
-from .api_server.kakao.response.components.simple import SimpleTextComponent
-
-
 from .api_server import HELP, CAFETERIA_WEB, make_meal_cards
 from .api_server.kakao import Payload
 from .api_server.kakao.response import KakaoResponse
@@ -18,7 +15,7 @@ def root():
     return "Hello Sandol"
 
 
-@app.post("/meal/view")
+@app.route("/meal/view", methods=["POST"])
 def meal_view():
     """식단 정보를 Carousel TextCard 형태로 반환합니다."""
     assert request.json is not None
