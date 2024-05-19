@@ -19,7 +19,7 @@ def root():
     return "Hello Sandol"
 
 
-@app.post("/meal/register/<meal_type>")
+@app.route("/meal/register/<meal_type>", methods=["POST"])
 @handle_errors
 def meal_register(meal_type: str):
     """식단 정보를 등록합니다.
@@ -68,7 +68,7 @@ def meal_register(meal_type: str):
     return response.get_json()
 
 
-@app.post("/meal/register/delete/<meal_type>")
+@app.route("/meal/register/delete/<meal_type>", methods=["POST"])
 @handle_errors
 def meal_delete(meal_type: str):
     """삭제할 메뉴를 선택하는 API입니다.
@@ -105,7 +105,7 @@ def meal_delete(meal_type: str):
     return response.get_json()
 
 
-@app.post("/meal/register/delete_all")
+@app.route("/meal/register/delete_all", methods=["POST"])
 @handle_errors
 def meal_delete_all():
     """모든 메뉴를 삭제하는 API입니다.
@@ -122,7 +122,7 @@ def meal_delete_all():
     return response.get_json()
 
 
-@app.post("/meal/register/delete_menu")
+@app.route("/meal/register/delete_menu", methods=["POST"])
 @handle_errors
 def meal_menu_delete():
     """선택한 메뉴를 삭제하는 API입니다.
@@ -158,7 +158,7 @@ def meal_menu_delete():
     return response.get_json()
 
 
-@app.post("/meal/submit")
+@app.route("/meal/submit", methods=["POST"])
 @handle_errors
 def meal_submit():
     """식단 정보를 확정하는 API입니다.
