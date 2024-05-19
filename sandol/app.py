@@ -1,6 +1,8 @@
 """Sandol API 서버를 실행하는 파일입니다."""
 from flask import Flask, request
 
+from .api_server.kakao.response.components.simple import SimpleTextComponent
+
 
 from .api_server import HELP, CAFETERIA_WEB, make_meal_cards
 from .api_server.kakao import Payload
@@ -22,10 +24,12 @@ def meal_view():
     assert request.json is not None
     payload = Payload.from_dict(request.json)  # 요청 Payload를 파싱합니다.
 
-    # payload에서 cafeteria 값 추출
-    cafeteria = getattr(payload.params, "식당", None) or getattr(
-        payload.params, "cafeteria", None)
+    # payload에서 Cafeteria 값 추출
+    cafeteria = payload.detail_params.get("Cafeteria")  # 학식 이름
     target_cafeteria = getattr(cafeteria, "value", None)
+
+    print(f"식당: {target_cafeteria}")
+    print(f"payload: {payload}")
 
     # 식당 정보를 가져옵니다.
     cafeteria_list: list[Restaurant] = get_meals()
