@@ -7,7 +7,7 @@ import math
 
 class BookTranslator:
     def __init__(self):
-        self.identification = "unknown"
+        self.identification = ""
         self.name = ""
         self.opening_time = ""
         self.tip_lunch_menu = []
@@ -64,6 +64,7 @@ class BookTranslator:
 
     def save_tip_info(self):
         self.save_menu("TIP")       # restaurant = "TIP" -> tip_save_menu()
+        self.identification = "001"
         self.name = "TIP 가가식당"
         self.opening_time = "오전 11시-2시 / 오후 5시-6:50"
         self.location = "TIP 지하 1층"
@@ -71,6 +72,7 @@ class BookTranslator:
 
     def save_e_info(self):
         self.save_menu("E")         # restaurant = "E" -> e_save_menu()
+        self.identification = "002"
         self.name = "E동 레스토랑"
         self.opening_time = "오전 11:30-13:50 / 오후 4:50-18:40"
         self.location = "E동 1층"

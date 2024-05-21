@@ -171,5 +171,6 @@ class Restaurant:
 
 
 if __name__ == "__main__":
-    identification = "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6"
+    identification = "001"      # 001: TIP 가가식당
     rest = Restaurant.by_id(identification)
+
