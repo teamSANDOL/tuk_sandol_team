@@ -1,17 +1,23 @@
 import os
 import json
-from . import settings
+import datetime as dt
+from sandol.crawler import settings
 
 
 class Restaurant:
     def __init__(self, name, lunch, dinner, location):
+        self.registration_time = dt.datetime.now().isoformat()
+        self.opening_time = ""
         self.name = name
         self.lunch = lunch
         self.dinner = dinner
         self.location = location
+        self.price_per_person = 0
         self.temp_lunch = []
         self.temp_dinner = []
         self.final_menu = []
+
+        self.rest_info()
 
     @classmethod
     def by_id(cls, id_address):
@@ -35,10 +41,25 @@ class Restaurant:
                         new_class = type(class_name, (Restaurant,), {})
                         # 생성된 클래스로 객체를 생성하여 반환
                         return new_class(restaurant_data["name"], restaurant_data["lunch_menu"],
-                                         restaurant_data["dinner_menu"], restaurant_data["location"])
+                                         restaurant_data["dinner_menu"], restaurant_data["location"]
+                                         )
 
         else:
             raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{id_address}'")
+
+    def rest_info(self):
+        info = {
+            "미가식당": ["오전 11시-1시 / 오후 5시-6:30", 6000],
+            "세미콘식당": ["오전 11:30-1:30 / 오후 5시-6시", 6000],
+            "수호식당": ["오후 12시-1시 / 오후 5:30-6:30", 6500],
+            "TIP 가가식당": ["오전 11시-2시 / 오후 5시-6:50", 6000],
+            "E동 레스토랑": ["오전 11:30-13:50 / 오후 4:50-18:40", 6500]
+        }
+
+        if self.name in info:
+            self.opening_time, self.price_per_person = info[self.name]
+        else:
+            raise ValueError(f"레스토랑 '{self.name}'에 대한 정보를 찾을 수 없습니다.")
 
     def add_menu(self, meal_time, menu):        # 단일 메뉴 추가 메서드
         if not isinstance(meal_time, str):
@@ -149,6 +170,9 @@ class Restaurant:
             if restaurant_data["name"] == self.name:    # 식당 검색
                 restaurant_data["lunch_menu"] = self.submit_update_menu("lunch")   # 점심 메뉴 변경 사항 존재 시 submit
                 restaurant_data["dinner_menu"] = self.submit_update_menu("dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
+                restaurant_data["registration_time"] = self.registration_time
+                restaurant_data["opening_time"] = self.opening_time
+                restaurant_data["price_per_person"] = self.price_per_person
                 restaurant_found = True
                 break
 
@@ -167,10 +191,13 @@ class Restaurant:
             raise ValueError("temp_menu.json file doesn't exist")
 
     def __str__(self):
-        return f"Restaurant: {self.name}, Lunch: {self.lunch}, Dinner: {self.dinner}, Location: {self.location}"
+        return (f"Restaurant: {self.name}, Lunch: {self.lunch}, Dinner: {self.dinner}, "
+                f"Location: {self.location}, Registration_time: {self.registration_time}, "
+                f"Opening_time: {self.opening_time}, Price: {self.price_per_person}")
 
 
 if __name__ == "__main__":
-    identification = "001"      # 001: TIP 가가식당
+    identification = "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6"      # 001: TIP 가가식당
     rest = Restaurant.by_id(identification)
 
+    print(rest)
