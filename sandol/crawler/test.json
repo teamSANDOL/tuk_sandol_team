@@ -38,5 +38,54 @@
     "dinner_menu": ["갈비탕", "순대국", "비빔밥"],
     "location": "교내",
     "price_per_person": 7000
+  },
+  {
+    "identification": "unknown",
+    "name": "TIP 가가식당",
+    "registration_time": "2024-05-21T23:03:29.450553",
+    "opening_time": "오전 11시-2시 / 오후 5시-6:50",
+    "lunch_menu": [
+            "미트소스스파게티",
+            "양송이스프",
+            "치킨텐더샐러드",
+            "피클",
+            "깍두기",
+            "마늘바게트"
+    ],
+    "dinner_menu": [
+            "바싹불코노미야끼",
+            "육개장",
+            "매콤멸치볶음",
+            "시금치나물",
+            "배추김치"
+    ],
+    "location": "TIP 지하 1층",
+    "price_per_person": 6000
+  },
+  {
+    "identification": "unknown",
+    "name": "E동 레스토랑",
+    "registration_time": "2024-05-21T23:03:29.451553",
+    "opening_time": "오전 11:30-13:50 / 오후 4:50-18:40",
+    "lunch_menu": [
+            "들기름막국수",
+            "잡곡밥",
+            "유부초밥",
+            "팽이미소국",
+            "타코야끼",
+            "꼬들단무지",
+            "포기김치"
+    ],
+    "dinner_menu": [
+            "동태강정",
+            "흰밥",
+            "미역국",
+            "카레감자채볶음",
+            "미나리무생채",
+            "포기김치",
+            "석류푸딩"
+    ],
+    "location": "E동 1층",
+    "price_per_person": 6500
   }
 ]
