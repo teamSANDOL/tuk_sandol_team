@@ -1,18 +1,18 @@
 """Sandol의 메인 애플리케이션 파일입니다."""
+from datetime import datetime, timedelta
+
 from flask import Flask, request
 
 from .api_server.utils import (
-    meal_response_maker, split_string, handle_errors,
-    make_meal_cards,
-    error_message)
-from .api_server.settings import HELP, CAFETERIA_WEB
+    split_string,
+    meal_response_maker, make_meal_cards,
+    handle_errors, error_message)
 from .crawler import (
     get_registration, RegistrationRestaurant, Restaurant, get_meals
 )
 from .api_server.kakao import Payload
 from .api_server.kakao.response import KakaoResponse, QuickReply, ActionEnum
-from .api_server.kakao.response.components import (
-    SimpleTextComponent, TextCardComponent)
+from .api_server.kakao.response.components import (SimpleTextComponent)
 
 app = Flask(__name__)
 
@@ -46,7 +46,7 @@ def meal_register(meal_type: str):
 
     # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
     menu_list = split_string(
-        payload.detail_params["menu"].origin)  # type: ignore
+        payload.detail_params["menu"].origin)
 
     # 메뉴를 등록
     for menu in menu_list:
@@ -223,16 +223,28 @@ def meal_view():
 
     # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
     if target_cafeteria:
-        if target_cafeteria in ["미가", "세미콘", "수호"]:
-            # 식단 정보를 해당 식당 정보로 필터링
-            restaurants = [
-                r for r in cafeteria_list if r.name == target_cafeteria]
-        else:
-            # TIP 또는 E동 식당인 경우
-            return KakaoResponse().add_component(CAFETERIA_WEB).get_json()
-    else:
-        # cafeteria 값이 없을 경우 전체 식당 정보 반환
+        restaurants = [r for r in cafeteria_list if r.name == target_cafeteria]
+    else:  # cafeteria 값이 없을 경우 전체 식당 정보 반환
         restaurants = cafeteria_list
+
+    # # 어제 7시를 기준으로 식당 정보를 필터링
+    # standard_time = datetime.now() - timedelta(days=1)
+    # standard_time = standard_time.replace(
+    #     hour=19, minute=0, second=0, microsecond=0)
+
+    # bf_standard = [
+    #     r for r in restaurants
+    #     if r.registration_time < standard_time
+    # ]
+    # bf_standard = bf_standard.sort(key=lambda x: x.registration_time)
+
+    # af_standard = [
+    #     r for r in restaurants
+    #     if r.registration_time >= standard_time
+    # ]
+    # af_standard = af_standard.sort(key=lambda x: x.registration_time)
+
+    # restaurants = af_standard + bf_standard
 
     # 점심과 저녁 메뉴를 담은 Carousel 생성
     lunch_carousel, dinner_carousel = make_meal_cards(restaurants)
@@ -243,18 +255,13 @@ def meal_view():
     # 모듈에서 자동으로 비어있는 Carousel은 추가하지 않음
     response.add_component(lunch_carousel)
     response.add_component(dinner_carousel)
-    if not cafeteria or cafeteria.value not in ["미가", "세미콘", "수호"]:
-        response.add_component(CAFETERIA_WEB)
 
-    # 식단 정보가 없는 경우 정보 없음 TextCard 추가
-    elif response.is_empty:
-        response.add_component(TextCardComponent("식단 정보가 없습니다."))
-
-    response.add_quick_reply(
-        label="모두 보기",
-        action="message",
-        message_text="테스트 학식",
-    )
+    if target_cafeteria:
+        response.add_quick_reply(
+            label="모두 보기",
+            action="message",
+            message_text="테스트 학식",
+        )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
@@ -262,6 +269,8 @@ def meal_view():
                 action="message",
                 message_text=f"테스트 학식 {rest.name}",
             )
+
+    return response.get_json()
 
 
 if __name__ == "__main__":
