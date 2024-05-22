@@ -1,5 +1,6 @@
 [
   {
+    "identification": "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6",
     "name": "미가",
     "registration_time": "2024-03-27T10:00:00",
     "opening_time": "2024-03-27T11:00:00",
@@ -9,15 +10,17 @@
     "price_per_person": 7000
   },
   {
+    "identification": "380da59920b84d81eb8c444e684a53290021b38f544fe0029f4b38ab347bc44e08",
     "name": "세미콘",
     "registration_time": "2024-03-27T09:30:00",
     "opening_time": "2024-03-27T11:30:00",
     "lunch_menu": ["카레라이스", "짜장면", "갈비탕"],
-    "dinner_menu": ["삼계탕", "순대국", "고등어조림"],
+    "dinner_menu": ["삼계탕", "순림"],
     "location": "교외",
     "price_per_person": 8000
   },
   {
+    "identification": "unknown",
     "name": "수호",
     "registration_time": "2024-03-27T08:00:00",
     "opening_time": "2024-03-27T10:30:00",
