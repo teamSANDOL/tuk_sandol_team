@@ -3,6 +3,7 @@
 주로 코드 중복을 줄이고 가독성을 높이기 위한 함수들이 정의되어 있습니다.
 """
 import re
+from functools import wraps
 
 from .kakao.response import KakaoResponse, QuickReply
 from .kakao.response.interactiron import ActionEnum
@@ -155,6 +156,7 @@ def error_message(message: str | BaseException) -> TextCardComponent:
 
 def handle_errors(func):
     """공통 오류 처리를 위한 데코레이터"""
+    @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
