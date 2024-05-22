@@ -2,13 +2,17 @@
 from flask import Flask, request
 
 from .api_server.utils import (
-    meal_response_maker, make_meal_cards, split_string, handle_errors,
+    meal_response_maker, split_string, handle_errors,
+    make_meal_cards,
     error_message)
-from .crawler import get_registration, RegistrationRestaurant, Restaurant, get_meals
-
+from .api_server.settings import HELP, CAFETERIA_WEB
+from .crawler import (
+    get_registration, RegistrationRestaurant, Restaurant, get_meals
+)
 from .api_server.kakao import Payload
 from .api_server.kakao.response import KakaoResponse, QuickReply, ActionEnum
-from .api_server.kakao.response.components import SimpleTextComponent, TextCardComponent
+from .api_server.kakao.response.components import (
+    SimpleTextComponent, TextCardComponent)
 
 app = Flask(__name__)
 
@@ -201,6 +205,7 @@ def meal_submit():
 
 
 @app.route("/meal/view", methods=["POST"])
+@handle_errors
 def meal_view():
     """식단 정보를 Carousel TextCard 형태로 반환합니다."""
     assert request.json is not None
@@ -259,8 +264,6 @@ def meal_view():
                 action="message",
                 message_text=f"테스트 학식 {rest.name}",
             )
-
-
 
 
 if __name__ == "__main__":
