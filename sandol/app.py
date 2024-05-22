@@ -250,8 +250,6 @@ def meal_view():
     elif response.is_empty:
         response.add_component(TextCardComponent("식단 정보가 없습니다."))
 
-    # 도움말 추가
-    response.add_quick_reply(HELP)
     response.add_quick_reply(
         label="모두 보기",
         action="message",
