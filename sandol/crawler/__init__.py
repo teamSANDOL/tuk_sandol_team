@@ -2,7 +2,7 @@
 
 Api팀은 이 패키지를 사용하여 서버 개발을 진행합니다.
 """
-from .restaurant import Restaurant, get_meals
+from .cafeteria import Restaurant, get_meals
 
 
 def get_registration(identification) -> Restaurant:

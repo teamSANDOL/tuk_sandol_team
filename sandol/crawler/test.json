@@ -2,41 +2,52 @@
     {
         "identification": "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6",
         "name": "미가식당",
-        "registration_time": "2024-03-27T10:00:00",
-        "opening_time": "2024-03-27T11:00:00",
+        "registration_time": "2024-05-25T13:49:42.588862",
+        "opening_time": [
+            [
+                "AM 11:00",
+                "01:00"
+            ],
+            [
+                "PM 05:00",
+                "06:30"
+            ]
+        ],
         "lunch_menu": [
-            "된장찌개",
-            "제육볶음",
-            "김치찌개"
+            "어향가지"
         ],
         "dinner_menu": [
-            "생선구이",
-            "돼지고기국밥",
-            "비빔밥"
+            "광어회"
         ],
         "location": "교외",
-        "price_per_person": 7000
+        "price_per_person": 6000
     },
     {
         "identification": "380da59920b84d81eb8c444e684a53290021b38f544fe0029f4b38ab347bc44e08",
         "name": "세미콘식당",
-        "registration_time": "2024-03-27T09:30:00",
-        "opening_time": "2024-03-27T11:30:00",
+        "registration_time": "2024-05-25T13:50:27.028355",
+        "opening_time": [
+            [
+                "AM 11:30",
+                "01:30"
+            ],
+            [
+                "PM 05:00",
+                "06:00"
+            ]
+        ],
         "lunch_menu": [
-            "카레라이스",
-            "짜장면",
-            "갈비탕"
+            "어향가지"
         ],
         "dinner_menu": [
-            "삼계탕",
-            "순림"
+            "광어회"
         ],
         "location": "교외",
-        "price_per_person": 8000
+        "price_per_person": 6000
     },
     {
-        "identification": "unknown",
-        "name": "수호식당",
+        "identification": "00752cd364a4d1c910df203fd4ed424e07e6981d3f958f953c6c5ef3b879032743",
+        "name": "산돌식당",
         "registration_time": "2024-03-27T08:00:00",
         "opening_time": "2024-03-27T10:30:00",
         "lunch_menu": [
@@ -55,10 +66,17 @@
     {
         "identification": "001",
         "name": "TIP 가가식당",
-        "registration_time": [
-            "2024-05-22T00:33:36.945612"
+        "registration_time": "2024-05-25T13:47:41.667713",
+        "opening_time": [
+            [
+                "AM 11:00",
+                "02:00"
+            ],
+            [
+                "PM 05:00",
+                "06:50"
+            ]
         ],
-        "opening_time": "오전 11시-2시 / 오후 5시-6:50",
         "lunch_menu": [
             "김밥볶음밥",
             "순두부백탕",
@@ -79,7 +97,7 @@
     {
         "identification": "002",
         "name": "E동 레스토랑",
-        "registration_time": "2024-05-25T13:13:06.949867",
+        "registration_time": "2024-05-25T13:52:26.357232",
         "opening_time": [
             [
                 "AM 11:30",
