@@ -1,7 +1,7 @@
 import os
 import json
 import datetime as dt
-from . import settings
+from sandol.crawler import settings
 
 
 class Restaurant:
@@ -44,9 +44,11 @@ class Restaurant:
                         # 생성된 클래스로 객체를 생성하여 반환
                         new_class = type(class_name, (Restaurant,), {})
 
+                        registration_time = dt.datetime.fromisoformat(restaurant_data["registration_time"])
+
                         return new_class(restaurant_data["name"], restaurant_data["lunch_menu"],
                                          restaurant_data["dinner_menu"], restaurant_data["location"],
-                                         restaurant_data["registration_time"])
+                                         registration_time)
 
         else:
             raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{id_address}'")
@@ -87,7 +89,8 @@ class Restaurant:
 
                 start = dt.datetime.strptime(start_time, '%p %I:%M').time()
                 end = dt.datetime.strptime(end_time, '%I:%M').time()
-                self.opening_time.append([start.strftime('%p %I:%M'), end.strftime('%I:%M')])
+
+                self.opening_time.append([start.strftime("%p %I:%M"), end.strftime("%I:%M")])
 
         else:
             raise ValueError(f"레스토랑 '{self.name}'에 대한 정보를 찾을 수 없습니다.")
@@ -279,4 +282,3 @@ if __name__ == "__main__":
     rest = Restaurant.by_id(identification)
 
     print(rest)
-
