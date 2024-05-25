@@ -1,7 +1,7 @@
 import os
 import json
 import datetime as dt
-from sandol.crawler import settings
+from . import settings
 
 
 class Restaurant:
@@ -48,16 +48,42 @@ class Restaurant:
             raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{id_address}'")
 
     def rest_info(self):
+        """
+            각 식당의 개점, 폐점 시간 정보, 1인분 가격 정보 저장 메서드
+        """
         info = {
-            "미가식당": ["오전 11시-1시 / 오후 5시-6:30", 6000],
-            "세미콘식당": ["오전 11:30-1:30 / 오후 5시-6시", 6000],
-            "수호식당": ["오후 12시-1시 / 오후 5:30-6:30", 6500],
-            "TIP 가가식당": ["오전 11시-2시 / 오후 5시-6:50", 6000],
-            "E동 레스토랑": ["오전 11:30-13:50 / 오후 4:50-18:40", 6500]
+            "미가식당": ["오전 11:00-1:00 / 오후 5:00-6:30", 6000],
+            "세미콘식당": ["오전 11:30-1:30 / 오후 5:00-6:00", 6000],
+            "수호식당": ["오후 12:00-1:00 / 오후 5:30-6:30", 6500],
+            "TIP 가가식당": ["오전 11:00-2:00 / 오후 5:00-6:50", 6000],
+            "E동 레스토랑": ["오전 11:30-1:50 / 오후 4:50-6:40", 6500]
         }
 
         if self.name in info:
-            self.opening_time, self.price_per_person = info[self.name]
+            time_info, self.price_per_person = info[self.name]
+            time_slots = time_info.split(" / ")
+
+            self.opening_time = []
+            for slot in time_slots:
+                if '오전' in slot:
+                    slot = slot.replace('오전', 'AM ')
+                elif '오후' in slot:
+                    slot = slot.replace('오후', 'PM ')
+
+                start_time, end_time = slot.split('-')
+                start_time = start_time.strip().replace('시', ':').replace('분', '')
+                end_time = end_time.strip().replace('시', ':').replace('분', '')
+
+                # 분 정보가 없는 경우 :00 추가
+                if ':' not in start_time.split()[1]:
+                    start_time = start_time.split()[0] + ' ' + start_time.split()[1] + ':00'
+                elif ':' not in end_time:
+                    end_time = end_time + ':00'
+
+                start = dt.datetime.strptime(start_time, '%p %I:%M').time()
+                end = dt.datetime.strptime(end_time, '%I:%M').time()
+                self.opening_time.append([start.strftime('%p %I:%M'), end.strftime('%I:%M')])
+
         else:
             raise ValueError(f"레스토랑 '{self.name}'에 대한 정보를 찾을 수 없습니다.")
 
@@ -197,7 +223,7 @@ class Restaurant:
 
 
 if __name__ == "__main__":
-    identification = "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6"      # 001: TIP 가가식당
+    identification = "001"      # 001: TIP 가가식당
     rest = Restaurant.by_id(identification)
 
     print(rest)
