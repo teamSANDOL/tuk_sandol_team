@@ -132,7 +132,6 @@ class BookDownloader:
                     return self.bookcode  # bookcode 반환
         else:  # 요청 실패
             raise FetchBookcodeError(response.status_code)
-        return None
 
     def fetch_file_list(self):
         """파일 목록을 가져오는 메소드
