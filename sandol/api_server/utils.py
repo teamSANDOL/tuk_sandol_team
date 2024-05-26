@@ -8,7 +8,8 @@ import re
 from functools import wraps
 import traceback
 
-
+from .settings import (
+    ADD_LUNCH_QUICK_REPLY, ADD_DINNER_QUICK_REPLY, SUBMIT_QUICK_REPLY, DELETE_MENU_QUICK_REPLY, DELETE_EVERY_QUICK_REPLY)
 from .kakao.response.components.card import ItemCardComponent
 
 from .kakao.response import KakaoResponse, QuickReply
@@ -163,24 +164,12 @@ def meal_response_maker(
     response = KakaoResponse()
     simple_text = SimpleTextComponent("식단 정보 미리보기")
 
-    # 퀵리플라이 정의
-    add_lunch_quick_reply = QuickReply(
-        "점심 메뉴 추가", ActionEnum.BLOCK, block_id="660e009c30bfc84fad05dcbf")
-    add_dinner_quick_reply = QuickReply(
-        "저녁 메뉴 추가", ActionEnum.BLOCK, block_id="660e00a8d837db3443451ef9")
-    submit_quick_reply = QuickReply(
-        "확정", ActionEnum.BLOCK, block_id="661bccff4df3202baf9e8bdd")
-    delete_menu_quick_reply = QuickReply(
-        "메뉴 삭제", ActionEnum.BLOCK, block_id="66438b74334aaa30751802e9")
-    delete_every_quick_reply = QuickReply(
-        "모든 메뉴 삭제", ActionEnum.BLOCK, block_id="6643a2ce0431eb378ea12748")
-
     # 응답에 카드와 퀵리플라이 추가
     response = (
         response + simple_text + lunch + dinner +
-        submit_quick_reply +
-        add_lunch_quick_reply + add_dinner_quick_reply +
-        delete_menu_quick_reply + delete_every_quick_reply)
+        SUBMIT_QUICK_REPLY +
+        ADD_LUNCH_QUICK_REPLY + ADD_DINNER_QUICK_REPLY +
+        DELETE_MENU_QUICK_REPLY + DELETE_EVERY_QUICK_REPLY)
     return response
 
 
