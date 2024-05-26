@@ -1,17 +1,19 @@
 """Sandol의 메인 애플리케이션 파일입니다."""
+
 from datetime import datetime, timedelta
 
 from flask import Flask, request
 
 from .api_server.utils import (
-    split_string,
+    meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
-    handle_errors, error_message)
+    handle_errors, error_message, check_tip_and_e)
 from .crawler import (
-    get_registration, RegistrationRestaurant, Restaurant, get_meals
+    get_registration, Restaurant, get_meals
 )
-from .api_server.kakao import Payload
-from .api_server.kakao.response import KakaoResponse, QuickReply, ActionEnum
+from .api_server.kakao import Payload, ValidationPayload
+from .api_server.kakao.response import (
+    KakaoResponse, QuickReply, ActionEnum, ValidationResponse)
 from .api_server.kakao.response.components import (SimpleTextComponent)
 
 app = Flask(__name__)
@@ -40,13 +42,17 @@ def meal_register(meal_type: str):
     payload = Payload.from_dict(request.json)  # type: ignore
 
     # 사용자의 ID로 등록된 식당 객체를 불러옴
-    restaurant: RegistrationRestaurant = get_registration(
+    restaurant: Restaurant = get_registration(
         payload.user_id)
     restaurant.load_temp_menu()
 
     # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
+    assert payload.detail_params is not None
     menu_list = split_string(
         payload.detail_params["menu"].origin)
+
+    if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
+        return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
 
     # 메뉴를 등록
     for menu in menu_list:
@@ -57,8 +63,7 @@ def meal_register(meal_type: str):
         # 그 외의 모든 에러는 에러 정보와 함께 에러 메시지를 반환
         except ValueError as e:
             if str(e) != "해당 메뉴는 이미 메뉴 목록에 존재합니다.":
-                error_msg = error_message(e)
-                return KakaoResponse().add_component(error_msg).get_json()
+                raise e  # 그 외의 에러는 다시 반환
 
     # 임시 저장된 메뉴를 저장
     restaurant.save_temp_menu()
@@ -87,7 +92,7 @@ def meal_delete(meal_type: str):
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
     """
     payload = Payload.from_dict(request.json)  # type: ignore
-    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant: Restaurant = get_registration(payload.user_id)
     restaurant.load_temp_menu()
 
     memu_list = getattr(restaurant, f"temp_{meal_type}")
@@ -117,7 +122,7 @@ def meal_delete_all():
     모든 메뉴를 삭제하고 삭제된 결과를 응답으로 반환합니다.
     """
     payload = Payload.from_dict(request.json)  # type: ignore
-    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant: Restaurant = get_registration(payload.user_id)
     restaurant.clear_menu()
     restaurant.save_temp_menu()
     response = KakaoResponse().add_component(
@@ -135,7 +140,7 @@ def meal_menu_delete():
     삭제된 결과를 응답으로 반환합니다.
     """
     payload = Payload.from_dict(request.json)  # type: ignore
-    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant: Restaurant = get_registration(payload.user_id)
     restaurant.load_temp_menu()
 
     meal_type = payload.action.client_extra["meal_type"]
@@ -145,12 +150,9 @@ def meal_menu_delete():
         restaurant.delete_menu(meal_type, menu)
     except ValueError as e:
         if str(e) == "해당 메뉴는 등록되지 않은 메뉴입니다.":
-            return KakaoResponse().add_component(
-                SimpleTextComponent("등록되지 않은 메뉴입니다.")
-            ).get_json()
+            return meal_error_response_maker("등록되지 않은 메뉴입니다.").get_json()
         else:
-            error_msg = error_message(e)
-            return KakaoResponse().add_component(error_msg).get_json()
+            raise e  # 그 외의 에러는 다시 반환
     restaurant.save_temp_menu()
 
     # 임시 저장된 메뉴를 불러와 카드를 생성
@@ -164,6 +166,7 @@ def meal_menu_delete():
 
 @app.route("/meal/submit", methods=["POST"])
 @handle_errors
+@check_tip_and_e
 def meal_submit():
     """식단 정보를 확정하는 API입니다.
 
@@ -172,7 +175,7 @@ def meal_submit():
 
     # 요청을 받아 Payload 객체로 변환 및 사용자의 ID로 등록된 식당 객체를 불러옴
     payload = Payload.from_dict(request.json)  # type: ignore
-    restaurant: RegistrationRestaurant = get_registration(payload.user_id)
+    restaurant: Restaurant = get_registration(payload.user_id)
     restaurant.load_temp_menu()
 
     # 식당 정보를 확정 등록
@@ -190,7 +193,7 @@ def meal_submit():
             return KakaoResponse().add_component(error_msg).get_json()
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
-    restaurant: RegistrationRestaurant = get_registration(  # type: ignore
+    restaurant: Restaurant = get_registration(  # type: ignore
         payload.user_id)
     lunch, dinner = make_meal_cards([restaurant])
 
@@ -206,17 +209,16 @@ def meal_submit():
 
 @app.route("/meal/view", methods=["POST"])
 @handle_errors
+@check_tip_and_e
 def meal_view():
     """식단 정보를 Carousel TextCard 형태로 반환합니다."""
     assert request.json is not None
     payload = Payload.from_dict(request.json)  # 요청 Payload를 파싱합니다.
 
     # payload에서 Cafeteria 값 추출
+    assert payload.detail_params is not None   # detail_params가 없을 경우 에러
     cafeteria = payload.detail_params.get("Cafeteria")  # 학식 이름
     target_cafeteria = getattr(cafeteria, "value", None)
-
-    print(f"식당: {target_cafeteria}")
-    print(f"payload: {payload}")
 
     # 식당 정보를 가져옵니다.
     cafeteria_list: list[Restaurant] = get_meals()
@@ -227,24 +229,25 @@ def meal_view():
     else:  # cafeteria 값이 없을 경우 전체 식당 정보 반환
         restaurants = cafeteria_list
 
-    # # 어제 7시를 기준으로 식당 정보를 필터링
-    # standard_time = datetime.now() - timedelta(days=1)
-    # standard_time = standard_time.replace(
-    #     hour=19, minute=0, second=0, microsecond=0)
+    # 어제 7시를 기준으로 식당 정보를 필터링
+    standard_time = datetime.now() - timedelta(days=1)
+    standard_time = standard_time.replace(
+        hour=19, minute=0, second=0, microsecond=0)
 
-    # bf_standard = [
-    #     r for r in restaurants
-    #     if r.registration_time < standard_time
-    # ]
-    # bf_standard = bf_standard.sort(key=lambda x: x.registration_time)
+    af_standard = []
+    bf_standard = []
+    for r in restaurants:
+        if r.registration_time < standard_time:
+            bf_standard.append(r)
+        else:
+            af_standard.append(r)
 
-    # af_standard = [
-    #     r for r in restaurants
-    #     if r.registration_time >= standard_time
-    # ]
-    # af_standard = af_standard.sort(key=lambda x: x.registration_time)
+    # 등록 시간을 기준으로 정렬
+    bf_standard.sort(key=lambda x: x.registration_time)
+    af_standard.sort(key=lambda x: x.registration_time)
 
-    # restaurants = af_standard + bf_standard
+    # 어제 7시 이후 등록된 식당 정보를 먼저 배치
+    restaurants = af_standard + bf_standard
 
     # 점심과 저녁 메뉴를 담은 Carousel 생성
     lunch_carousel, dinner_carousel = make_meal_cards(restaurants)
@@ -256,20 +259,38 @@ def meal_view():
     response.add_component(lunch_carousel)
     response.add_component(dinner_carousel)
 
+    # 퀵리플라이 추가
+    # 현재 선택된 식단을 제외한 다른 식당을 퀵리플라이로 추가
     if target_cafeteria:
         response.add_quick_reply(
             label="모두 보기",
             action="message",
-            message_text="테스트 학식",
+            message_text="테스트 학식",  # TODO: 배포 시 테스트 제거
         )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
-                message_text=f"테스트 학식 {rest.name}",
+                message_text=f"테스트 학식 {rest.name}",  # TODO: 배포 시 테스트 제거
             )
 
+    return response.get_json()
+
+
+@app.route("/validation/menu", methods=["POST", "GET"])
+def validation_menu():
+    """메뉴 유효성 검사 API입니다."""
+    payload = ValidationPayload.from_dict(request.json)  # type: ignore
+
+    menu_list = split_string(
+        payload.utterance)
+
+    if len(menu_list) > 5:
+        response = ValidationResponse(
+            status="ERROR", message="메뉴는 5개까지만 등록할 수 있습니다.\n다시 입력해주세요.")
+    else:
+        response = ValidationResponse(status="SUCCESS")
     return response.get_json()
 
 
