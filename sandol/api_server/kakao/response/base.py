@@ -136,6 +136,115 @@ class ParentComponent(SkillTemplate, metaclass=ABCMeta):
             raise NotImplementedError("name 속성을 구현해야 합니다.")
 
 
+class ValidationResponse(BaseModel):
+    """카카오톡 파라미터 검증 API 응답 객체
+
+    사용자 발화에 대한 검증 결과를 반환하기 위한 응답 객체입니다.
+    사용자 발화에 대한 검증 결과를 status, value, message 속성으로 저장합니다.
+
+    Attributes:
+        value (str): 검증 결과 값, 반환 이후 스킬 서버 호출 시 호출 payload가
+            detailparams의 value값으로 수정되어 전달됩니다.
+        status (str): 검증 결과 상태, "SUCCESS", "FAIL", "ERROR", "IGNORE" 중 하나
+            SUCCESS: 검증 성공, FAIL: 검증 실패, ERROR: 검증 오류, IGNORE: 검증 무시
+        message (str): 검증이 실패한 경우 사용자에게 보여줄 메시지
+        data (None) : API 가 Action 으로 전달하고자 하는 데이터를 담는 곳, 아직 구현되지 않음
+
+    Examples:
+        >>> response = ValidationResponse(status="SUCCESS", value="value")
+        >>> response.get_dict()
+        {'status': 'SUCCESS', 'value': 'value'}
+
+        >>> response = ValidationResponse(
+        ...             status="FAIL", value="value", message="msg")
+        >>> response.get_dict()
+        {'status': 'FAIL', 'value': 'value', 'message': 'msg'}
+    """
+
+    def __init__(
+            self,
+            status: str = "SUCCESS",
+            value: Optional[str] = None,
+            data: Optional[dict] = None,
+            message: Optional[str] = None):
+        self.status = status.upper()
+        self.value = value
+        self.data = data
+        self.message = message
+        self.response_content_obj: dict[str, str] = {}
+
+    def validate(self):
+        """객체를 카카오톡 응답 규칙에 알맞은지 검증합니다.
+
+        Raises:
+            ValueError: status가 SUCCESS, FAIL, ERROR, IGNORE 중 하나가 아닌 경우
+            ValueError: value, message가 문자열이 아닌 경우
+        """
+        validate_str(self.status, disallow_none=True)
+        if self.status not in "SUCCESS|FAIL|ERROR|IGNORE".split("|"):
+            raise ValueError(
+                "status는 SUCCESS, FAIL, ERROR, IGNORE 중 하나여야 합니다.")
+        validate_str(self.value, self.message)
+
+    def render(self) -> dict:
+        """객체를 카카오톡 출력 요소 형식에 맞게 변환합니다.
+
+        각 key에 대한 value가 None인 경우 해당 key를 제거합니다.
+
+        Returns:
+            dict: 카카오톡 출력 요소의 객체
+
+        Examples:
+            >>> response = ValidationResponse(status="SUCCESS", value=None)
+            >>> response.render()
+            {'status': 'SUCCESS'}
+        """
+        self.validate()
+        template = {
+            "status": self.status,
+            "value": self.value,
+            "data": self.data,
+            "message": self.message
+        }
+        self.response_content_obj = self.remove_none_item(template)
+        return self.response_content_obj
+
+    def get_dict(self, rendering: bool = True) -> dict:
+        """카카오톡 출력 요소 형식에 알맞은 dict를 반환합니다.
+
+        response_content_obj를 반환합니다.
+        rendering이 True인 경우, render 메서드를 호출하여
+        response_content_obj를 갱신한 후 반환합니다.
+
+        Args:
+            rendering (bool, optional): 렌더링 여부. Defaults to True.
+
+        Returns:
+            dict: 카카오톡 출력 요소의 딕셔너리
+        """
+        if rendering:
+            self.render()
+        return self.response_content_obj
+
+    def get_json(self, ensure_ascii: bool = False, **kwargs) -> str:
+        """카카오톡 출력 요소 형식에 알맞은 JSON 문자열을 반환합니다.
+
+        get_dict() 메서드를 호출하여 dict를 반환한 후,
+        json.dumps() 함수를 사용하여 JSON 문자열로 변환합니다.
+
+        Args:
+            ensure_ascii (bool, optional): 한글 등 유니코드를 그대로 표기하기 위한
+                json.dups의 옵션. Defaults to False.
+            **kwargs: json.dumps() 함수에 전달되는 추가적인 인자들
+
+        Returns:
+            str: 카카오톡 출력 요소의 JSON 문자열
+        """
+        return json.dumps(
+            self.get_dict(), ensure_ascii=ensure_ascii, **kwargs
+        )
+
+
 class KakaoResponse(BaseModel):
     """복수개의 ParentComponent 반환하기 위한 응답 객체
 

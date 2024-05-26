@@ -14,10 +14,10 @@ Modules:
 from .base import BaseModel
 from . import response
 from .customerror import InvalidLinkError, InvalidTypeError, InvalidActionError
-from .input import Payload
+from .input import Payload, ValidationPayload
 
 __all__ = [
     "response",
     "InvalidActionError", "InvalidLinkError", "InvalidTypeError",
-    "Payload",
+    "Payload", "ValidationPayload"
 ]

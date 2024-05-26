@@ -195,8 +195,8 @@ class Bot(ParentPayload):
         Returns:
             Bot: 생성된 Bot 인스턴스.
         """
-        ID = data.get("id", '')  # pylint: disable=invalid-name
-        name = data.get("name", '')
+        ID = data.get('id', '')  # pylint: disable=invalid-name
+        name = data.get('name', '')
         return cls(
             ID=ID,
             name=name
@@ -524,6 +524,89 @@ class UserRequest(ParentPayload):
             params=params,
             callback_url=callback_url
         )
+
+
+class ValidationPayload(ParentPayload):
+    """ValidationPayload 객체를 저장하는 클래스입니다.
+
+    파라미터를 검증하는 Kakao 스킬 서버의 요청을 처리하기 위한 Payload 객체입니다.
+    이 클래스는 Bot, User 클래스를 속성으로 가지고 있습니다.
+    이 클래스는 스킬 서버에서 전달받은 JSON 데이터를 객체로 변환합니다.
+
+    Args:
+        bot (Bot): 봇 정보를 담고 있는 객체
+        is_in_slot_filling (bool): 슬롯 필링 중인지 여부
+        lang (str): 사용자의 언어
+        params (dict): 파라미터 정보
+        timezone (str): 사용자의 시간대
+        user (User): 사용자 정보를 담고 있는 객체
+        utterance (str): 사용자 발화
+        value (dict): 발화에서 추출한 값 정보
+    """
+
+    def __init__(
+            self,
+            bot: Bot,
+            is_in_slot_filling: bool,
+            lang: str,
+            params: dict[str, str],
+            timezone: str,
+            user: User,
+            utterance: str,
+            value: dict[str, str]):
+        self.bot = bot
+        self.is_in_slot_filling = is_in_slot_filling
+        self.lang = lang
+        self.params = params
+        self.timezone = timezone
+        self.user = user
+        self.utterance = utterance
+        self.value = value
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'ValidationPayload':
+        """딕셔너리에서 ValidationPayload 객체를 생성하는 클래스 메서드
+
+        딕셔너리에서 각 키에 해당하는 값을 추출하여 ValidationPayload 객체를 생성합니다.
+        self.bot, self.user에 대한 정보는
+        Bot, User 클래스의 from_dict 메서드를 호출하여 객체로 변환합니다.
+
+        Args:
+            data (dict): ValidationPayload 객체를 생성하기 위한 딕셔너리
+
+        Returns:
+            ValidationPayload: 생성된 ValidationPayload 객체
+        """
+        bot = Bot.from_dict(data.get('bot', {}))
+        is_in_slot_filling = data.get('isInSlotFilling', False)
+        lang = data.get('lang', '')
+        params = data.get('params', {})
+        timezone = data.get('timezone', '')
+        user = User.from_dict(data.get('user', {}))
+        utterance = data.get('utterance', '')
+        value = data.get('value', {})
+        return cls(
+            bot=bot,
+            is_in_slot_filling=is_in_slot_filling,
+            lang=lang,
+            params=params,
+            timezone=timezone,
+            user=user,
+            utterance=utterance,
+            value=value
+        )
+
+    @classmethod
+    def from_json(cls, data: str) -> 'ValidationPayload':
+        """JSON 문자열을 Payload 객체로 변환하는 클래스 메서드
+
+        전달받는 json 문자열은 skill server에서 전달받은 전체 data입니다.
+        from_dict 메서드를 호출하여 JSON 문자열을 객체로 변환합니다.
+
+        Args:
+            data (str): JSON 문자열
+        """
+        return cls.from_dict(json.loads(data))
 
 
 class Payload(ParentPayload):

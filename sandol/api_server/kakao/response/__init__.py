@@ -10,12 +10,12 @@ modules:
     interactiron: 카카오톡 출력 요소 Button과 QuickReply 및 ListItem의
                     상위 클래스를 정의합니다.
 """
-from .base import KakaoResponse, QuickReply
+from .base import KakaoResponse, QuickReply, ValidationResponse
 from . import components
 from .interactiron import ActionEnum
 
 
 __all__ = [
-    "KakaoResponse", "QuickReply",
+    "KakaoResponse", "QuickReply", "ValidationResponse",
     "components", "ActionEnum"
 ]
