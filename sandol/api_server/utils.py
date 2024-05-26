@@ -2,14 +2,22 @@
 
 주로 코드 중복을 줄이고 가독성을 높이기 위한 함수들이 정의되어 있습니다.
 """
+from datetime import datetime, timedelta
+import os
 import re
 from functools import wraps
+import traceback
+
+
+from .kakao.response.components.card import ItemCardComponent
 
 from .kakao.response import KakaoResponse, QuickReply
 from .kakao.response.interactiron import ActionEnum
 from .kakao.response.components import (
     CarouselComponent, TextCardComponent, SimpleTextComponent)
-from ..crawler import RegistrationRestaurant
+from ..crawler import Restaurant
+from ..crawler.ibookcrawler import BookTranslator
+from ..crawler.bookDownloader import BookDownloader
 
 
 def split_string(s: str) -> list[str]:
@@ -40,11 +48,16 @@ def split_string(s: str) -> list[str]:
         return [item.strip() for item in re.split(r"\s+", s) if item.strip()]
 
 
+def get_korean_day(day):
+    days = ["월", "화", "수", "목", "금", "토", "일"]
+    return days[day]
+
+
 def make_meal_card(
     mealtype: str,
-    restaurant: RegistrationRestaurant,
+    restaurant: Restaurant,
     is_temp=False
-) -> TextCardComponent:
+) -> ItemCardComponent | TextCardComponent:
     """식당의 식단 정보를 TextCard 형식으로 반환합니다.
 
     식당 객체의 식단 정보를 받아 TextCardComponent 객체를 생성하여 반환합니다.
@@ -53,7 +66,7 @@ def make_meal_card(
 
     Args:
         mealtype (str): "lunch" 또는 "dinner" 중 하나
-        restaurant (RegistrationRestaurant): 식당 정보 객체
+        restaurant (Restaurant): 식당 정보 객체
         is_temp (bool, optional): 임시 메뉴를 사용할지 여부. Defaults to False.
     """
 
@@ -65,18 +78,50 @@ def make_meal_card(
 
     # 카드 제목
     title = f"{restaurant.name}({mealtype_dict[mealtype]})"  # 식당명(점심)
+    r_t: datetime = restaurant.registration_time
+    formatted_time = r_t.strftime(
+        (
+            f"{r_t.month}월 {r_t.day}일 {get_korean_day(r_t.weekday())}요일 "
+            f"{r_t.hour}시 업데이트")
+    )
 
     # 메뉴 리스트를 개행문자로 연결하여 반환
     # "메뉴1\n메뉴2\n메뉴3" 또는 "식단 정보가 없습니다."
     menu_list: list = getattr(restaurant, meal_attr, [])
-    description = "\n".join(
-        menu_list) if menu_list else "식단 정보가 없습니다."
 
+    # TODO: ItemCardComponent를 사용할 경우의 코드
+    # response = ItemCardComponent([])
+    # response.image_title = ImageTitle(
+    #     title=title,
+    #     description=formatted_time,
+    # )
+
+    # if menu_list:
+    #     for menu in menu_list:
+    #         response.add_item(
+    #             title="메뉴",
+    #             description=menu
+    #         )
+    # else:
+    #     response.add_item(
+    #         title="메뉴",
+    #         description="식단 정보가 없습니다."
+    #     )
+
+    # return response
+
+    description = ""
+    for menu in menu_list:
+        description += f"{menu}\n"
+    if not menu_list:
+        description = "식단 정보가 없습니다."
+
+    description += formatted_time
     return TextCardComponent(title=title, description=description)
 
 
 def make_meal_cards(
-    restaurants: list[RegistrationRestaurant], is_temp=False
+    restaurants: list[Restaurant], is_temp=False
 ) -> tuple[CarouselComponent, CarouselComponent]:
     """
     주어진 식당 목록에 대해 각각 점심과 저녁 식단 정보를 CarouselComponent로 반환합니다.
@@ -149,17 +194,66 @@ def error_message(message: str | BaseException) -> TextCardComponent:
         message (str): 에러 메시지
     """
     if isinstance(message, BaseException):
-        message = str(message)
-    message += "\n 죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
+        exception_type = type(message).__name__
+        exception_message = str(message)
+        exception_traceback = "".join(  # TODO: 베포시 주석 처리
+            traceback.format_tb(message.__traceback__))
+
+        detailed_message = (
+            f"예외 타입: {exception_type}\n"
+            f"예외 메시지: {exception_message}\n"
+            f"트레이스백:\n{exception_traceback}"  # TODO: 베포시 주석 처리
+        )
+        message = detailed_message
+    message += "\n죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
     return TextCardComponent(title="오류 발생", description=message)
 
 
 def handle_errors(func):
     """공통 오류 처리를 위한 데코레이터"""
-    @wraps(func)
+    @ wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:  # pylint: disable=broad-exception-caught
             return KakaoResponse().add_component(error_message(e)).get_json()
+    return wrapper
+
+
+def check_tip_and_e(func):
+    """TIP 가가식당과 E동 레스토랑 정보를 업데이트하는 데코레이터
+
+    data.xlsx 파일의 수정 시간을 확인하여 이번 주 일요일 이전에 업데이트된 경우
+    data.xlsx 파일을 다운로드하고, TIP 가가식당과 E동 레스토랑 정보를 업데이트합니다.
+
+    """
+    @ wraps(func)
+    def wrapper(*args, **kwargs):
+        # 파일의 수정 시간 확인
+        file_path = os.path.join(os.path.dirname(os.path.dirname(
+            __file__)), "crawler", "data.xlsx")
+
+        must_download = False
+        if os.path.exists(file_path):
+
+            file_mod_time = os.path.getmtime(file_path)
+            file_mod_datetime = datetime.fromtimestamp(file_mod_time)
+
+        else:
+            must_download = True
+        # 이번 주 일요일 날짜 계산
+        today = datetime.now()
+        start_of_week = today - timedelta(days=today.weekday() + 1)
+        start_of_week = start_of_week.replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        # 파일 수정 시간이 이번 주 일요일 이후인지 확인
+        if must_download or not file_mod_datetime > start_of_week:
+            downloader = BookDownloader()
+            downloader.get_file(file_path)  # data.xlsx에 파일 저장
+            ibook = BookTranslator()
+
+            ibook.submit_tip_info()     # TIP 가가식당 정보 test.json에 저장
+            ibook.submit_e_info()       # E동 레스토랑 정보 test.json에 저장
+
+        return func(*args, **kwargs)
     return wrapper
