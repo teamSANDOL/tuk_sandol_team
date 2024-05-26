@@ -51,8 +51,8 @@ def meal_register(meal_type: str):
     menu_list = split_string(
         payload.detail_params["menu"].origin)
 
-    if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
-        return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
+    # if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
+    #     return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
 
     # 메뉴를 등록
     for menu in menu_list:
