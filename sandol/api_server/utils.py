@@ -9,7 +9,8 @@ from functools import wraps
 import traceback
 
 from .settings import (
-    ADD_LUNCH_QUICK_REPLY, ADD_DINNER_QUICK_REPLY, SUBMIT_QUICK_REPLY, DELETE_MENU_QUICK_REPLY, DELETE_EVERY_QUICK_REPLY)
+    ADD_LUNCH_QUICK_REPLY, ADD_DINNER_QUICK_REPLY, SUBMIT_QUICK_REPLY,
+    DELETE_MENU_QUICK_REPLY, DELETE_EVERY_QUICK_REPLY)
 from .kakao.response.components.card import ItemCardComponent
 from .kakao.response import KakaoResponse
 from .kakao.response.components import (
