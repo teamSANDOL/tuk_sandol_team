@@ -11,9 +11,7 @@ import traceback
 from .settings import (
     ADD_LUNCH_QUICK_REPLY, ADD_DINNER_QUICK_REPLY, SUBMIT_QUICK_REPLY, DELETE_MENU_QUICK_REPLY, DELETE_EVERY_QUICK_REPLY)
 from .kakao.response.components.card import ItemCardComponent
-
-from .kakao.response import KakaoResponse, QuickReply
-from .kakao.response.interactiron import ActionEnum
+from .kakao.response import KakaoResponse
 from .kakao.response.components import (
     CarouselComponent, TextCardComponent, SimpleTextComponent)
 from ..crawler import Restaurant
@@ -145,6 +143,26 @@ def make_meal_cards(
         dinner.add_item(make_meal_card("dinner", restaurant, is_temp))
 
     return lunch, dinner
+
+
+def meal_error_response_maker(message: str) -> KakaoResponse:
+    """식단 정보 에러 메시지를 반환하는 응답을 생성합니다.
+
+    Args:
+        message (str): 에러 메시지
+
+    Returns:
+        KakaoResponse: 에러 메시지 응답
+    """
+    response = KakaoResponse()
+    simple = SimpleTextComponent(message)
+    response = (
+        response + simple +
+        SUBMIT_QUICK_REPLY +
+        ADD_LUNCH_QUICK_REPLY + ADD_DINNER_QUICK_REPLY +
+        DELETE_MENU_QUICK_REPLY + DELETE_EVERY_QUICK_REPLY)
+
+    return response
 
 
 def meal_response_maker(
