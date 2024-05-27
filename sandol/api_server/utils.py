@@ -17,7 +17,7 @@ from .kakao.response.components import (
     CarouselComponent, TextCardComponent, SimpleTextComponent)
 from ..crawler import Restaurant
 from ..crawler.ibookcrawler import BookTranslator
-from ..crawler.bookDownloader import BookDownloader
+from ..crawler.ibookdownloader import BookDownloader
 
 
 def split_string(s: str) -> list[str]:
