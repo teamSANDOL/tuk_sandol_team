@@ -17,7 +17,7 @@ from .kakao.response.components import (
     CarouselComponent, TextCardComponent, SimpleTextComponent)
 from ..crawler import Restaurant
 from ..crawler.ibookcrawler import BookTranslator
-from ..crawler.ibookdownloader import BookDownloader
+from ..crawler.bookdownloader import BookDownloader
 
 
 def split_string(s: str) -> list[str]:
@@ -233,17 +233,18 @@ def check_tip_and_e(func):
 
     data.xlsx 파일의 수정 시간을 확인하여 이번 주 일요일 이전에 업데이트된 경우
     data.xlsx 파일을 다운로드하고, TIP 가가식당과 E동 레스토랑 정보를 업데이트합니다.
-
     """
     @ wraps(func)
     def wrapper(*args, **kwargs):
         # 파일의 수정 시간 확인
-        file_path = os.path.join(os.path.dirname(os.path.dirname(
-            __file__)), "crawler", "data.xlsx")
+        file_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "crawler",
+            "data.xlsx"
+        )
 
         must_download = False
         if os.path.exists(file_path):
-
             file_mod_time = os.path.getmtime(file_path)
             file_mod_datetime = datetime.fromtimestamp(file_mod_time)
 
@@ -258,10 +259,12 @@ def check_tip_and_e(func):
         if must_download or not file_mod_datetime > start_of_week:
             downloader = BookDownloader()
             downloader.get_file(file_path)  # data.xlsx에 파일 저장
+
             ibook = BookTranslator()
 
-            ibook.submit_tip_info()     # TIP 가가식당 정보 test.json에 저장
-            ibook.submit_e_info()       # E동 레스토랑 정보 test.json에 저장
+            # 식단 정보 test.json에 저장
+            ibook.submit_tip_info()
+            ibook.submit_e_info()
 
         return func(*args, **kwargs)
     return wrapper
