@@ -23,8 +23,8 @@ pluggy==1.4.0
 pytest==8.1.1
 python-dateutil==2.9.0.post0
 pytz==2024.1
-requests==2.31.0
 six==1.16.0
+requests==2.31.0
 soupsieve==2.5
 tomli==2.0.1
 types-requests==2.32.0.20240523
