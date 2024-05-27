@@ -8,16 +8,14 @@ import re
 from functools import wraps
 import traceback
 
-from .settings import (
-    ADD_LUNCH_QUICK_REPLY, ADD_DINNER_QUICK_REPLY, SUBMIT_QUICK_REPLY,
-    DELETE_MENU_QUICK_REPLY, DELETE_EVERY_QUICK_REPLY)
+from .settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST
 from .kakao.response.components.card import ItemCardComponent
 from .kakao.response import KakaoResponse
 from .kakao.response.components import (
     CarouselComponent, TextCardComponent, SimpleTextComponent)
 from ..crawler import Restaurant
 from ..crawler.ibookcrawler import BookTranslator
-from ..crawler.bookdownloader import BookDownloader
+from ..crawler.ibookdownloader import BookDownloader
 
 
 def split_string(s: str) -> list[str]:
@@ -157,11 +155,9 @@ def meal_error_response_maker(message: str) -> KakaoResponse:
     """
     response = KakaoResponse()
     simple = SimpleTextComponent(message)
-    response = (
-        response + simple +
-        SUBMIT_QUICK_REPLY +
-        ADD_LUNCH_QUICK_REPLY + ADD_DINNER_QUICK_REPLY +
-        DELETE_MENU_QUICK_REPLY + DELETE_EVERY_QUICK_REPLY)
+    response.add_component(simple)
+    for quick_reply in CAFETRIA_REGISTER_QUICK_REPLY_LIST:
+        response.add_quick_reply(quick_reply)
 
     return response
 
@@ -179,16 +175,12 @@ def meal_response_maker(
     Returns:
         KakaoResponse: 식단 정보 미리보기 응답
     """
-    # 임시 저장된 메뉴를 불러와 카드를 생성
     response = KakaoResponse()
     simple_text = SimpleTextComponent("식단 정보 미리보기")
 
-    # 응답에 카드와 퀵리플라이 추가
-    response = (
-        response + simple_text + lunch + dinner +
-        SUBMIT_QUICK_REPLY +
-        ADD_LUNCH_QUICK_REPLY + ADD_DINNER_QUICK_REPLY +
-        DELETE_MENU_QUICK_REPLY + DELETE_EVERY_QUICK_REPLY)
+    response = response + simple_text + lunch + dinner
+    for quick_reply in CAFETRIA_REGISTER_QUICK_REPLY_LIST:
+        response.add_quick_reply(quick_reply)
     return response
 
 
