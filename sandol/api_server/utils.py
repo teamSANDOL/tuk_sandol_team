@@ -210,25 +210,14 @@ def error_message(message: str | BaseException) -> TextCardComponent:
     return TextCardComponent(title="오류 발생", description=message)
 
 
-def handle_errors(func):
-    """공통 오류 처리를 위한 데코레이터"""
-    @ wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            return KakaoResponse().add_component(error_message(e)).get_json()
-    return wrapper
-
-
 def check_tip_and_e(func):
     """TIP 가가식당과 E동 레스토랑 정보를 업데이트하는 데코레이터
 
     data.xlsx 파일의 수정 시간을 확인하여 이번 주 일요일 이전에 업데이트된 경우
     data.xlsx 파일을 다운로드하고, TIP 가가식당과 E동 레스토랑 정보를 업데이트합니다.
     """
-    @ wraps(func)
-    def wrapper(*args, **kwargs):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
         # 파일의 수정 시간 확인
         file_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
@@ -259,5 +248,5 @@ def check_tip_and_e(func):
             ibook.submit_tip_info()
             ibook.submit_e_info()
 
-        return func(*args, **kwargs)
+        return await func(*args, **kwargs)
     return wrapper
