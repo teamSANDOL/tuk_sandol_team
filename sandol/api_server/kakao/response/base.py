@@ -361,7 +361,7 @@ class KakaoResponse(BaseModel):
         Returns:
             bool: 컴포넌트 리스트가 비어있으면 True, 아니면 False
         """
-        return bool(self.component_list)
+        return not bool(self.component_list)
 
     def validate(self):
         """객체를 카카오톡 응답 규칙에 알맞은지 검증합니다. (super 참고)
