@@ -251,9 +251,15 @@ def meal_view():
     response = KakaoResponse()
 
     # 점심과 저녁 메뉴 Carousel을 SkillList에 추가
-    # 모듈에서 자동으로 비어있는 Carousel은 추가하지 않음
-    response.add_component(lunch_carousel)
-    response.add_component(dinner_carousel)
+    # 비어있는 Carousel을 추가하지 않음
+    if not lunch_carousel.is_empty:
+        response.add_component(lunch_carousel)
+    if not dinner_carousel.is_empty:
+        response.add_component(dinner_carousel)
+    if response.is_empty:
+        response.add_component(
+            SimpleTextComponent("식단 정보가 없습니다.")
+        )
 
     # 퀵리플라이 추가
     # 현재 선택된 식단을 제외한 다른 식당을 퀵리플라이로 추가
