@@ -79,7 +79,7 @@ def make_meal_card(
     r_t: datetime = restaurant.registration_time
     formatted_time = r_t.strftime(
         (
-            f"{r_t.month}월 {r_t.day}일 {get_korean_day(r_t.weekday())}요일 "
+            f"\n{r_t.month}월 {r_t.day}일 {get_korean_day(r_t.weekday())}요일 "
             f"{r_t.hour}시 업데이트")
     )
 
@@ -109,10 +109,11 @@ def make_meal_card(
     # return response
 
     description = ""
-    for menu in menu_list:
-        description += f"{menu}\n"
     if not menu_list:
         description = "식단 정보가 없습니다."
+    else:
+        for menu in menu_list:
+            description += f"{menu}\n"
 
     description += formatted_time
     return TextCardComponent(title=title, description=description)
