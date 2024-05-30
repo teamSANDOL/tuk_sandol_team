@@ -1,5 +1,4 @@
 """테스트 서버를 실행시키기 위한 파일입니다."""
-from sandol.app import app  # noqa
 import uvicorn
 
 if __name__ == "__main__":
