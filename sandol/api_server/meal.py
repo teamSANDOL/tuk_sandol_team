@@ -58,7 +58,7 @@ async def meal_register(meal_type: str, request: Request):
     menu_list = split_string(
         payload.detail_params["menu"].origin)
 
-    # TODO: 메뉴 등록 개수 제한기능 필요시 활성화
+    # TODO(Seokyoung_Hong): 메뉴 등록 개수 제한기능 필요시 활성화
     # if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
     #     return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
 
@@ -204,8 +204,7 @@ async def meal_submit(request: Request):
 @check_tip_and_e
 async def meal_view(request: Request):
     """식단 정보를 Carousel TextCard 형태로 반환합니다."""
-    request_json = await request.json()
-    payload = Payload.from_dict(request_json)  # 요청 Payload를 파싱합니다.
+    payload = Payload.from_dict(await request.json())  # 요청 Payload를 파싱합니다.
 
     # payload에서 Cafeteria 값 추출
     assert payload.detail_params is not None
