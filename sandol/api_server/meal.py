@@ -27,6 +27,18 @@ from sandol.crawler import (
 meal_api = APIRouter(prefix="/meal")
 
 
+async def get_payload_and_restaurant(request: Request):
+    """요청에서 Payload 객체와 등록된 Restaurant 객체를 반환합니다."""
+    # 요청을 받아 Payload 객체로 변환
+    payload = Payload.from_dict(await request.json())  # type: ignore
+
+    # 사용자의 ID로 등록된 식당 객체를 불러옴
+    restaurant: Restaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
+
+    return payload, restaurant
+
+
 @meal_api.post("/register/{meal_type}")
 async def meal_register(meal_type: str, request: Request):
     """식단 정보를 등록합니다.
@@ -39,13 +51,7 @@ async def meal_register(meal_type: str, request: Request):
     중식 및 석식 등록 발화시 호출되는 API입니다.
     """
 
-    # 요청을 받아 Payload 객체로 변환
-    payload = Payload.from_dict(await request.json())  # type: ignore
-
-    # 사용자의 ID로 등록된 식당 객체를 불러옴
-    restaurant: Restaurant = get_registration(
-        payload.user_id)
-    restaurant.load_temp_menu()
+    payload, restaurant = await get_payload_and_restaurant(request)
 
     # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
     assert payload.detail_params is not None
@@ -85,9 +91,7 @@ async def meal_delete(meal_type: str, request: Request):
         meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
     """
-    payload = Payload.from_dict(await request.json())
-    restaurant: Restaurant = get_registration(payload.user_id)
-    restaurant.load_temp_menu()
+    _, restaurant = await get_payload_and_restaurant(request)
 
     # meal_type에 해당하는 메뉴 리스트를 불러와 퀵리플라이로 반환
     memu_list = getattr(restaurant, f"temp_{meal_type}")
@@ -117,8 +121,7 @@ async def meal_delete_all(request: Request):
 
     모든 메뉴를 삭제하고 삭제된 결과를 응답으로 반환합니다.
     """
-    payload = Payload.from_dict(await request.json())
-    restaurant: Restaurant = get_registration(payload.user_id)
+    _, restaurant = await get_payload_and_restaurant(request)
     restaurant.clear_menu()
     restaurant.save_temp_menu()
     response = KakaoResponse().add_component(
@@ -134,9 +137,7 @@ async def meal_menu_delete(request: Request):
     meal_delete API에서 선택한 메뉴를 삭제합니다.
     삭제된 결과를 응답으로 반환합니다.
     """
-    payload = Payload.from_dict(await request.json())
-    restaurant: Restaurant = get_registration(payload.user_id)
-    restaurant.load_temp_menu()
+    payload, restaurant = await get_payload_and_restaurant(request)
 
     meal_type = payload.action.client_extra["meal_type"]
     menu = payload.action.client_extra["menu"]
@@ -167,9 +168,7 @@ async def meal_submit(request: Request):
     임시 저장된 식단 정보를 확정하고 등록합니다.
     """
     # 요청을 받아 Payload 객체로 변환 및 사용자의 ID로 등록된 식당 객체를 불러옴
-    payload = Payload.from_dict(await request.json())  # type: ignore
-    restaurant: Restaurant = get_registration(payload.user_id)
-    restaurant.load_temp_menu()
+    payload, restaurant = await get_payload_and_restaurant(request)
 
     # 식당 정보를 확정 등록
     try:
