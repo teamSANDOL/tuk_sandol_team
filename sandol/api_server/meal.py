@@ -43,12 +43,12 @@ async def get_payload_and_restaurant(request: Request):
 async def meal_register(meal_type: str, request: Request):
     """식단 정보를 등록합니다.
 
+    중식 등록 및 석식 등록 스킬을 처리합니다.
+    중식 및 석식 등록 발화시 호출되는 API입니다.
+
     Args:
         meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
-
-    중식 등록 및 석식 등록 스킬을 처리합니다.
-    중식 및 석식 등록 발화시 호출되는 API입니다.
     """
 
     payload, restaurant = await get_payload_and_restaurant(request)
@@ -205,7 +205,6 @@ async def meal_submit(request: Request):
 async def meal_view(request: Request):
     """식단 정보를 Carousel TextCard 형태로 반환합니다."""
     request_json = await request.json()
-    print(request_json)
     payload = Payload.from_dict(request_json)  # 요청 Payload를 파싱합니다.
 
     # payload에서 Cafeteria 값 추출
@@ -264,14 +263,15 @@ async def meal_view(request: Request):
         response.add_quick_reply(
             label="모두 보기",
             action="message",
-            message_text="테스트 학식",  # TODO: 배포 시 '테스트' 제거
+            message_text="테스트 학식",  # TODO(Seokyoung_Hong): 배포 시 '테스트' 제거
         )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
-                message_text=f"테스트 학식 {rest.name}",  # TODO: 배포 시 '테스트' 제거
+                # TODO(Seokyoung_Hong): 배포 시 '테스트' 제거
+                message_text=f"테스트 학식 {rest.name}",
             )
 
     return JSONResponse(response.get_dict())

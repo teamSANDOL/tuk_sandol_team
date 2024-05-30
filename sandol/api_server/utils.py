@@ -87,7 +87,7 @@ def make_meal_card(
     # "메뉴1\n메뉴2\n메뉴3" 또는 "식단 정보가 없습니다."
     menu_list: list = getattr(restaurant, meal_attr, [])
 
-    # TODO: ItemCardComponent를 사용할 경우의 코드
+    # TODO(Seokyoung_Hong): ItemCardComponent를 사용할 경우의 코드, 사용여부 결정 후 삭제
     # response = ItemCardComponent([])
     # response.image_title = ImageTitle(
     #     title=title,
@@ -194,13 +194,13 @@ def error_message(message: str | BaseException) -> TextCardComponent:
     if isinstance(message, BaseException):
         exception_type = type(message).__name__
         exception_message = str(message)
-        exception_traceback = "".join(  # TODO: 베포시 주석 처리
+        exception_traceback = "".join(  # TODO(Seokyoung_Hong): 베포시 주석 처리
             traceback.format_tb(message.__traceback__))
 
         detailed_message = (
             f"예외 타입: {exception_type}\n"
             f"예외 메시지: {exception_message}\n"
-            f"트레이스백:\n{exception_traceback}"  # TODO: 베포시 주석 처리
+            f"트레이스백:\n{exception_traceback}"  # TODO(Seokyoung_Hong): 베포시 주석 처리
         )
         message = detailed_message
     message += "\n죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
@@ -226,14 +226,15 @@ def check_tip_and_e(func):
         if os.path.exists(file_path):
             file_mod_time = os.path.getmtime(file_path)
             file_mod_datetime = datetime.fromtimestamp(file_mod_time)
-
         else:
             must_download = True
+
         # 이번 주 일요일 날짜 계산
         today = datetime.now()
         start_of_week = today - timedelta(days=today.weekday() + 1)
         start_of_week = start_of_week.replace(
             hour=0, minute=0, second=0, microsecond=0)
+
         # 파일 수정 시간이 이번 주 일요일 이후인지 확인
         if must_download or not file_mod_datetime > start_of_week:
             downloader = BookDownloader()
