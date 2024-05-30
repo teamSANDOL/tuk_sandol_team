@@ -176,10 +176,7 @@ def meal_response_maker(
     Returns:
         KakaoResponse: 식단 정보 미리보기 응답
     """
-    response = KakaoResponse()
-    simple_text = SimpleTextComponent("식단 정보 미리보기")
-
-    response = response + simple_text + lunch + dinner
+    response = KakaoResponse() + SimpleTextComponent("식단 미리보기") + lunch + dinner
     for quick_reply in CAFETRIA_REGISTER_QUICK_REPLY_LIST:
         response.add_quick_reply(quick_reply)
     return response
