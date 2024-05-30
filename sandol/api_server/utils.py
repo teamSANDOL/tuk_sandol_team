@@ -8,14 +8,14 @@ import re
 from functools import wraps
 import traceback
 
-from .settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST
-from .kakao.response.components.card import ItemCardComponent
-from .kakao.response import KakaoResponse
-from .kakao.response.components import (
+from sandol.api_server.settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST
+from sandol.api_server.kakao.response.components.card import ItemCardComponent
+from sandol.api_server.kakao.response import KakaoResponse
+from sandol.api_server.kakao.response.components import (
     CarouselComponent, TextCardComponent, SimpleTextComponent)
-from ..crawler import Restaurant
-from ..crawler.ibookcrawler import BookTranslator
-from ..crawler.ibookdownloader import BookDownloader
+from sandol.crawler import Restaurant
+from sandol.crawler.ibookcrawler import BookTranslator
+from sandol.crawler.ibookdownloader import BookDownloader
 
 
 def split_string(s: str) -> list[str]:

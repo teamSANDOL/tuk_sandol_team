@@ -2,9 +2,9 @@
 from fastapi import FastAPI, HTTPException, Request, status  # noqa: F401 # pylint: disable=W0611
 from fastapi.responses import JSONResponse  # noqa: F401
 
-from .api_server.meal import meal_api
-from .api_server.utils import error_message
-from .api_server.kakao.response import KakaoResponse
+from sandol.api_server.meal import meal_api
+from sandol.api_server.utils import error_message
+from sandol.api_server.kakao.response import KakaoResponse
 
 
 app = FastAPI()
