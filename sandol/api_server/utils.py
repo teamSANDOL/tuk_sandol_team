@@ -108,12 +108,7 @@ def make_meal_card(
 
     # return response
 
-    description = ""
-    if not menu_list:
-        description = "식단 정보가 없습니다."
-    else:
-        for menu in menu_list:
-            description += f"{menu}\n"
+    description = "\n".join(menu_list) if menu_list else "식단 정보가 없습니다."
 
     description += formatted_time
     return TextCardComponent(title=title, description=description)
