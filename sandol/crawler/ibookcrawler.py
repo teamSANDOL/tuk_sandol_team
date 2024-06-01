@@ -49,8 +49,14 @@ class BookTranslator:
             data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
         """
         self.tip_lunch_menu = list(self.df.iloc[6:12, weekday])     # data.xlsx file 내 1열 8행~13행
-        # print(self.lunch_menu)
+        for menu in self.tip_lunch_menu:
+            if menu == '*복수메뉴*':
+                self.tip_lunch_menu.remove(menu)
+
         self.tip_dinner_menu = list(self.df.iloc[13:19, weekday])   # data.xlsx file 내 1열 15행~20행
+        for menu in self.tip_lunch_menu:
+            if menu == '*복수메뉴*':
+                self.tip_lunch_menu.remove(menu)
 
     def e_save_menu(self, weekday):
         """
@@ -59,7 +65,7 @@ class BookTranslator:
             data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
         """
         self.e_lunch_menu = list(self.df.iloc[22:29, weekday])  # data.xlsx file 내 1열 24행~30행
-        # print(self.lunch_menu)
+
         self.e_dinner_menu = list(self.df.iloc[30:37, weekday])  # data.xlsx file 내 1열 32행~38행
 
     def save_tip_info(self):
