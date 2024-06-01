@@ -10,7 +10,8 @@ def root():
 
 @app.route("/lib")
 def library():
+    return "Hello lib"
 
 
-
-app.run()
+if __name__ == "__main__":
+    app.run()
