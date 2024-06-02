@@ -105,13 +105,30 @@ def make_meal_card(
     #         title="메뉴",
     #         description="식단 정보가 없습니다."
     #     )
+    # response.add_button(
+    #     label="식당 정보 보기",
+    #     action="block",
+    #     block_id="665ca91ba99186411b75b8c9",
+    #     extra={
+    #         "restaurant_name": restaurant.name
+    #     }
+    # )
 
     # return response
 
     description = "\n".join(menu_list) if menu_list else "식단 정보가 없습니다."
 
     description += formatted_time
-    return TextCardComponent(title=title, description=description)
+    textcard = TextCardComponent(title=title, description=description)
+    textcard.add_button(
+        label="식당 정보 보기",
+        action="block",
+        block_id="665ca91ba99186411b75b8c9",
+        extra={
+            "restaurant_name": restaurant.name
+        }
+    )
+    return textcard
 
 
 def make_meal_cards(

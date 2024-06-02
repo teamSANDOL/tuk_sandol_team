@@ -15,11 +15,14 @@ from sandol.api_server.kakao.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
 from sandol.api_server.kakao.response.components import SimpleTextComponent
+from sandol.api_server.kakao.response.components.card import ItemCardComponent
+from sandol.api_server.kakao.response.components.itemcard import ImageTitle
 from sandol.api_server.utils import (
     meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
     check_tip_and_e
 )
+from sandol.api_server.settings import NAVER_MAP_URL_DICT
 from sandol.crawler import (
     get_registration, Restaurant, get_meals
 )
@@ -262,16 +265,68 @@ async def meal_view(request: Request):
         response.add_quick_reply(
             label="모두 보기",
             action="message",
-            message_text="테스트 학식",  # TODO(Seokyoung_Hong): 배포 시 '테스트' 제거
+            message_text="테스트 학식",  # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
         )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
-                # TODO(Seokyoung_Hong): 배포 시 '테스트' 제거
+                # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
                 message_text=f"테스트 학식 {rest.name}",
             )
+
+    return JSONResponse(response.get_dict())
+
+
+@meal_api.post("/restaurant")
+async def meal_restaurant(request: Request):
+    """식당 정보를 반환하는 API입니다."""
+    payload = Payload.from_dict(await request.json())
+
+    restaurant_name: str = payload.action.client_extra["restaurant_name"]
+
+    # 식당 정보를 가져옵니다.
+    cafeteria_list: list[Restaurant] = get_meals()
+
+    restaurant: Restaurant = list(
+        filter(lambda x: x.name == restaurant_name, cafeteria_list))[0]
+
+    item_card = ItemCardComponent([])
+    item_card.image_title = ImageTitle(
+        title=restaurant.name,
+        description="식당 정보"
+    )
+    item_card.add_item(
+        title="점심 시간",
+        description="~".join(restaurant.opening_time[0])
+    )
+    item_card.add_item(
+        title="저녁 시간",
+        description="~".join(restaurant.opening_time[1])
+    )
+    item_card.add_item(
+        title="위치",
+        description=restaurant.location
+    )
+    item_card.add_item(
+        title="가격",
+        description=f"{restaurant.price_per_person}원"
+    )
+    item_card.add_button(
+        label="메뉴 보기",
+        action="message",
+        # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
+        message_text=f"테스트 학식 {restaurant_name}"
+    )
+    url = NAVER_MAP_URL_DICT.get(restaurant_name, None)
+    if url:
+        item_card.add_button(
+            label="식당 위치 지도 보기",
+            action="webLink",
+            web_link_url=url
+        )
+    response = KakaoResponse().add_component(item_card)
 
     return JSONResponse(response.get_dict())
 
