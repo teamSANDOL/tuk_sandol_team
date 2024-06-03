@@ -39,7 +39,7 @@ jobs:
         run: sam build
 
       - name: Package with SAM
-        run: sam package --output-template-file packaged.yaml --s3-bucket sandol-sam-deploy-bucket
+        run: sam package --output-template-file packaged.yaml --s3-bucket sandol-deploy-bucket
 
       - name: Deploy with SAM
         run: sam deploy --template-file packaged.yaml --stack-name fastapi-sam-app --capabilities CAPABILITY_IAM --region ap-northeast-2
