@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse  # noqa: F401
 from sandol.api_server.meal import meal_api
 from sandol.api_server.utils import error_message
 from sandol.api_server.kakao.response import KakaoResponse
+from sandol.api_server.kakao.response.components import TextCardComponent
+from mangum import Mangum
 
 
 app = FastAPI()
@@ -18,7 +20,20 @@ async def http_exception_handler(request: Request, exc: Exception):  # pylint: d
     )
 
 
+@app.get("/test")
+async def test():
+    return KakaoResponse().add_component(TextCardComponent("테스트 페이지입니다.")).get_dict()
+
+
+@app.post("/test")
+async def test_post():
+    return KakaoResponse().add_component(TextCardComponent("테스트 페이지입니다.")).get_dict()
+
+
 @app.get("/")
 async def root():
     """루트 페이지입니다."""
     return "Hello Sandol"
+
+
+handler = Mangum(app)
