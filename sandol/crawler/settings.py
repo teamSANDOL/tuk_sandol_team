@@ -31,3 +31,5 @@ RESTAURANT_ACCESS_ID: dict = {"32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985
                               "001": "TIP 가가식당",
                               "002": "E동 레스토랑"
                               }
+
+S3_BUCKET_NAME = 'aws-sam-cli-managed-default-samclisourcebucket-c02wesqs5a4a'
