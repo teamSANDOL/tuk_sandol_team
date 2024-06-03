@@ -10,17 +10,17 @@ from fastapi import Request
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from sandol.api_server.kakao import Payload, ValidationPayload
-from sandol.api_server.kakao.response import (
+from api_server.kakao import Payload, ValidationPayload
+from api_server.kakao.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
-from sandol.api_server.kakao.response.components import SimpleTextComponent
-from sandol.api_server.utils import (
+from api_server.kakao.response.components import SimpleTextComponent
+from api_server.utils import (
     meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
     check_tip_and_e
 )
-from sandol.crawler import (
+from crawler import (
     get_registration, Restaurant, get_meals
 )
 

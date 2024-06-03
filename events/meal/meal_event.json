@@ -1,0 +1,20 @@
+{
+  "resource": "/{proxy+}",
+  "path": "/meal/view",
+  "httpMethod": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "queryStringParameters": {},
+  "pathParameters": {
+    "proxy": "meal/view"
+  },
+  "stageVariables": null,
+  "requestContext": {
+    "resourcePath": "/{proxy+}",
+    "httpMethod": "POST",
+    "path": "/prod/meal/view"
+  },
+  "body": "{\"intent\":{\"id\":\"viqkzodj54puyo8ai5e6m49w\",\"name\":\"블록 이름\"},\"userRequest\":{\"timezone\":\"Asia/Seoul\",\"params\":{\"ignoreMe\":\"true\"},\"block\":{\"id\":\"viqkzodj54puyo8ai5e6m49w\",\"name\":\"블록 이름\"},\"utterance\":\"발화 내용\",\"lang\":null,\"user\":{\"id\":\"702912\",\"type\":\"accountId\",\"properties\":{}}},\"bot\":{\"id\":\"5e0f180affa74800014bd33d\",\"name\":\"봇 이름\"},\"action\":{\"name\":\"u0o68ejcea\",\"clientExtra\":null,\"params\":{\"meal\":\"view\"},\"id\":\"lwnhtra9gidojk68b6xr41o4\",\"detailParams\":{\"meal\":{\"origin\":\"view\",\"value\":\"view\",\"groupName\":\"\"}}}}",
+  "isBase64Encoded": false
+}

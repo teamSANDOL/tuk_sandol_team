@@ -1,7 +1,7 @@
 """응답에 사용되는 상수들을 정의합니다."""
-from sandol.api_server.kakao.response import QuickReply
-from sandol.api_server.kakao.response.components import TextCardComponent
-from sandol.api_server.kakao.response.interactiron import ActionEnum
+from api_server.kakao.response import QuickReply
+from api_server.kakao.response.components import TextCardComponent
+from api_server.kakao.response.interactiron import ActionEnum
 
 # 도움말 QuickReply
 HELP = QuickReply(
