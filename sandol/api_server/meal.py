@@ -5,6 +5,7 @@
 """
 
 from datetime import datetime, timedelta
+from typing import List
 
 from fastapi import Request
 from fastapi import APIRouter
@@ -215,19 +216,21 @@ async def meal_view(request: Request):
     cafeteria_list: list[Restaurant] = get_meals()
 
     # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
+
+    target_cafeteria = False
+
+    cafeteria_list: List[Restaurant] = await get_meals()
+
     if target_cafeteria:
-        restaurants = list(
-            filter(lambda x: x.name == target_cafeteria, cafeteria_list))
+        restaurants = list(filter(lambda x: x.name == target_cafeteria, cafeteria_list))
     else:
         restaurants = cafeteria_list
 
-    # 어제 7시를 기준으로 식당 정보를 필터링
     standard_time = datetime.now() - timedelta(days=1)
-    standard_time = standard_time.replace(
-        hour=19, minute=0, second=0, microsecond=0)
+    standard_time = standard_time.replace(hour=19, minute=0, second=0, microsecond=0)
 
-    af_standard: list[Restaurant] = []
-    bf_standard: list[Restaurant] = []
+    af_standard: List[Restaurant] = []
+    bf_standard: List[Restaurant] = []
     for r in restaurants:
         if r.registration_time < standard_time:
             bf_standard.append(r)
@@ -237,39 +240,30 @@ async def meal_view(request: Request):
     bf_standard.sort(key=lambda x: x.registration_time)
     af_standard.sort(key=lambda x: x.registration_time)
 
-    # 어제 7시 이후 등록된 식당 정보를 먼저 배치
     restaurants = af_standard + bf_standard
 
-    # 점심과 저녁 메뉴를 담은 Carousel 생성
     lunch_carousel, dinner_carousel = make_meal_cards(restaurants)
 
     response = KakaoResponse()
 
-    # 점심과 저녁 메뉴 Carousel을 SkillList에 추가
-    # 비어있는 Carousel을 추가하지 않음
-    if not lunch_carousel.is_empty:
+    if lunch_carousel:
         response.add_component(lunch_carousel)
-    if not dinner_carousel.is_empty:
+    if dinner_carousel:
         response.add_component(dinner_carousel)
     if response.is_empty:
-        response.add_component(
-            SimpleTextComponent("식단 정보가 없습니다.")
-        )
+        response.add_component(SimpleTextComponent("식단 정보가 없습니다."))
 
-    # 퀵리플라이 추가
-    # 현재 선택된 식단을 제외한 다른 식당을 퀵리플라이로 추가
     if target_cafeteria:
         response.add_quick_reply(
             label="모두 보기",
             action="message",
-            message_text="테스트 학식",  # TODO(Seokyoung_Hong): 배포 시 '테스트' 제거
+            message_text="테스트 학식",
         )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
-                # TODO(Seokyoung_Hong): 배포 시 '테스트' 제거
                 message_text=f"테스트 학식 {rest.name}",
             )
 

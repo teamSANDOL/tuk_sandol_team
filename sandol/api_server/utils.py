@@ -210,12 +210,8 @@ def check_tip_and_e(func):
     """
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        # 파일의 수정 시간 확인
-        file_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "crawler",
-            "data.xlsx"
-        )
+        # Lambda 환경에서 /tmp 디렉토리를 사용
+        file_path = "/tmp/data.xlsx"
 
         must_download = False
         if os.path.exists(file_path):
@@ -231,15 +227,15 @@ def check_tip_and_e(func):
             hour=0, minute=0, second=0, microsecond=0)
 
         # 파일 수정 시간이 이번 주 일요일 이후인지 확인
-        if must_download or not file_mod_datetime > start_of_week:
-            downloader = BookDownloader()
-            downloader.get_file(file_path)  # data.xlsx에 파일 저장
-
-            ibook = BookTranslator()
-
-            # 식단 정보 test.json에 저장
-            ibook.submit_tip_info()
-            ibook.submit_e_info()
+        # if must_download or not file_mod_datetime > start_of_week:
+        #     downloader = BookDownloader()
+        #     downloader.get_file(file_path)  # /tmp/data.xlsx에 파일 저장
+        #
+        #     ibook = BookTranslator()
+        #
+        #     # 식단 정보 test.json에 저장
+        #     ibook.submit_tip_info()
+        #     ibook.submit_e_info()
 
         return await func(*args, **kwargs)
     return wrapper
