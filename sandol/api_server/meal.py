@@ -33,52 +33,15 @@ meal_api = APIRouter(prefix="/meal")
 async def get_payload_and_restaurant(request: Request):
     """요청에서 Payload 객체와 등록된 Restaurant 객체를 반환합니다."""
     # 요청을 받아 Payload 객체로 변환
-    payload = Payload.from_dict(await request.json())  # type: ignore
+    json_dt = await request.json()
+    payload = Payload.from_dict(json_dt)  # type: ignore
+    print(json_dt)
 
     # 사용자의 ID로 등록된 식당 객체를 불러옴
     restaurant: Restaurant = get_registration(payload.user_id)
     restaurant.load_temp_menu()
 
     return payload, restaurant
-
-
-@meal_api.post("/register/{meal_type}")
-async def meal_register(meal_type: str, request: Request):
-    """식단 정보를 등록합니다.
-
-    중식 등록 및 석식 등록 스킬을 처리합니다.
-    중식 및 석식 등록 발화시 호출되는 API입니다.
-
-    Args:
-        meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
-            lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
-    """
-
-    payload, restaurant = await get_payload_and_restaurant(request)
-
-    # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
-    assert payload.detail_params is not None
-    menu_list = split_string(
-        payload.detail_params["menu"].origin)
-
-    # TODO(Seokyoung_Hong): 메뉴 등록 개수 제한기능 필요시 활성화
-    # if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
-    #     return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
-
-    # 메뉴를 등록
-    for menu in menu_list:
-        try:
-            restaurant.add_menu(meal_type, menu)
-        except ValueError as e:
-            if str(e) != "해당 메뉴는 이미 메뉴 목록에 존재합니다.":
-                raise e
-
-    restaurant.save_temp_menu()
-
-    lunch, dinner = make_meal_cards([restaurant], is_temp=True)
-    response = meal_response_maker(lunch, dinner)
-
-    return JSONResponse(response.get_dict())
 
 
 @meal_api.post("/register/delete/{meal_type}")
@@ -160,6 +123,50 @@ async def meal_menu_delete(request: Request):
     lunch, dinner = make_meal_cards([restaurant], is_temp=True)
     response = meal_response_maker(lunch, dinner)
 
+    return JSONResponse(response.get_dict())
+
+
+@meal_api.post("/register/{meal_type}")
+async def meal_register(meal_type: str, request: Request):
+    """식단 정보를 등록합니다.
+
+    중식 등록 및 석식 등록 스킬을 처리합니다.
+    중식 및 석식 등록 발화시 호출되는 API입니다.
+
+    Args:
+        meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
+            lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
+    """
+
+    payload, restaurant = await get_payload_and_restaurant(request)
+
+    # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
+    assert payload.detail_params is not None
+    menu_list = split_string(
+        payload.detail_params["menu"].origin)
+
+    print("menu_list: ", menu_list)
+
+    # TODO(Seokyoung_Hong): 메뉴 등록 개수 제한기능 필요시 활성화
+    # if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
+    #     return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
+
+    # 메뉴를 등록
+    for menu in menu_list:
+        try:
+            restaurant.add_menu(meal_type, menu)
+        except ValueError as e:
+            if str(e) != "해당 메뉴는 이미 메뉴 목록에 존재합니다.":
+                raise e
+
+    print("try save_temp_menu")
+    restaurant.save_temp_menu()
+    print("saved_temp_menu")
+
+    lunch, dinner = make_meal_cards([restaurant], is_temp=True)
+    response = meal_response_maker(lunch, dinner)
+
+    print("response: ", response.get_dict())
     return JSONResponse(response.get_dict())
 
 
