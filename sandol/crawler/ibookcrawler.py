@@ -1,8 +1,12 @@
 import datetime as dt
+from io import BytesIO
 import pandas as pd
 import json
-import os
 import math
+import boto3
+
+from .settings import S3_BUCKET_NAME
+from .cafeteria import read_json_from_s3, write_json_to_s3
 
 
 class BookTranslator:
@@ -19,10 +23,16 @@ class BookTranslator:
         self.location = ""
         self.price_per_person = 0
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'data.xlsx')
+        # current_dir = os.path.dirname(__file__)
+        s3 = boto3.client('s3')
+        obj = s3.get_object(Bucket=S3_BUCKET_NAME, Key='user/data.xlsx')
+        data = obj['Body'].read()
 
-        self.df = pd.read_excel(filename)
+        # Use BytesIO to handle the in-memory bytes-like object
+        excel_file = BytesIO(data)
+
+        # Use pandas to read the Excel file
+        self.df = pd.read_excel(excel_file)
 
         # print(self.df)
 
@@ -104,13 +114,11 @@ class BookTranslator:
             "price_per_person": self.price_per_person
         }
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'test.json')
+        filename = 'user/test.json'
 
         # read and write
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
-                data = json.load(file)
+            data = read_json_from_s3(S3_BUCKET_NAME, filename)
         except json.decoder.JSONDecodeError:
             data = []
         except FileNotFoundError:
@@ -132,8 +140,7 @@ class BookTranslator:
                 if isinstance(value, list):
                     restaurant[key] = [item for item in value if not (isinstance(item, float) and math.isnan(item))]
 
-        with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
+        write_json_to_s3(S3_BUCKET_NAME, filename, data)
 
     def submit_e_info(self):
         """
@@ -155,13 +162,14 @@ class BookTranslator:
             "price_per_person": self.price_per_person
         }
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'test.json')
+        # current_dir = os.path.dirname(__file__)
+        filename = 'user/test.json'
 
         # read and write
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
-                data = json.load(file)
+            data = read_json_from_s3(S3_BUCKET_NAME, filename)
+            # with open(filename, 'r', encoding='utf-8') as file:
+            #     data = json.load(file)
         except json.decoder.JSONDecodeError:
             data = []
         except FileNotFoundError:
@@ -181,10 +189,11 @@ class BookTranslator:
         for restaurant in data:
             for key, value in restaurant.items():
                 if isinstance(value, list):
-                    restaurant[key] = [item for item in value if not (isinstance(item, float) and math.isnan(item))]
-
-        with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
+                    restaurant[key] = [item for item in value if not (
+                        isinstance(item, float) and math.isnan(item))]
+        write_json_to_s3(S3_BUCKET_NAME, filename, data)
+        # with open(filename, 'w', encoding='utf-8') as file:
+        #     json.dump(data, file, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":

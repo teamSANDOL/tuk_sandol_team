@@ -44,6 +44,7 @@ class Restaurant:
         self.temp_lunch = []
         self.temp_dinner = []
         self.final_menu = []
+        self.bucket_name = settings.S3_BUCKET_NAME
 
         self.rest_info()
 
@@ -67,16 +68,14 @@ class Restaurant:
         restaurant_name = settings.RESTAURANT_ACCESS_ID.get(id_address)
 
         if restaurant_name:
-            current_dir = os.path.dirname(__file__)
-            filename = os.path.join(current_dir, 'test.json')
+            filename = 'user/test.json'
 
-            with open(filename, 'r', encoding='utf-8') as file:
-                data = json.load(file)
+            data = read_json_from_s3(settings.S3_BUCKET_NAME, filename)
 
-                for restaurant_data in data:
-                    # id 검사
-                    if restaurant_data["identification"] == id_address:
-                        return cls.by_dict(restaurant_data)
+            for restaurant_data in data:
+                # id 검사
+                if restaurant_data["identification"] == id_address:
+                    return cls.by_dict(restaurant_data)
 
         else:
             raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{id_address}'")
@@ -195,27 +194,22 @@ class Restaurant:
         # only write
         temp_menu = {"lunch": self.temp_lunch, "dinner": self.temp_dinner}
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
-
-        with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(temp_menu, file, ensure_ascii=False, indent=4)
+        filename = f'user/{self.name}_temp_menu.json'
+        write_json_to_s3(self.bucket_name, filename, temp_menu)
+        print('saved temp menu')
 
     def load_temp_menu(self):
         """
             *registration
             test.json 파일에서 lunch, dinner 리스트를 불러와 self 인스턴스에 저장
         """
-        # only read
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
-
-        if os.path.exists(filename):
-            with open(filename, 'r', encoding='utf-8') as file:
-                temp_menu = json.load(file)
-
-                self.temp_lunch = temp_menu.get('lunch', [])
-                self.temp_dinner = temp_menu.get('dinner', [])
+        try:
+            data = read_json_from_s3(
+                self.bucket_name, f'user/{self.name}_temp_menu.json')
+            self.temp_lunch = data.get('lunch', [])
+            self.temp_dinner = data.get('dinner', [])
+        except Exception:
+            pass
 
     def submit_update_menu(self, menu_type):
         """
@@ -234,12 +228,11 @@ class Restaurant:
             원본 test.json 파일에 덮어씀, 동시에 self.temp_menu 초기화.
         """
         current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'test.json')
+        filename = 'user/test.json'
 
         # read and write
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
-                data = json.load(file)
+            data = read_json_from_s3(self.bucket_name, filename)
         except json.decoder.JSONDecodeError:
             data = []
         except FileNotFoundError:
@@ -259,16 +252,19 @@ class Restaurant:
         if not restaurant_found:
             raise ValueError(f"레스토랑 '{self.name}'가 test.json 파일에 존재하지 않습니다.")
 
-        with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)                     # json data 한꺼번에 test.json으로 덮어씌우기
+        write_json_to_s3(self.bucket_name, filename, data)
 
         # 임시 파일 삭제
-        temp_menu_path = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        # temp_menu_path = os.path.join(
+        #     current_dir, f'{self.name}_temp_menu.json')
 
-        if os.path.exists(temp_menu_path):
-            os.remove(temp_menu_path)
-        else:
-            raise ValueError("temp_menu.json file doesn't exist")
+        delete_file_from_s3(
+            self.bucket_name, f'user/{self.name}_temp_menu.json')
+
+        # if os.path.exists(temp_menu_path):
+        #     os.remove(temp_menu_path)
+        # else:
+        #     raise ValueError("temp_menu.json file doesn't exist")
 
     def __str__(self):
         """
@@ -280,11 +276,9 @@ class Restaurant:
 
 
 def get_meals() -> list:
-    current_dir = os.path.dirname(__file__)
-    filename = os.path.join(current_dir, 'test.json')
+    filename = 'user/test.json'
 
-    with open(filename, 'r', encoding='utf-8') as file:
-        data = json.load(file)
+    data = read_json_from_s3(settings.S3_BUCKET_NAME, filename)
 
     # 식당 목록 리스트
     restaurants = [Restaurant.by_dict(item) for item in data]

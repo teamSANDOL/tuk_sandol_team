@@ -11,6 +11,9 @@ Example:
 from typing import Optional
 from xml.etree import ElementTree
 import requests
+import boto3
+
+from sandol.crawler.settings import S3_BUCKET_NAME
 
 
 class FetchError(Exception):
@@ -195,8 +198,9 @@ class BookDownloader:
         # 파일 다운로드 성공
         if response.status_code == 200:
             # 파일 저장
-            with open(save_as, "wb") as f:
-                f.write(response.content)
+            s3 = boto3.client('s3')
+            s3.put_object(Bucket=S3_BUCKET_NAME,
+                          Key=f'{save_as}', Body=response.content)
 
         else:  # 파일 다운로드 실패
             raise DownloadFileError(response.status_code)

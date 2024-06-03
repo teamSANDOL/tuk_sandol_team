@@ -3,7 +3,6 @@
 주로 코드 중복을 줄이고 가독성을 높이기 위한 함수들이 정의되어 있습니다.
 """
 from datetime import datetime, timedelta
-import os
 import re
 from functools import wraps
 import traceback
@@ -228,18 +227,7 @@ def check_tip_and_e(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         # 파일의 수정 시간 확인
-        file_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "crawler",
-            "data.xlsx"
-        )
-
-        must_download = False
-        if os.path.exists(file_path):
-            file_mod_time = os.path.getmtime(file_path)
-            file_mod_datetime = datetime.fromtimestamp(file_mod_time)
-        else:
-            must_download = True
+        restaurant = Restaurant.by_id("001")
 
         # 이번 주 일요일 날짜 계산
         today = datetime.now()
@@ -248,9 +236,9 @@ def check_tip_and_e(func):
             hour=0, minute=0, second=0, microsecond=0)
 
         # 파일 수정 시간이 이번 주 일요일 이후인지 확인
-        if must_download or not file_mod_datetime > start_of_week:
+        if not restaurant.registration_time > start_of_week:
             downloader = BookDownloader()
-            downloader.get_file(file_path)  # data.xlsx에 파일 저장
+            downloader.get_file("user/data.xlsx")  # data.xlsx에 파일 저장
 
             ibook = BookTranslator()
 
