@@ -1,7 +1,35 @@
 import os
 import json
 import datetime as dt
+
+import boto3
+
 from . import settings
+
+
+def read_json_from_s3(bucket_name, file_key):
+    s3 = boto3.client('s3')
+    print("bucket_info", bucket_name, file_key)
+    response = s3.get_object(Bucket=bucket_name, Key=file_key)
+    data = json.load(response['Body'])
+    print("readed\n", data)
+    return data
+
+
+def write_json_to_s3(bucket_name, file_key, data):
+    print("start write json", file_key)
+    s3 = boto3.client('s3')
+    # JSON 데이터를 문자열로 변환
+    json_data = json.dumps(data, ensure_ascii=True, indent=4)
+    # S3 버킷에 파일 쓰기
+    s3.put_object(Bucket=bucket_name, Key=file_key, Body=json_data)
+    print("writed\n", json_data)
+
+
+def delete_file_from_s3(bucket_name, file_key):
+    s3 = boto3.client('s3')
+    # S3 버킷에서 파일 삭제
+    s3.delete_object(Bucket=bucket_name, Key=file_key)
 
 
 class Restaurant:
