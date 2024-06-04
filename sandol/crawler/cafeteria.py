@@ -186,8 +186,7 @@ class Restaurant:
             test.json 파일에서 lunch, dinner 리스트를 불러와 self 인스턴스에 저장
         """
         # only read
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        filename = os.path.join("/tmp", f'{self.name}_temp_menu.json')
 
         if os.path.exists(filename):
             with open(filename, 'r', encoding='utf-8') as file:
