@@ -4,6 +4,8 @@ import json
 import os
 import math
 
+from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
+
 
 class BookTranslator:
     def __init__(self):
@@ -19,8 +21,8 @@ class BookTranslator:
         self.location = ""
         self.price_per_person = 0
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'data.xlsx')
+        # Lambda 환경에서는 /tmp 디렉토리를 사용
+        filename = os.path.join('/tmp', 'data.xlsx')
 
         self.df = pd.read_excel(filename)
 
@@ -107,18 +109,22 @@ class BookTranslator:
         current_dir = os.path.dirname(__file__)
         filename = os.path.join(current_dir, 'test.json')
 
-        # read and write
+        # S3에서 파일 다운로드
+        download_path = '/tmp/test.json'
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
+            download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
+            with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
+                if not isinstance(data, list):
+                    data = []
+        except FileNotFoundError:
+            data = []
         except json.decoder.JSONDecodeError:
             data = []
-        except FileNotFoundError:
-            raise FileNotFoundError(f"{filename} 파일을 찾을 수 없습니다.")
 
         restaurant_found = False
         for restaurant_data in data:
-            if restaurant_data["name"] == self.name:  # 식당 검색
+            if restaurant_data.get("name") == self.name:  # 식당 검색
                 restaurant_data["lunch_menu"] = self.tip_lunch_menu
                 restaurant_data["dinner_menu"] = self.tip_dinner_menu
                 restaurant_found = True
@@ -132,8 +138,13 @@ class BookTranslator:
                 if isinstance(value, list):
                     restaurant[key] = [item for item in value if not (isinstance(item, float) and math.isnan(item))]
 
-        with open(filename, 'w', encoding='utf-8') as file:
+        # 임시 파일에 데이터 저장
+        with open(download_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
+
+        # S3에 업로드
+        upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
+        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
     def submit_e_info(self):
         """

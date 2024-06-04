@@ -8,14 +8,14 @@ import re
 from functools import wraps
 import traceback
 
-from sandol.api_server.settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST
-from sandol.api_server.kakao.response.components.card import ItemCardComponent
-from sandol.api_server.kakao.response import KakaoResponse
-from sandol.api_server.kakao.response.components import (
+from api_server.settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST
+from api_server.kakao.response.components.card import ItemCardComponent
+from api_server.kakao.response import KakaoResponse
+from api_server.kakao.response.components import (
     CarouselComponent, TextCardComponent, SimpleTextComponent)
-from sandol.crawler import Restaurant
-from sandol.crawler.ibookcrawler import BookTranslator
-from sandol.crawler.ibookdownloader import BookDownloader
+from crawler import Restaurant
+from crawler.ibookcrawler import BookTranslator
+from crawler.ibookdownloader import BookDownloader
 
 
 def split_string(s: str) -> list[str]:
@@ -227,12 +227,8 @@ def check_tip_and_e(func):
     """
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        # 파일의 수정 시간 확인
-        file_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "crawler",
-            "data.xlsx"
-        )
+        # Lambda 환경에서 /tmp 디렉토리를 사용
+        file_path = "/tmp/data.xlsx"
 
         must_download = False
         if os.path.exists(file_path):
@@ -247,6 +243,7 @@ def check_tip_and_e(func):
         start_of_week = start_of_week.replace(
             hour=0, minute=0, second=0, microsecond=0)
 
+        # TODO(Seokyoung_Hong): s3용으로 수정 필요
         # 파일 수정 시간이 이번 주 일요일 이후인지 확인
         if must_download or not file_mod_datetime > start_of_week:
             downloader = BookDownloader()

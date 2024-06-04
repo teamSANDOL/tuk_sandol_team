@@ -1,6 +1,8 @@
 import os
 import json
 import datetime as dt
+
+from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, get_s3_client, upload_file_to_s3
 from . import settings
 
 
@@ -39,10 +41,11 @@ class Restaurant:
         restaurant_name = settings.RESTAURANT_ACCESS_ID.get(id_address)
 
         if restaurant_name:
-            current_dir = os.path.dirname(__file__)
-            filename = os.path.join(current_dir, 'test.json')
+            download_path = '/tmp/test.json'  # 임시 경로에 파일 다운로드
 
-            with open(filename, 'r', encoding='utf-8') as file:
+            download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
+
+            with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
 
                 for restaurant_data in data:
@@ -205,8 +208,8 @@ class Restaurant:
             temp_menu.json 파일의 "lunch", "dinner" 데이터에 변화가 생길 때
             원본 test.json 파일에 덮어씀, 동시에 self.temp_menu 초기화.
         """
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'test.json')
+        # TODO(Seokyoung_Hong): S3용으로 수정 필요
+        filename = os.path.join('/tmp', 'test.json')
 
         # read and write
         try:
@@ -232,15 +235,20 @@ class Restaurant:
             raise ValueError(f"레스토랑 '{self.name}'가 test.json 파일에 존재하지 않습니다.")
 
         with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)                     # json data 한꺼번에 test.json으로 덮어씌우기
+            # json data 한꺼번에 test.json으로 덮어씌우기
+            json.dump(data, file, ensure_ascii=False, indent=4)
 
         # 임시 파일 삭제
-        temp_menu_path = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        temp_menu_path = os.path.join(
+            "/tmp", f'{self.name}_temp_menu.json')
 
         if os.path.exists(temp_menu_path):
             os.remove(temp_menu_path)
         else:
             raise ValueError("temp_menu.json file doesn't exist")
+
+        upload_path = '/tmp/test.json'  # 임시 경로에 파일 업로드
+        upload_file_to_s3(upload_path, BUCKET_NAME, FILE_KEY, )
 
     def __str__(self):
         """
@@ -251,11 +259,12 @@ class Restaurant:
                 f"Opening_time: {self.opening_time}, Price: {self.price_per_person}")
 
 
-def get_meals() -> list:
-    current_dir = os.path.dirname(__file__)
-    filename = os.path.join(current_dir, 'test.json')
+async def get_meals() -> list:
+    download_path = '/tmp/test.json'  # 임시 경로에 파일 다운로드
 
-    with open(filename, 'r', encoding='utf-8') as file:
+    download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
+
+    with open(download_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
     # 식당 목록 리스트

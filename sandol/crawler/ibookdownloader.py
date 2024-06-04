@@ -8,6 +8,7 @@ Example:
     downloader = BookDownloader(link)  # BookDownloader 객체 생성
     downloader.get_file("data.xlsx")  # data.xlsx에 파일 저장
 """
+import os
 from typing import Optional
 from xml.etree import ElementTree
 import requests
@@ -194,10 +195,11 @@ class BookDownloader:
 
         # 파일 다운로드 성공
         if response.status_code == 200:
-            # 파일 저장
-            with open(save_as, "wb") as f:
+            # Lambda의 /tmp 디렉토리에 파일 저장
+            save_path = os.path.join('/tmp', save_as)
+            with open(save_path, "wb") as f:
                 f.write(response.content)
-
+            print(f"File saved to {save_path}")
         else:  # 파일 다운로드 실패
             raise DownloadFileError(response.status_code)
 

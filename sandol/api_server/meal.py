@@ -10,20 +10,17 @@ from fastapi import Request
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from sandol.api_server.kakao import Payload, ValidationPayload
-from sandol.api_server.kakao.response import (
+from api_server.kakao import Payload, ValidationPayload
+from api_server.kakao.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
-from sandol.api_server.kakao.response.components import SimpleTextComponent
-from sandol.api_server.kakao.response.components.card import ItemCardComponent
-from sandol.api_server.kakao.response.components.itemcard import ImageTitle
-from sandol.api_server.utils import (
+from api_server.kakao.response.components import SimpleTextComponent
+from api_server.utils import (
     meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
     check_tip_and_e
 )
-from sandol.api_server.settings import NAVER_MAP_URL_DICT
-from sandol.crawler import (
+from crawler import (
     get_registration, Restaurant, get_meals
 )
 
@@ -215,7 +212,7 @@ async def meal_view(request: Request):
     target_cafeteria = getattr(cafeteria, "value", None)
 
     # 식당 정보를 가져옵니다.
-    cafeteria_list: list[Restaurant] = get_meals()
+    cafeteria_list: list[Restaurant] = await get_meals()
 
     # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
     if target_cafeteria:
