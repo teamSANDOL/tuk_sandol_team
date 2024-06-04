@@ -175,8 +175,7 @@ class Restaurant:
         # only write
         temp_menu = {"lunch": self.temp_lunch, "dinner": self.temp_dinner}
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        filename = os.path.join("/tmp", f'{self.name}_temp_menu.json')
 
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(temp_menu, file, ensure_ascii=False, indent=4)
