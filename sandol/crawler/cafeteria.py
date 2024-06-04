@@ -2,8 +2,8 @@ import os
 import json
 import datetime as dt
 
-from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, get_s3_client, upload_file_to_s3
-from . import settings
+from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
+from crawler import settings
 
 
 class Restaurant:
@@ -26,7 +26,8 @@ class Restaurant:
         """
         주어진 데이터 딕셔너리로부터 Restaurant 객체를 생성합니다.
         """
-        registration_time = dt.datetime.fromisoformat(data["registration_time"])
+        registration_time = dt.datetime.fromisoformat(
+            data["registration_time"])
         class_name = f"{data['name']}"
         new_class = type(class_name, (Restaurant,), {})
 
@@ -86,14 +87,16 @@ class Restaurant:
 
                 # 분 정보가 없는 경우 :00 추가
                 if ':' not in start_time.split()[1]:
-                    start_time = start_time.split()[0] + ' ' + start_time.split()[1] + ':00'
+                    start_time = start_time.split(
+                    )[0] + ' ' + start_time.split()[1] + ':00'
                 elif ':' not in end_time:
                     end_time = end_time + ':00'
 
                 start = dt.datetime.strptime(start_time, '%p %I:%M').time()
                 end = dt.datetime.strptime(end_time, '%I:%M').time()
 
-                self.opening_time.append([start.strftime("%p %I:%M"), end.strftime("%I:%M")])
+                self.opening_time.append(
+                    [start.strftime("%p %I:%M"), end.strftime("%I:%M")])
 
         else:
             raise ValueError(f"레스토랑 '{self.name}'에 대한 정보를 찾을 수 없습니다.")
@@ -104,7 +107,8 @@ class Restaurant:
             단일 메뉴 추가 메서드
         """
         if not isinstance(meal_time, str):
-            raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
+            raise TypeError(
+                "meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.temp_lunch:
@@ -130,7 +134,8 @@ class Restaurant:
             단일 메뉴 삭제 메서드
         """
         if not isinstance(meal_time, str):
-            raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
+            raise TypeError(
+                "meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.temp_lunch:
@@ -223,11 +228,16 @@ class Restaurant:
         restaurant_found = False
         for restaurant_data in data:
             if restaurant_data["name"] == self.name:    # 식당 검색
-                restaurant_data["lunch_menu"] = self.submit_update_menu("lunch")   # 점심 메뉴 변경 사항 존재 시 submit
-                restaurant_data["dinner_menu"] = self.submit_update_menu("dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
-                restaurant_data["registration_time"] = dt.datetime.now().isoformat()    # registration time update
-                restaurant_data["opening_time"] = self.opening_time                 # opining time update
-                restaurant_data["price_per_person"] = self.price_per_person         # 가격 update
+                restaurant_data["lunch_menu"] = self.submit_update_menu(
+                    "lunch")   # 점심 메뉴 변경 사항 존재 시 submit
+                restaurant_data["dinner_menu"] = self.submit_update_menu(
+                    "dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
+                restaurant_data["registration_time"] = dt.datetime.now(
+                ).isoformat()    # registration time update
+                # opining time update
+                restaurant_data["opening_time"] = self.opening_time
+                # 가격 update
+                restaurant_data["price_per_person"] = self.price_per_person
                 restaurant_found = True
                 break
 
