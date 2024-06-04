@@ -4,9 +4,9 @@ from fastapi.responses import JSONResponse  # noqa: F401
 from mangum import Mangum
 import uvicorn
 
-from sandol.api_server.meal import meal_api
-from sandol.api_server.utils import error_message
-from sandol.api_server.kakao.response import KakaoResponse
+from api_server.meal import meal_api
+from api_server.utils import error_message
+from api_server.kakao.response import KakaoResponse
 
 
 app = FastAPI()
@@ -28,4 +28,4 @@ handler = Mangum(app)
 
 
 if __name__ == "__main__":
-    uvicorn.run("sandol.app:app", host="0.0.0.0", port=5600, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=5600, reload=True)
