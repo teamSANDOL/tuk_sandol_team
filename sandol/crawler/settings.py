@@ -1,6 +1,8 @@
 
 import os
 
+import pytz
+
 # 2024-04-04 기나혜
 # cafeteria 개발 중에 bucket download 관련 애로사항이 있어
 # 이전 베타 산돌에 있던 settings 코드를 잠시 긁어왓씁니다..
@@ -9,6 +11,8 @@ import os
 # Settings
 _PATH = os.path.abspath(os.path.dirname(__file__))  # 프로젝트 절대경로
 DEBUG = False  # True 일때 디버그 모드 작동
+
+KST = pytz.timezone('Asia/Seoul')
 
 # BUCKET
 BUCKET_NAME: str = 'aws-sandol-bucket'

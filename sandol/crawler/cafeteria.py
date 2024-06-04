@@ -231,6 +231,7 @@ class Restaurant:
                 restaurant_data["dinner_menu"] = self.submit_update_menu(
                     "dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
                 restaurant_data["registration_time"] = dt.datetime.now(
+                    tz=settings.KST
                 ).isoformat()    # registration time update
                 # opining time update
                 restaurant_data["opening_time"] = self.opening_time

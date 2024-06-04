@@ -24,6 +24,7 @@ from api_server.settings import NAVER_MAP_URL_DICT
 from crawler import (
     get_registration, Restaurant, get_meals
 )
+from crawler.settings import KST
 
 meal_api = APIRouter(prefix="/meal")
 
@@ -223,13 +224,17 @@ async def meal_view(request: Request):
         restaurants = cafeteria_list
 
     # 어제 7시를 기준으로 식당 정보를 필터링
-    standard_time = datetime.now() - timedelta(days=1)
+    standard_time = datetime.now(tz=KST) - timedelta(days=1)
     standard_time = standard_time.replace(
         hour=19, minute=0, second=0, microsecond=0)
 
     af_standard: list[Restaurant] = []
     bf_standard: list[Restaurant] = []
     for r in restaurants:
+        if r.registration_time.tzinfo is None:
+            print("등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다.")
+            temp = r.registration_time + timedelta(hours=9)
+            r.registration_time = temp.replace(tzinfo=KST)
         if r.registration_time < standard_time:
             bf_standard.append(r)
         else:
@@ -285,7 +290,7 @@ async def meal_restaurant(request: Request):
     restaurant_name: str = payload.action.client_extra["restaurant_name"]
 
     # 식당 정보를 가져옵니다.
-    cafeteria_list: list[Restaurant] = get_meals()
+    cafeteria_list: list[Restaurant] = await get_meals()
 
     restaurant: Restaurant = list(
         filter(lambda x: x.name == restaurant_name, cafeteria_list))[0]

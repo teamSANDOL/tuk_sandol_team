@@ -4,6 +4,7 @@ import json
 import os
 import math
 
+from crawler.settings import KST
 from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
 
 
@@ -98,7 +99,7 @@ class BookTranslator:
         self.tip_info = {
             "identification": self.identification,
             "name": self.name,
-            "registration_time": dt.datetime.now().isoformat(),
+            "registration_time": dt.datetime.now(tz=KST).isoformat(),
             "opening_time": self.opening_time,
             "lunch_menu": self.tip_lunch_menu,
             "dinner_menu": self.tip_dinner_menu,
@@ -158,7 +159,7 @@ class BookTranslator:
         self.e_info = {
             "identification": self.identification,
             "name": self.name,
-            "registration_time": dt.datetime.now().isoformat(),
+            "registration_time": dt.datetime.now(tz=KST).isoformat(),
             "opening_time": self.opening_time,
             "lunch_menu": self.e_lunch_menu,
             "dinner_menu": self.e_dinner_menu,
