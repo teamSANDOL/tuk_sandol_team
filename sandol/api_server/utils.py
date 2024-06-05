@@ -275,6 +275,10 @@ def check_tip_and_e(func):
             tip = Restaurant.by_id("001")
             registration_time = get_last_saved_date(file_path)
 
+            # 시간대 변환
+            tip.registration_time = tip.registration_time.astimezone(tz=KST)
+            registration_time = registration_time.astimezone(tz=KST)
+
             if registration_time < last_wednesday:
                 must_download = True
         else:
