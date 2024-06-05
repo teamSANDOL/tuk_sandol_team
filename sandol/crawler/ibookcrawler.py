@@ -4,6 +4,7 @@ import json
 import os
 import math
 
+from crawler.settings import KST
 from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
 
 
@@ -22,7 +23,6 @@ class BookTranslator:
         self.price_per_person = 0
 
         # Lambda 환경에서는 /tmp 디렉토리를 사용
-        current_dir = os.path.dirname(__file__)
         filename = os.path.join('/tmp', 'data.xlsx')
 
         self.df = pd.read_excel(filename)
@@ -94,6 +94,20 @@ class BookTranslator:
         """
         self.save_tip_info()
 
+        self.tip_info = {
+            "identification": self.identification,
+            "name": self.name,
+            "registration_time": dt.datetime.now(tz=KST).isoformat(),
+            "opening_time": self.opening_time,
+            "lunch_menu": self.tip_lunch_menu,
+            "dinner_menu": self.tip_dinner_menu,
+            "location": self.location,
+            "price_per_person": self.price_per_person
+        }
+
+        current_dir = os.path.dirname(__file__)
+        filename = os.path.join(current_dir, 'test.json')
+
         # S3에서 파일 다운로드
         download_path = '/tmp/test.json'
         try:
@@ -109,9 +123,9 @@ class BookTranslator:
 
         restaurant_found = False
         for restaurant_data in data:
-            if restaurant_data.get("name") == self.tip_info["name"]:  # 식당 검색
-                restaurant_data["lunch_menu"] = self.tip_info["lunch_menu"]
-                restaurant_data["dinner_menu"] = self.tip_info["dinner_menu"]
+            if restaurant_data.get("name") == self.name:  # 식당 검색
+                restaurant_data["lunch_menu"] = self.tip_lunch_menu
+                restaurant_data["dinner_menu"] = self.tip_dinner_menu
                 restaurant_found = True
                 break
 
@@ -143,7 +157,7 @@ class BookTranslator:
         self.e_info = {
             "identification": self.identification,
             "name": self.name,
-            "registration_time": dt.datetime.now().isoformat(),
+            "registration_time": dt.datetime.now(tz=KST).isoformat(),
             "opening_time": self.opening_time,
             "lunch_menu": self.e_lunch_menu,
             "dinner_menu": self.e_dinner_menu,

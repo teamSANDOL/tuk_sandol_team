@@ -15,15 +15,17 @@ from api_server.kakao import Payload, ValidationPayload
 from api_server.kakao.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
-from api_server.kakao.response.components import SimpleTextComponent
+from api_server.kakao.response.components import SimpleTextComponent, ItemCardComponent, ImageTitle
 from api_server.utils import (
     meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
     check_tip_and_e
 )
+from api_server.settings import NAVER_MAP_URL_DICT
 from crawler import (
     get_registration, Restaurant, get_meals
 )
+from crawler.settings import KST
 
 meal_api = APIRouter(prefix="/meal")
 
@@ -38,45 +40,6 @@ async def get_payload_and_restaurant(request: Request):
     restaurant.load_temp_menu()
 
     return payload, restaurant
-
-
-@meal_api.post("/register/{meal_type}")
-async def meal_register(meal_type: str, request: Request):
-    """식단 정보를 등록합니다.
-
-    중식 등록 및 석식 등록 스킬을 처리합니다.
-    중식 및 석식 등록 발화시 호출되는 API입니다.
-
-    Args:
-        meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
-            lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
-    """
-
-    payload, restaurant = await get_payload_and_restaurant(request)
-
-    # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
-    assert payload.detail_params is not None
-    menu_list = split_string(
-        payload.detail_params["menu"].origin)
-
-    # TODO(Seokyoung_Hong): 메뉴 등록 개수 제한기능 필요시 활성화
-    # if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
-    #     return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
-
-    # 메뉴를 등록
-    for menu in menu_list:
-        try:
-            restaurant.add_menu(meal_type, menu)
-        except ValueError as e:
-            if str(e) != "해당 메뉴는 이미 메뉴 목록에 존재합니다.":
-                raise e
-
-    restaurant.save_temp_menu()
-
-    lunch, dinner = make_meal_cards([restaurant], is_temp=True)
-    response = meal_response_maker(lunch, dinner)
-
-    return JSONResponse(response.get_dict())
 
 
 @meal_api.post("/register/delete/{meal_type}")
@@ -161,6 +124,45 @@ async def meal_menu_delete(request: Request):
     return JSONResponse(response.get_dict())
 
 
+@meal_api.post("/register/{meal_type}")
+async def meal_register(meal_type: str, request: Request):
+    """식단 정보를 등록합니다.
+
+    중식 등록 및 석식 등록 스킬을 처리합니다.
+    중식 및 석식 등록 발화시 호출되는 API입니다.
+
+    Args:
+        meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
+            lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
+    """
+
+    payload, restaurant = await get_payload_and_restaurant(request)
+
+    # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
+    assert payload.detail_params is not None
+    menu_list = split_string(
+        payload.detail_params["menu"].origin)
+
+    # TODO(Seokyoung_Hong): 메뉴 등록 개수 제한기능 필요시 활성화
+    # if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
+    #     return meal_error_response_maker("메뉴는 5개까지만 등록할 수 있습니다.").get_json()
+
+    # 메뉴를 등록
+    for menu in menu_list:
+        try:
+            restaurant.add_menu(meal_type, menu)
+        except ValueError as e:
+            if str(e) != "해당 메뉴는 이미 메뉴 목록에 존재합니다.":
+                raise e
+
+    restaurant.save_temp_menu()
+
+    lunch, dinner = make_meal_cards([restaurant], is_temp=True)
+    response = meal_response_maker(lunch, dinner)
+
+    return JSONResponse(response.get_dict())
+
+
 @meal_api.post("/submit")
 @check_tip_and_e
 async def meal_submit(request: Request):
@@ -213,7 +215,7 @@ async def meal_view(request: Request):
     target_cafeteria = getattr(cafeteria, "value", None)
 
     # 식당 정보를 가져옵니다.
-    cafeteria_list: list[Restaurant] = get_meals()
+    cafeteria_list: list[Restaurant] = await get_meals()
 
     # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
 
@@ -226,12 +228,18 @@ async def meal_view(request: Request):
     else:
         restaurants = cafeteria_list
 
-    standard_time = datetime.now() - timedelta(days=1)
-    standard_time = standard_time.replace(hour=19, minute=0, second=0, microsecond=0)
+    # 어제 7시를 기준으로 식당 정보를 필터링
+    standard_time = datetime.now(tz=KST) - timedelta(days=1)
+    standard_time = standard_time.replace(
+        hour=19, minute=0, second=0, microsecond=0)
 
     af_standard: List[Restaurant] = []
     bf_standard: List[Restaurant] = []
     for r in restaurants:
+        if r.registration_time.tzinfo is None:
+            print("등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다.")
+            temp = r.registration_time + timedelta(hours=9)
+            r.registration_time = temp.replace(tzinfo=KST)
         if r.registration_time < standard_time:
             bf_standard.append(r)
         else:
@@ -257,15 +265,68 @@ async def meal_view(request: Request):
         response.add_quick_reply(
             label="모두 보기",
             action="message",
-            message_text="테스트 학식",
+            message_text="테스트 학식",  # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
         )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
+                # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
                 message_text=f"테스트 학식 {rest.name}",
             )
+
+    return JSONResponse(response.get_dict())
+
+
+@meal_api.post("/restaurant")
+async def meal_restaurant(request: Request):
+    """식당 정보를 반환하는 API입니다."""
+    payload = Payload.from_dict(await request.json())
+
+    restaurant_name: str = payload.action.client_extra["restaurant_name"]
+
+    # 식당 정보를 가져옵니다.
+    cafeteria_list: list[Restaurant] = await get_meals()
+
+    restaurant: Restaurant = list(
+        filter(lambda x: x.name == restaurant_name, cafeteria_list))[0]
+
+    item_card = ItemCardComponent([])
+    item_card.image_title = ImageTitle(
+        title=restaurant.name,
+        description="식당 정보"
+    )
+    item_card.add_item(
+        title="점심 시간",
+        description="~".join(restaurant.opening_time[0])
+    )
+    item_card.add_item(
+        title="저녁 시간",
+        description="~".join(restaurant.opening_time[1])
+    )
+    item_card.add_item(
+        title="위치",
+        description=restaurant.location
+    )
+    item_card.add_item(
+        title="가격",
+        description=f"{restaurant.price_per_person}원"
+    )
+    item_card.add_button(
+        label="메뉴 보기",
+        action="message",
+        # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
+        message_text=f"테스트 학식 {restaurant_name}"
+    )
+    url = NAVER_MAP_URL_DICT.get(restaurant_name, None)
+    if url:
+        item_card.add_button(
+            label="식당 위치 지도 보기",
+            action="webLink",
+            web_link_url=url
+        )
+    response = KakaoResponse().add_component(item_card)
 
     return JSONResponse(response.get_dict())
 

@@ -16,9 +16,9 @@ def download_file_from_s3(bucket_name, file_key, download_path):
     except (NoCredentialsError, PartialCredentialsError):
         print("AWS 자격 증명이 필요합니다.")
         raise
-    except s3.exceptions.NoSuchKey:
+    except s3.exceptions.NoSuchKey as exec:
         print(f"{file_key} 파일을 찾을 수 없습니다.")
-        raise FileNotFoundError(f"{file_key} 파일을 찾을 수 없습니다.")
+        raise FileNotFoundError(f"{file_key} 파일을 찾을 수 없습니다.") from exec
 
 
 def upload_file_to_s3(file_path, bucket_name, file_key):

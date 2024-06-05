@@ -5,6 +5,9 @@ import datetime as dt
 from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY
 from . import settings
 
+from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
+from crawler import settings
+
 
 class Restaurant:
     def __init__(self, name, lunch, dinner, location, registration):
@@ -26,7 +29,8 @@ class Restaurant:
         """
         주어진 데이터 딕셔너리로부터 Restaurant 객체를 생성합니다.
         """
-        registration_time = dt.datetime.fromisoformat(data["registration_time"])
+        registration_time = dt.datetime.fromisoformat(
+            data["registration_time"])
         class_name = f"{data['name']}"
         new_class = type(class_name, (Restaurant,), {})
 
@@ -41,10 +45,11 @@ class Restaurant:
         restaurant_name = settings.RESTAURANT_ACCESS_ID.get(id_address)
 
         if restaurant_name:
-            current_dir = os.path.dirname(__file__)
-            filename = os.path.join(current_dir, 'test.json')
+            download_path = '/tmp/test.json'  # 임시 경로에 파일 다운로드
 
-            with open(filename, 'r', encoding='utf-8') as file:
+            download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
+
+            with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
 
                 for restaurant_data in data:
@@ -85,14 +90,16 @@ class Restaurant:
 
                 # 분 정보가 없는 경우 :00 추가
                 if ':' not in start_time.split()[1]:
-                    start_time = start_time.split()[0] + ' ' + start_time.split()[1] + ':00'
+                    start_time = start_time.split(
+                    )[0] + ' ' + start_time.split()[1] + ':00'
                 elif ':' not in end_time:
                     end_time = end_time + ':00'
 
                 start = dt.datetime.strptime(start_time, '%p %I:%M').time()
                 end = dt.datetime.strptime(end_time, '%I:%M').time()
 
-                self.opening_time.append([start.strftime("%p %I:%M"), end.strftime("%I:%M")])
+                self.opening_time.append(
+                    [start.strftime("%p %I:%M"), end.strftime("%I:%M")])
 
         else:
             raise ValueError(f"레스토랑 '{self.name}'에 대한 정보를 찾을 수 없습니다.")
@@ -103,7 +110,8 @@ class Restaurant:
             단일 메뉴 추가 메서드
         """
         if not isinstance(meal_time, str):
-            raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
+            raise TypeError(
+                "meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.temp_lunch:
@@ -129,7 +137,8 @@ class Restaurant:
             단일 메뉴 삭제 메서드
         """
         if not isinstance(meal_time, str):
-            raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
+            raise TypeError(
+                "meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.temp_lunch:
@@ -169,8 +178,7 @@ class Restaurant:
         # only write
         temp_menu = {"lunch": self.temp_lunch, "dinner": self.temp_dinner}
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        filename = os.path.join("/tmp", f'{self.name}_temp_menu.json')
 
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(temp_menu, file, ensure_ascii=False, indent=4)
@@ -181,8 +189,7 @@ class Restaurant:
             test.json 파일에서 lunch, dinner 리스트를 불러와 self 인스턴스에 저장
         """
         # only read
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        filename = os.path.join("/tmp", f'{self.name}_temp_menu.json')
 
         if os.path.exists(filename):
             with open(filename, 'r', encoding='utf-8') as file:
@@ -207,8 +214,8 @@ class Restaurant:
             temp_menu.json 파일의 "lunch", "dinner" 데이터에 변화가 생길 때
             원본 test.json 파일에 덮어씀, 동시에 self.temp_menu 초기화.
         """
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'test.json')
+        # TODO(Seokyoung_Hong): S3용으로 수정 필요
+        filename = os.path.join('/tmp', 'test.json')
 
         # read and write
         try:
@@ -237,12 +244,16 @@ class Restaurant:
             json.dump(data, file, ensure_ascii=False, indent=4)  # json data 한꺼번에 test.json으로 덮어씌우기
 
         # 임시 파일 삭제
-        temp_menu_path = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        temp_menu_path = os.path.join(
+            "/tmp", f'{self.name}_temp_menu.json')
 
         if os.path.exists(temp_menu_path):
             os.remove(temp_menu_path)
         else:
             raise ValueError("temp_menu.json file doesn't exist")
+
+        upload_path = '/tmp/test.json'  # 임시 경로에 파일 업로드
+        upload_file_to_s3(upload_path, BUCKET_NAME, FILE_KEY, )
 
     def __str__(self):
         """
