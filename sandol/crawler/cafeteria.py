@@ -45,7 +45,7 @@ class Restaurant:
                          data["location"], registration_time)
 
     @classmethod
-    def by_id(cls, id_address):
+    def by_id(cls, id_address, donwload: bool = True):
         """
         식당 별 access id 조회, 식당 이름으로 객체 생성.
         settings. RESTAURANT_ACCESS_ID : {id : name}
@@ -55,7 +55,8 @@ class Restaurant:
         if restaurant_name:
             download_path = '/tmp/test.json'  # 임시 경로에 파일 다운로드
 
-            download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
+            if donwload:
+                download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
 
             with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)

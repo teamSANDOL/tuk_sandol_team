@@ -188,8 +188,8 @@ async def meal_submit(request: Request):
         del restaurant
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
-    saved_restaurant: Restaurant = get_registration(
-        payload.user_id)
+    saved_restaurant: Restaurant = Restaurant.by_id(
+        payload.user_id, donwload=False)
     lunch, dinner = make_meal_cards([saved_restaurant])
 
     # 응답 생성
