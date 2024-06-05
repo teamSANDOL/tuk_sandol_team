@@ -177,8 +177,7 @@ class Restaurant:
         # only write
         temp_menu = {"lunch": self.temp_lunch, "dinner": self.temp_dinner}
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, f'{self.name}_temp_menu.json')
+        filename = os.path.join("/tmp", f'{self.name}_temp_menu.json')
 
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(temp_menu, file, ensure_ascii=False, indent=4)
@@ -214,7 +213,6 @@ class Restaurant:
             temp_menu.json 파일의 "lunch", "dinner" 데이터에 변화가 생길 때
             원본 test.json 파일에 덮어씀, 동시에 self.temp_menu 초기화.
         """
-        # TODO(Seokyoung_Hong): S3용으로 수정 필요
         filename = os.path.join('/tmp', 'test.json')
 
         # read and write
