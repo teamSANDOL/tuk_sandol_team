@@ -1,14 +1,22 @@
-import datetime as dt
-import pandas as pd
+""" ibookdownloader.py에서 다운로드 한 data.xlsx 파일을 사용가능한 정보로 가공하는 모듈이다.
+현재 한국공학대학교 TIP, E동 식당의 주간 식당메뉴 정보를 가공, 반환한다.
+"""
+
 import json
 import os
 import math
+import datetime as dt
+import pandas as pd
 
 from crawler.settings import KST
 from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
 
 
 class BookTranslator:
+    """
+        ibookDownloader.py에서 다운로드한 'data.xlsx'을 토대로
+        TIP, E동 식당의 식당 정보를 포함한 객체를 반환한다.
+    """
     def __init__(self):
         self.identification = ""
         self.name = ""
@@ -51,7 +59,7 @@ class BookTranslator:
         """
         self.tip_lunch_menu = list(self.df.iloc[6:12, weekday])  # data.xlsx file 내 1열 8행~13행
         for menu in self.tip_lunch_menu:
-            if menu == '*복수메뉴*':
+            if menu == '*복수메뉴*':                # *복수메뉴* 글자 제거
                 self.tip_lunch_menu.remove(menu)
 
         self.tip_dinner_menu = list(self.df.iloc[13:19, weekday])  # data.xlsx file 내 1열 15행~20행
@@ -70,7 +78,10 @@ class BookTranslator:
         self.e_dinner_menu = list(self.df.iloc[30:37, weekday])  # data.xlsx file 내 1열 32행~38행
 
     def save_tip_info(self):
-        self.save_menu("TIP")  # restaurant = "TIP" -> tip_save_menu()
+        """
+        TIP식당의 식당정보 저장 메서드
+        """
+        self.save_menu("TIP")       # restaurant = "TIP" -> tip_save_menu()
         self.identification = "001"
         self.name = "TIP 가가식당"
         self.opening_time = "오전 11시-2시 / 오후 5시-6:50"
@@ -78,7 +89,10 @@ class BookTranslator:
         self.price_per_person = 6000
 
     def save_e_info(self):
-        self.save_menu("E")  # restaurant = "E" -> e_save_menu()
+        """
+        E동 식당의 식당정보 저장 메서드
+        """
+        self.save_menu("E")         # restaurant = "E" -> e_save_menu()
         self.identification = "002"
         self.name = "E동 레스토랑"
         self.opening_time = "오전 11:30-13:50 / 오후 4:50-18:40"
@@ -104,9 +118,6 @@ class BookTranslator:
             "location": self.location,
             "price_per_person": self.price_per_person
         }
-
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'test.json')
 
         # S3에서 파일 다운로드
         download_path = '/tmp/test.json'
@@ -135,7 +146,8 @@ class BookTranslator:
         for restaurant in data:
             for key, value in restaurant.items():
                 if isinstance(value, list):
-                    restaurant[key] = [item for item in value if not (isinstance(item, float) and math.isnan(item))]
+                    restaurant[key] = [item for item in value if not (isinstance(item, float)
+                                                                      and math.isnan(item))]
 
         # 임시 파일에 데이터 저장
         with open(download_path, 'w', encoding='utf-8') as file:
@@ -165,17 +177,18 @@ class BookTranslator:
             "price_per_person": self.price_per_person
         }
 
-        current_dir = os.path.dirname(__file__)
-        filename = os.path.join(current_dir, 'test.json')
-
-        # read and write
+        # S3에서 파일 다운로드
+        download_path = '/tmp/test.json'
         try:
-            with open(filename, 'r', encoding='utf-8') as file:
+            download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
+            with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
+                if not isinstance(data, list):
+                    data = []
+        except FileNotFoundError:
+            data = []
         except json.decoder.JSONDecodeError:
             data = []
-        except FileNotFoundError:
-            raise FileNotFoundError(f"{filename} 파일을 찾을 수 없습니다.")
 
         restaurant_found = False
         for restaurant_data in data:
@@ -191,10 +204,16 @@ class BookTranslator:
         for restaurant in data:
             for key, value in restaurant.items():
                 if isinstance(value, list):
-                    restaurant[key] = [item for item in value if not (isinstance(item, float) and math.isnan(item))]
+                    restaurant[key] = [item for item in value if not (isinstance(item, float)
+                                                                      and math.isnan(item))]
 
-        with open(filename, 'w', encoding='utf-8') as file:
+        # 임시 파일에 데이터 저장
+        with open(download_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
+
+        # S3에 업로드
+        upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
+        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
 
 if __name__ == "__main__":

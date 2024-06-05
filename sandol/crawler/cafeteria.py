@@ -1,3 +1,7 @@
+"""
+Restaurant(class): 산돌이에 입점한 식당의 정보를 담는 클래스를 정의하는 모듈입니다.
+get_meals(): s3 버킷에 저장된 data를 json파일로 변환 후 식당의 이름 정보로 식당의 객체를 생성합니다.
+"""
 import os
 import json
 import datetime as dt
@@ -10,17 +14,22 @@ from crawler import settings
 
 
 class Restaurant:
+    """식당 정보를 담고 메뉴 정보를 추가, 수정, 등록, 삭제하기 위해 사용됩니다.
+        Restaurant.by_id() 메서드 호출과 동시에 id와 매칭된 식당의 이름으로 객체가 생성됩니다.
+
+        메뉴 정보 수정 용 메서드: add_menu, delete_menu, clear_menu
+        식당 정보 반환 용 메서드: submit
+    """
     def __init__(self, name, lunch, dinner, location, registration):
-        self.registration_time = registration
-        self.opening_time = []
-        self.name = name
-        self.lunch = lunch
-        self.dinner = dinner
-        self.location = location
-        self.price_per_person = 0
-        self.temp_lunch = []
-        self.temp_dinner = []
-        self.final_menu = []
+        self.registration_time = registration       # 점주가 식당 메뉴를 등록한 시간(datetime)
+        self.opening_time = []                      # 식당 개점 시간(datetime)
+        self.name = name                            # 식당 이름 정보(str)
+        self.lunch = lunch                          # 식당 점심 메뉴 정보(list)
+        self.dinner = dinner                        # 식당 저녁 메뉴 정보(list)
+        self.location = location                    # 식당 위치 정보 - 교내/외(str)
+        self.price_per_person = 0                   # 식당 1인분 가격 정보
+        self.temp_lunch = []                        # 식당 점심 메뉴 수정 용 임시 메뉴 저장 리스트
+        self.temp_dinner = []                       # 식당 저녁 메뉴 수정 용 임시 메뉴 저장 리스트
 
         self.rest_info()
 
@@ -28,13 +37,15 @@ class Restaurant:
     def by_dict(cls, data):
         """
         주어진 데이터 딕셔너리로부터 Restaurant 객체를 생성합니다.
+        get_meals()에서 사용합니다.
         """
         registration_time = dt.datetime.fromisoformat(
             data["registration_time"])
         class_name = f"{data['name']}"
         new_class = type(class_name, (Restaurant,), {})
 
-        return new_class(data["name"], data["lunch_menu"], data["dinner_menu"], data["location"], registration_time)
+        return new_class(data["name"], data["lunch_menu"], data["dinner_menu"],
+                         data["location"], registration_time)
 
     @classmethod
     def by_id(cls, id_address):
@@ -56,7 +67,6 @@ class Restaurant:
                     # id 검사
                     if restaurant_data["identification"] == id_address:
                         return cls.by_dict(restaurant_data)
-
         else:
             raise ValueError(f"해당 식당을 찾을 수 없습니다. ID: '{id_address}'")
 
@@ -114,22 +124,18 @@ class Restaurant:
                 "meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
-            if menu in self.temp_lunch:
-                raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
-            else:
+            if menu not in self.temp_lunch:
                 self.temp_lunch.append(menu)
+                self.save_temp_menu()
+            raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
 
-        elif meal_time.lower() == "dinner":
-            if menu in self.temp_dinner:
-                raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
-            else:
+        if meal_time.lower() == "dinner":
+            if menu not in self.temp_dinner:
                 self.temp_dinner.append(menu)
+                self.save_temp_menu()
+            raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
 
-        else:
-            raise ValueError("meal_time should be 'lunch' or 'dinner'.")
-
-        # save temp_menu.json
-        self.save_temp_menu()
+        raise ValueError("meal_time should be 'lunch' or 'dinner'.")
 
     def delete_menu(self, meal_time, menu):
         """
@@ -143,20 +149,16 @@ class Restaurant:
         if meal_time.lower() == "lunch":
             if menu in self.temp_lunch:
                 self.temp_lunch.remove(menu)
-            else:
-                raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
+                self.save_temp_menu()
+            raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
-        elif meal_time.lower() == "dinner":
+        if meal_time.lower() == "dinner":
             if menu in self.temp_dinner:
                 self.temp_dinner.remove(menu)
-            else:
-                raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
+                self.save_temp_menu()
+            raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
-        else:
-            raise ValueError("meal_time should be 'lunch' or 'dinner'.")
-
-        # save temp_menu.json
-        self.save_temp_menu()
+        raise ValueError("meal_time should be 'lunch' or 'dinner'.")
 
     def clear_menu(self):
         """
@@ -206,7 +208,7 @@ class Restaurant:
         """
         if menu_type == "lunch" and self.temp_lunch:
             return self.temp_lunch
-        elif menu_type == "dinner" and self.temp_dinner:
+        if menu_type == "dinner" and self.temp_dinner:
             return self.temp_dinner
 
     def submit(self):
@@ -214,7 +216,6 @@ class Restaurant:
             temp_menu.json 파일의 "lunch", "dinner" 데이터에 변화가 생길 때
             원본 test.json 파일에 덮어씀, 동시에 self.temp_menu 초기화.
         """
-        # TODO(Seokyoung_Hong): S3용으로 수정 필요
         filename = os.path.join('/tmp', 'test.json')
 
         # read and write
@@ -223,17 +224,22 @@ class Restaurant:
                 data = json.load(file)
         except json.decoder.JSONDecodeError:
             data = []
-        except FileNotFoundError:
-            raise FileNotFoundError(f"{filename} 파일을 찾을 수 없습니다.")
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"{filename} 파일을 찾을 수 없습니다.") from e
 
         restaurant_found = False
         for restaurant_data in data:
-            if restaurant_data["name"] == self.name:  # 식당 검색
-                restaurant_data["lunch_menu"] = self.submit_update_menu("lunch")  # 점심 메뉴 변경 사항 존재 시 submit
-                restaurant_data["dinner_menu"] = self.submit_update_menu("dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
-                restaurant_data["registration_time"] = dt.datetime.now().isoformat()  # registration time update
-                restaurant_data["opening_time"] = self.opening_time  # opining time update
-                restaurant_data["price_per_person"] = self.price_per_person  # 가격 update
+            if restaurant_data["name"] == self.name:    # 식당 검색
+                restaurant_data["lunch_menu"] = self.submit_update_menu(
+                    "lunch")   # 점심 메뉴 변경 사항 존재 시 submit
+                restaurant_data["dinner_menu"] = self.submit_update_menu(
+                    "dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
+                restaurant_data["registration_time"] = dt.datetime.now(
+                ).isoformat()    # registration time update
+                # opining time update
+                restaurant_data["opening_time"] = self.opening_time
+                # 가격 update
+                restaurant_data["price_per_person"] = self.price_per_person
                 restaurant_found = True
                 break
 
@@ -265,6 +271,11 @@ class Restaurant:
 
 
 async def get_meals() -> list:
+    """
+        bucket에서 서비스중인 식당 목록을 불러옴
+        각 식당의 identification 코드를 조회하여 인증
+        인증된 식당일 경우 식당의 이름으로 Restaurant 객체 반환
+    """
     download_path = '/tmp/test.json'  # 임시 경로에 파일 다운로드
 
     download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
@@ -278,9 +289,7 @@ async def get_meals() -> list:
 
 
 if __name__ == "__main__":
-    # rests = get_meals()
-    # print(rests)
-    identification = "001"  # 001: TIP 가가식당
-    rest = Restaurant.by_id(identification)
+    ID = "001"      # 001: TIP 가가식당
+    rest = Restaurant.by_id(ID)
 
     print(rest)
