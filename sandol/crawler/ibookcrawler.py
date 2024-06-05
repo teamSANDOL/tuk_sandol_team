@@ -139,6 +139,8 @@ class BookTranslator:
             if restaurant_data.get("name") == self.name:  # 식당 검색
                 restaurant_data["lunch_menu"] = self.tip_lunch_menu
                 restaurant_data["dinner_menu"] = self.tip_dinner_menu
+                restaurant_data["registration_time"] = dt.datetime.now(
+                    tz=KST).isoformat()
                 restaurant_found = True
                 break
 
@@ -197,6 +199,8 @@ class BookTranslator:
             if restaurant_data["name"] == self.name:  # 식당 검색
                 restaurant_data["lunch_menu"] = self.e_lunch_menu
                 restaurant_data["dinner_menu"] = self.e_dinner_menu
+                restaurant_data["registration_time"] = dt.datetime.now(
+                    tz=KST).isoformat()
                 restaurant_found = True
                 break
 
