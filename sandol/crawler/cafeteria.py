@@ -148,12 +148,14 @@ class Restaurant:
             if menu in self.temp_lunch:
                 self.temp_lunch.remove(menu)
                 self.save_temp_menu()
+                return
             raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
         if meal_time.lower() == "dinner":
             if menu in self.temp_dinner:
                 self.temp_dinner.remove(menu)
                 self.save_temp_menu()
+                return
             raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
         raise ValueError("meal_time should be 'lunch' or 'dinner'.")
