@@ -281,6 +281,9 @@ def check_tip_and_e(func):
 
             if registration_time < last_wednesday:
                 must_download = True
+            print('tip.registration_time:', tip.registration_time.isoformat())
+            print('start_of_day:', start_of_day.isoformat())
+            print('registration_time:', registration_time.isoformat())
         else:
             must_download = True
 
