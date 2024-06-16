@@ -11,6 +11,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 from api_server.kakao import Payload
+from api_server.kakao.input import ValidationPayload
 from api_server.kakao.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
@@ -18,21 +19,15 @@ from api_server.kakao.response.components import SimpleTextComponent, ItemCardCo
 from api_server.utils import (
     meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
-    check_tip_and_e
+    parse_payload, check_tip_and_e,
 )
 from api_server.settings import NAVER_MAP_URL_DICT
 from crawler import (
     get_registration, Restaurant, get_meals
 )
 from crawler.settings import KST
-from sandol.api_server.kakao.input import ValidationPayload
 
 meal_api = APIRouter(prefix="/meal")
-
-
-async def parse_payload(request: Request) -> Payload:
-    data_dict = await request.json()
-    return Payload.from_dict(data_dict)
 
 
 @meal_api.post("/register/delete/{meal_type}")

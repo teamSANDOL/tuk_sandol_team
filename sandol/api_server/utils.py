@@ -8,6 +8,7 @@ import re
 from functools import wraps
 import traceback
 
+from fastapi import Request
 import openpyxl
 
 from api_server.settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST
@@ -19,6 +20,7 @@ from crawler import Restaurant
 from crawler.settings import KST
 from crawler.ibookcrawler import BookTranslator
 from crawler.ibookdownloader import BookDownloader
+from sandol.api_server.kakao.input import Payload
 
 
 def get_last_saved_date(filepath: str) -> datetime:
@@ -298,3 +300,13 @@ def check_tip_and_e(func):
             ibook.submit_e_info()
         return await func(*args, **kwargs)
     return wrapper
+
+
+async def parse_payload(request: Request) -> Payload:
+    """Request에서 Payload를 추출합니다.
+
+    Request에서 JSON 데이터를 추출하여 Payload 객체로 변환합니다.
+    FastAPI의 Dependency Injection을 사용하기 위한 함수입니다.
+    """
+    data_dict = await request.json()
+    return Payload.from_dict(data_dict)
