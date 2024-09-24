@@ -20,7 +20,7 @@ from api_server.utils import (
     meal_response_maker, make_meal_cards,
     parse_payload, check_tip_and_e,
 )
-from api_server.settings import NAVER_MAP_URL_DICT
+from api_server.settings import NAVER_MAP_URL_DICT, logger
 from crawler import (
     get_registration, Restaurant, get_meals
 )
@@ -160,7 +160,7 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
     # 요청을 받아 Payload 객체로 변환 및 사용자의 ID로 등록된 식당 객체를 불러옴
     restaurant: Restaurant = get_registration(payload.user_id)
 
-    print("확정 시작")
+    logger.info("확정 시작")
     # 식당 정보를 확정 등록
     try:
         restaurant.submit()
@@ -176,7 +176,7 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
     # finally:
     #     del restaurant
 
-    print("확정 작업 완료 | 확정 정보 불러오기")
+    logger.info("확정 작업 완료 | 확정 정보 불러오기")
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
     saved_restaurant: Restaurant = Restaurant.by_id(
@@ -190,7 +190,7 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
     response.add_component(lunch)
     response.add_component(dinner)
 
-    print("확정 정보 반환")
+    logger.info("확정 정보 반환")
     return JSONResponse(response.get_dict())
 
 
@@ -222,7 +222,7 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
     bf_standard: list[Restaurant] = []
     for r in restaurants:
         if r.registration_time.tzinfo is None:
-            print("등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다.")
+            logger.warning("등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다.")
             temp = r.registration_time + timedelta(hours=9)
             r.registration_time = temp.replace(tzinfo=KST)
         if r.registration_time < standard_time:

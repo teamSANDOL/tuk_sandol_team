@@ -8,6 +8,7 @@ import math
 import datetime as dt
 import pandas as pd
 
+from api_server.settings import logger
 from crawler.settings import KST
 from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
 
@@ -159,7 +160,7 @@ class BookTranslator:
 
         # S3에 업로드
         upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
-        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
+        logger.info(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
     def submit_e_info(self):
         """
@@ -219,7 +220,7 @@ class BookTranslator:
 
         # S3에 업로드
         upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
-        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
+        logger.info(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
 
 if __name__ == "__main__":
