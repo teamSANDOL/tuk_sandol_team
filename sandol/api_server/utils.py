@@ -234,13 +234,13 @@ def error_message(message: str | BaseException) -> TextCardComponent:
     if isinstance(message, BaseException):
         exception_type = type(message).__name__
         exception_message = str(message)
-        exception_traceback = "".join(  # TODO(Seokyoung_Hong): 베포시 주석 처리
-            traceback.format_tb(message.__traceback__))
+        # exception_traceback = "".join(
+        #     traceback.format_tb(message.__traceback__))
 
         detailed_message = (
             f"예외 타입: {exception_type}\n"
             f"예외 메시지: {exception_message}\n"
-            f"트레이스백:\n{exception_traceback}"  # TODO(Seokyoung_Hong): 베포시 주석 처리
+            # f"트레이스백:\n{exception_traceback}"
         )
         message = detailed_message
     message += "\n죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
