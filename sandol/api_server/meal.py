@@ -9,13 +9,12 @@ from datetime import datetime, timedelta
 from fastapi import Depends, Request
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-
-from api_server.kakao import Payload
-from api_server.kakao.input import ValidationPayload
-from api_server.kakao.response import (
+from kakao_chatbot import Payload, ValidationPayload
+from kakao_chatbot.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
-from api_server.kakao.response.components import SimpleTextComponent, ItemCardComponent, ImageTitle
+from kakao_chatbot.response.components import SimpleTextComponent, ItemCardComponent, ImageTitle
+
 from api_server.utils import (
     meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
