@@ -258,15 +258,14 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
         response.add_quick_reply(
             label="모두 보기",
             action="message",
-            message_text="테스트 학식",  # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
+            message_text="학식",
         )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
-                # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
-                message_text=f"테스트 학식 {rest.name}",
+                message_text=f"학식 {rest.name}",
             )
 
     return JSONResponse(response.get_dict())
@@ -307,8 +306,7 @@ async def meal_restaurant(payload: Payload = Depends(parse_payload)):
     item_card.add_button(
         label="메뉴 보기",
         action="message",
-        # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
-        message_text=f"테스트 학식 {restaurant_name}"
+        message_text=f"학식 {restaurant_name}"
     )
     url = NAVER_MAP_URL_DICT.get(restaurant_name, None)
     if url:
