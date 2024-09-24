@@ -1,4 +1,6 @@
 """응답에 사용되는 상수들을 정의합니다."""
+import logging
+
 from kakao_chatbot.response import QuickReply, ActionEnum
 from kakao_chatbot.response.components import TextCardComponent
 
@@ -35,3 +37,9 @@ NAVER_MAP_URL_DICT = {
     "E동 레스토랑": "https://naver.me/GRO427Hk",
     "수호식당": "https://naver.me/Gz18OrEt",
 }
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+logger = logging.getLogger("sandol_logger")
