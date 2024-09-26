@@ -336,13 +336,14 @@ class Restaurant:
 
         restaurant_found = False
         for restaurant_data in data:
-            if restaurant_data["name"] == self.name:  # 식당 검색
-                # 점심 및 저녁 메뉴 변경 사항 존재 시 submit
-                restaurant_data["lunch_menu"] = self.submit_update_menu("lunch")
-                restaurant_data["dinner_menu"] = self.submit_update_menu("dinner")
-
-                # registration time, opening time, 가격 update
-                restaurant_data["registration_time"] = dt.datetime.now().isoformat()
+            if restaurant_data["name"] == self.name:    # 식당 검색
+                restaurant_data["lunch_menu"] = self.submit_update_menu(
+                    "lunch")   # 점심 메뉴 변경 사항 존재 시 submit
+                restaurant_data["dinner_menu"] = self.submit_update_menu(
+                    "dinner")  # 저녁 메뉴 변경 사항 존재 시 submit
+                restaurant_data["registration_time"] = dt.datetime.now(
+                ).isoformat()    # registration time update
+                # opining time update
                 restaurant_data["opening_time"] = self.opening_time
                 restaurant_data["price_per_person"] = self.price_per_person
                 restaurant_found = True
