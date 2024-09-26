@@ -8,6 +8,7 @@ import math
 import datetime as dt
 import pandas as pd
 
+from api_server.settings import logger
 from crawler.settings import KST
 from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
 
@@ -35,11 +36,13 @@ class BookTranslator:
 
         self.df = pd.read_excel(filename)
 
+        # print(self.df)
+
     def save_menu(self, restaurant):
         """
-        당일 요일 검색
-        TIP 식당 메뉴 저장 메서드 tip_save_menu() 호출
-        E동 식당 메뉴 저장 메서드 e_save_menu() 호출
+            당일 요일 검색
+            TIP 식당 메뉴 저장 메서드 tip_save_menu() 호출
+            E동 식당 메뉴 저장 메서드 e_save_menu() 호출
         """
         now = dt.datetime.now()  # current time search
         weekday = now.isoweekday()  # 요일 구분
@@ -53,25 +56,25 @@ class BookTranslator:
 
     def tip_save_menu(self, weekday):
         """
-        TIP 가가식당 메뉴 저장
-        today_menu() 메서드에서 요일정보 획득
-        data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
+            TIP 가가식당 메뉴 저장
+            today_menu() 메서드에서 요일정보 획득
+            data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
         """
-        self.tip_lunch_menu = list(self.df.iloc[6:12, weekday])  # data.xlsx file 내 1열 8행~13행
+        self.tip_lunch_menu = list(self.df.iloc[6:12, weekday])     # data.xlsx file 내 1열 8행~13행
         for menu in self.tip_lunch_menu:
             if menu == '*복수메뉴*':                # *복수메뉴* 글자 제거
                 self.tip_lunch_menu.remove(menu)
 
-        self.tip_dinner_menu = list(self.df.iloc[13:19, weekday])  # data.xlsx file 내 1열 15행~20행
+        self.tip_dinner_menu = list(self.df.iloc[13:19, weekday])   # data.xlsx file 내 1열 15행~20행
         for menu in self.tip_lunch_menu:
             if menu == '*복수메뉴*':
                 self.tip_lunch_menu.remove(menu)
 
     def e_save_menu(self, weekday):
         """
-        E동 메뉴 저장
-        today_menu() 메서드에서 요일정보 획득
-        data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
+            E동 메뉴 저장
+            today_menu() 메서드에서 요일정보 획득
+            data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
         """
         self.e_lunch_menu = list(self.df.iloc[22:29, weekday])  # data.xlsx file 내 1열 24행~30행
 
@@ -101,10 +104,10 @@ class BookTranslator:
 
     def submit_tip_info(self):
         """
-        save_tip_info 로 팁지 정보 저장
-        tip_info {} 로 json 파일 형식으로 저장
-        test.json 파일에 덮어쓰기 -> 이미 식당 정보가 존재한다면 lunch, dinner 메뉴만 덮어쓰기
-        NaN(엑셀파일 기준 빈칸) 값 제거 후 test.json 저장
+            save_tip_info 로 팁지 정보 저장
+            tip_info {} 로 json 파일 형식으로 저장
+            test.json 파일에 덮어쓰기 -> 이미 식당 정보가 존재한다면 lunch, dinner 메뉴만 덮어쓰기
+            NaN(엑셀파일 기준 빈칸) 값 제거 후 test.json 저장
         """
         self.save_tip_info()
 
@@ -137,6 +140,8 @@ class BookTranslator:
             if restaurant_data.get("name") == self.name:  # 식당 검색
                 restaurant_data["lunch_menu"] = self.tip_lunch_menu
                 restaurant_data["dinner_menu"] = self.tip_dinner_menu
+                restaurant_data["registration_time"] = dt.datetime.now(
+                    tz=KST).isoformat()
                 restaurant_found = True
                 break
 
@@ -155,14 +160,14 @@ class BookTranslator:
 
         # S3에 업로드
         upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
-        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
+        logger.info(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
     def submit_e_info(self):
         """
-        save_e_info 로 E동 정보 저장
-        e_info {} 로 json 파일 형식으로 저장
-        test.json 파일에 덮어쓰기 -> 이미 식당 정보가 존재한다면 lunch, dinner 메뉴만 덮어쓰기
-        NaN(엑셀파일 기준 빈칸) 값 제거 후 test.json 저장
+            save_e_info 로 E동 정보 저장
+            e_info {} 로 json 파일 형식으로 저장
+            test.json 파일에 덮어쓰기 -> 이미 식당 정보가 존재한다면 lunch, dinner 메뉴만 덮어쓰기
+            NaN(엑셀파일 기준 빈칸) 값 제거 후 test.json 저장
         """
         self.save_e_info()
 
@@ -195,6 +200,8 @@ class BookTranslator:
             if restaurant_data["name"] == self.name:  # 식당 검색
                 restaurant_data["lunch_menu"] = self.e_lunch_menu
                 restaurant_data["dinner_menu"] = self.e_dinner_menu
+                restaurant_data["registration_time"] = dt.datetime.now(
+                    tz=KST).isoformat()
                 restaurant_found = True
                 break
 
@@ -213,11 +220,11 @@ class BookTranslator:
 
         # S3에 업로드
         upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
-        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
+        logger.info(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
 
 if __name__ == "__main__":
     ibook = BookTranslator()
 
-    ibook.submit_tip_info()  # TIP 가가식당 정보 test.json에 저장
-    ibook.submit_e_info()  # E동 레스토랑 정보 test.json에 저장
+    ibook.submit_tip_info()     # TIP 가가식당 정보 test.json에 저장
+    ibook.submit_e_info()       # E동 레스토랑 정보 test.json에 저장

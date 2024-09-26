@@ -13,6 +13,8 @@ from typing import Optional
 from xml.etree import ElementTree
 import requests
 
+from api_server.settings import logger
+
 
 class FetchError(Exception):
     """Exception raised when fetching fails."""
@@ -115,10 +117,10 @@ class BookDownloader:
             message_element = root.find("message")
             assert message_element is not None  # message 태그가 없으면 에러
             message = message_element.text
-            print(f"Error detected: {message}")  # 에러 메시지 출력
+            logger.error(f"Error detected: {message}")  # 에러 메시지 출력
             return True
         except ElementTree.ParseError as e:  # xml 파싱 에러
-            print(f"Error parsing response: {e}")  # 에러 메시지 출력
+            logger.error(f"Error parsing response: {e}")  # 에러 메시지 출력
         return False
 
     def fetch_bookcode(self):
@@ -199,7 +201,7 @@ class BookDownloader:
             save_path = os.path.join('/tmp', save_as)
             with open(save_path, "wb") as f:
                 f.write(response.content)
-            print(f"File saved to {save_path}")
+            logger.info(f"File saved to {save_path}")
         else:  # 파일 다운로드 실패
             raise DownloadFileError(response.status_code)
 

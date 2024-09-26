@@ -5,23 +5,22 @@
 """
 
 from datetime import datetime, timedelta
-from typing import List
 
-from fastapi import Request
+from fastapi import Depends, Request
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-
-from api_server.kakao import Payload, ValidationPayload
-from api_server.kakao.response import (
+from kakao_chatbot import Payload, ValidationPayload
+from kakao_chatbot.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
-from api_server.kakao.response.components import SimpleTextComponent, ItemCardComponent, ImageTitle
+from kakao_chatbot.response.components import SimpleTextComponent, ItemCardComponent, ImageTitle
+
 from api_server.utils import (
     meal_error_response_maker, split_string,
     meal_response_maker, make_meal_cards,
-    check_tip_and_e
+    parse_payload, check_tip_and_e,
 )
-from api_server.settings import NAVER_MAP_URL_DICT
+from api_server.settings import NAVER_MAP_URL_DICT, logger
 from crawler import (
     get_registration, Restaurant, get_meals
 )
@@ -30,20 +29,8 @@ from crawler.settings import KST
 meal_api = APIRouter(prefix="/meal")
 
 
-async def get_payload_and_restaurant(request: Request):
-    """요청에서 Payload 객체와 등록된 Restaurant 객체를 반환합니다."""
-    # 요청을 받아 Payload 객체로 변환
-    payload = Payload.from_dict(await request.json())  # type: ignore
-
-    # 사용자의 ID로 등록된 식당 객체를 불러옴
-    restaurant: Restaurant = get_registration(payload.user_id)
-    restaurant.load_temp_menu()
-
-    return payload, restaurant
-
-
 @meal_api.post("/register/delete/{meal_type}")
-async def meal_delete(meal_type: str, request: Request):
+async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload)):
     """삭제할 메뉴를 선택하는 API입니다.
 
     meal_type에 해당하는 식사 종류의 메뉴를 삭제할 수 있도록
@@ -55,7 +42,7 @@ async def meal_delete(meal_type: str, request: Request):
         meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
     """
-    _, restaurant = await get_payload_and_restaurant(request)
+    restaurant: Restaurant = get_registration(payload.user_id)
 
     # meal_type에 해당하는 메뉴 리스트를 불러와 퀵리플라이로 반환
     memu_list = getattr(restaurant, f"temp_{meal_type}")
@@ -80,12 +67,12 @@ async def meal_delete(meal_type: str, request: Request):
 
 
 @meal_api.post("/register/delete_all")
-async def meal_delete_all(request: Request):
+async def meal_delete_all(payload: Payload = Depends(parse_payload)):
     """모든 메뉴를 삭제하는 API입니다.
 
     모든 메뉴를 삭제하고 삭제된 결과를 응답으로 반환합니다.
     """
-    _, restaurant = await get_payload_and_restaurant(request)
+    restaurant: Restaurant = get_registration(payload.user_id)
     restaurant.clear_menu()
     restaurant.save_temp_menu()
     response = KakaoResponse().add_component(
@@ -95,13 +82,13 @@ async def meal_delete_all(request: Request):
 
 
 @meal_api.post("/register/delete_menu")
-async def meal_menu_delete(request: Request):
+async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
     """선택한 메뉴를 삭제하는 API입니다.
 
     meal_delete API에서 선택한 메뉴를 삭제합니다.
     삭제된 결과를 응답으로 반환합니다.
     """
-    payload, restaurant = await get_payload_and_restaurant(request)
+    restaurant: Restaurant = get_registration(payload.user_id)
 
     meal_type = payload.action.client_extra["meal_type"]
     menu = payload.action.client_extra["menu"]
@@ -125,7 +112,7 @@ async def meal_menu_delete(request: Request):
 
 
 @meal_api.post("/register/{meal_type}")
-async def meal_register(meal_type: str, request: Request):
+async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload)):
     """식단 정보를 등록합니다.
 
     중식 등록 및 석식 등록 스킬을 처리합니다.
@@ -136,7 +123,7 @@ async def meal_register(meal_type: str, request: Request):
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
     """
 
-    payload, restaurant = await get_payload_and_restaurant(request)
+    restaurant: Restaurant = get_registration(payload.user_id)
 
     # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
     assert payload.detail_params is not None
@@ -165,14 +152,15 @@ async def meal_register(meal_type: str, request: Request):
 
 @meal_api.post("/submit")
 @check_tip_and_e
-async def meal_submit(request: Request):
+async def meal_submit(payload: Payload = Depends(parse_payload)):
     """식단 정보를 확정하는 API입니다.
 
     임시 저장된 식단 정보를 확정하고 등록합니다.
     """
     # 요청을 받아 Payload 객체로 변환 및 사용자의 ID로 등록된 식당 객체를 불러옴
-    payload, restaurant = await get_payload_and_restaurant(request)
+    restaurant: Restaurant = get_registration(payload.user_id)
 
+    logger.info("확정 시작")
     # 식당 정보를 확정 등록
     try:
         restaurant.submit()
@@ -185,12 +173,14 @@ async def meal_submit(request: Request):
             )
         else:
             raise e
-    finally:
-        del restaurant
+    # finally:
+    #     del restaurant
+
+    logger.info("확정 작업 완료 | 확정 정보 불러오기")
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
-    saved_restaurant: Restaurant = get_registration(
-        payload.user_id)
+    saved_restaurant: Restaurant = Restaurant.by_id(
+        payload.user_id, donwload=False)
     lunch, dinner = make_meal_cards([saved_restaurant])
 
     # 응답 생성
@@ -200,15 +190,14 @@ async def meal_submit(request: Request):
     response.add_component(lunch)
     response.add_component(dinner)
 
+    logger.info("확정 정보 반환")
     return JSONResponse(response.get_dict())
 
 
 @meal_api.post("/view")
 @check_tip_and_e
-async def meal_view(request: Request):
+async def meal_view(payload: Payload = Depends(parse_payload)):
     """식단 정보를 Carousel TextCard 형태로 반환합니다."""
-    payload = Payload.from_dict(await request.json())  # 요청 Payload를 파싱합니다.
-
     # payload에서 Cafeteria 값 추출
     assert payload.detail_params is not None
     cafeteria = payload.detail_params.get("Cafeteria")  # 학식 이름
@@ -218,13 +207,9 @@ async def meal_view(request: Request):
     cafeteria_list: list[Restaurant] = await get_meals()
 
     # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
-
-    target_cafeteria = False
-
-    cafeteria_list: List[Restaurant] = await get_meals()
-
     if target_cafeteria:
-        restaurants = list(filter(lambda x: x.name == target_cafeteria, cafeteria_list))
+        restaurants = list(
+            filter(lambda x: x.name == target_cafeteria, cafeteria_list))
     else:
         restaurants = cafeteria_list
 
@@ -233,11 +218,11 @@ async def meal_view(request: Request):
     standard_time = standard_time.replace(
         hour=19, minute=0, second=0, microsecond=0)
 
-    af_standard: List[Restaurant] = []
-    bf_standard: List[Restaurant] = []
+    af_standard: list[Restaurant] = []
+    bf_standard: list[Restaurant] = []
     for r in restaurants:
         if r.registration_time.tzinfo is None:
-            print("등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다.")
+            logger.warning("등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다.")
             temp = r.registration_time + timedelta(hours=9)
             r.registration_time = temp.replace(tzinfo=KST)
         if r.registration_time < standard_time:
@@ -248,42 +233,47 @@ async def meal_view(request: Request):
     bf_standard.sort(key=lambda x: x.registration_time)
     af_standard.sort(key=lambda x: x.registration_time)
 
+    # 어제 7시 이후 등록된 식당 정보를 먼저 배치
     restaurants = af_standard + bf_standard
 
+    # 점심과 저녁 메뉴를 담은 Carousel 생성
     lunch_carousel, dinner_carousel = make_meal_cards(restaurants)
 
     response = KakaoResponse()
 
-    if lunch_carousel:
+    # 점심과 저녁 메뉴 Carousel을 SkillList에 추가
+    # 비어있는 Carousel을 추가하지 않음
+    if not lunch_carousel.is_empty:
         response.add_component(lunch_carousel)
-    if dinner_carousel:
+    if not dinner_carousel.is_empty:
         response.add_component(dinner_carousel)
     if response.is_empty:
-        response.add_component(SimpleTextComponent("식단 정보가 없습니다."))
+        response.add_component(
+            SimpleTextComponent("식단 정보가 없습니다.")
+        )
 
+    # 퀵리플라이 추가
+    # 현재 선택된 식단을 제외한 다른 식당을 퀵리플라이로 추가
     if target_cafeteria:
         response.add_quick_reply(
             label="모두 보기",
             action="message",
-            message_text="테스트 학식",  # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
+            message_text="학식",
         )
     for rest in cafeteria_list:
         if rest.name != target_cafeteria:
             response.add_quick_reply(
                 label=rest.name,
                 action="message",
-                # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
-                message_text=f"테스트 학식 {rest.name}",
+                message_text=f"학식 {rest.name}",
             )
 
     return JSONResponse(response.get_dict())
 
 
 @meal_api.post("/restaurant")
-async def meal_restaurant(request: Request):
+async def meal_restaurant(payload: Payload = Depends(parse_payload)):
     """식당 정보를 반환하는 API입니다."""
-    payload = Payload.from_dict(await request.json())
-
     restaurant_name: str = payload.action.client_extra["restaurant_name"]
 
     # 식당 정보를 가져옵니다.
@@ -316,8 +306,7 @@ async def meal_restaurant(request: Request):
     item_card.add_button(
         label="메뉴 보기",
         action="message",
-        # TODO(Seokyoung_Hong): 베포 시 '테스트' 제거
-        message_text=f"테스트 학식 {restaurant_name}"
+        message_text=f"학식 {restaurant_name}"
     )
     url = NAVER_MAP_URL_DICT.get(restaurant_name, None)
     if url:

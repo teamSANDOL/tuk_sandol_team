@@ -1,7 +1,8 @@
 """응답에 사용되는 상수들을 정의합니다."""
-from api_server.kakao.response import QuickReply
-from api_server.kakao.response.components import TextCardComponent
-from api_server.kakao.response.interactiron import ActionEnum
+import logging
+
+from kakao_chatbot.response import QuickReply, ActionEnum
+from kakao_chatbot.response.components import TextCardComponent
 
 # 도움말 QuickReply
 HELP = QuickReply(
@@ -36,3 +37,9 @@ NAVER_MAP_URL_DICT = {
     "E동 레스토랑": "https://naver.me/GRO427Hk",
     "수호식당": "https://naver.me/Gz18OrEt",
 }
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+logger = logging.getLogger("sandol_logger")

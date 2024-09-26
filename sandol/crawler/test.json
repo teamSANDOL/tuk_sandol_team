@@ -116,21 +116,5 @@
         ],
         "location": "E동 1층",
         "price_per_person": 6500
-    },
-    {
-        "identification": "1234",
-        "name": "Sample Restaurant",
-        "registration_time": "2024-06-03T13:33:05.326819",
-        "opening_time": "09:00",
-        "lunch_menu": [
-            "lunch item 1",
-            "lunch item 2"
-        ],
-        "dinner_menu": [
-            "dinner item 1",
-            "dinner item 2"
-        ],
-        "location": "Sample Location",
-        "price_per_person": 20.0
     }
 ]
