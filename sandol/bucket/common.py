@@ -1,6 +1,8 @@
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
+from api_server.settings import logger
+
 BUCKET_NAME = "sandol-bucket"
 FILE_KEY = "test.json"
 
