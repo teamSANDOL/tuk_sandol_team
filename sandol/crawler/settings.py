@@ -28,7 +28,7 @@ SANDOL_ACCESS_ID: dict = {
 RESTAURANT_ACCESS_ID: dict = {
     "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6": "미가식당",
     "380da59920b84d81eb8c444e684a53290021b38f544fe0029f4b38ab347bc44e08": "세미콘식당",
-    "00752cd364a4d1c910df203fd4ed424e07e6981d3f958f953c6c5ef3b879032743": "산돌식당",
+    # "00752cd364a4d1c910df203fd4ed424e07e6981d3f958f953c6c5ef3b879032743": "산돌식당",
     "001": "TIP 가가식당",
     "002": "E동 레스토랑"
 }

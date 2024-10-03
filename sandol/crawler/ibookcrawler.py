@@ -220,11 +220,11 @@ class BookTranslator:
 
         # S3에 업로드
         upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
-        logger.info(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
+        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
 
 if __name__ == "__main__":
     ibook = BookTranslator()
 
-    ibook.submit_tip_info()     # TIP 가가식당 정보 test.json에 저장
-    ibook.submit_e_info()       # E동 레스토랑 정보 test.json에 저장
+    ibook.submit_tip_info()  # TIP 가가식당 정보 test.json에 저장
+    ibook.submit_e_info()  # E동 레스토랑 정보 test.json에 저장
