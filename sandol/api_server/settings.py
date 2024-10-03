@@ -32,7 +32,7 @@ CAFETRIA_REGISTER_QUICK_REPLY_LIST = [
 NAVER_MAP_URL_DICT = {
     "미가식당": "https://naver.me/xEMZ6QdE",
     "세미콘식당": "https://naver.me/xQ8Khcho",
-    "산돌식당": "https://naver.me/xEMZ6QdE",
+    # "산돌식당": "https://naver.me/xEMZ6QdE",
     "TIP 가가식당": "https://naver.me/GCaFzr8k",
     "E동 레스토랑": "https://naver.me/GRO427Hk",
     "수호식당": "https://naver.me/Gz18OrEt",

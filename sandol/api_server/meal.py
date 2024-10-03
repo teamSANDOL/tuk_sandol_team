@@ -247,7 +247,7 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
         response.add_component(lunch_carousel)
     if not dinner_carousel.is_empty:
         response.add_component(dinner_carousel)
-    if response.is_empty:
+    if not response.component_list:
         response.add_component(
             SimpleTextComponent("식단 정보가 없습니다.")
         )
