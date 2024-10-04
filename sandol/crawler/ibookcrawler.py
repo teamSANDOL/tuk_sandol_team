@@ -6,6 +6,7 @@ import json
 import os
 import math
 import datetime as dt
+import traceback
 import pandas as pd
 
 from api_server.settings import logger
@@ -18,6 +19,7 @@ class BookTranslator:
         ibookDownloader.py에서 다운로드한 'data.xlsx'을 토대로
         TIP, E동 식당의 식당 정보를 포함한 객체를 반환한다.
     """
+
     def __init__(self):
         self.identification = ""
         self.name = ""
@@ -60,12 +62,14 @@ class BookTranslator:
             today_menu() 메서드에서 요일정보 획득
             data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
         """
-        self.tip_lunch_menu = list(self.df.iloc[6:12, weekday])     # data.xlsx file 내 1열 8행~13행
+        self.tip_lunch_menu = list(
+            self.df.iloc[6:12, weekday])     # data.xlsx file 내 1열 8행~13행
         for menu in self.tip_lunch_menu:
             if menu == '*복수메뉴*':                # *복수메뉴* 글자 제거
                 self.tip_lunch_menu.remove(menu)
 
-        self.tip_dinner_menu = list(self.df.iloc[13:19, weekday])   # data.xlsx file 내 1열 15행~20행
+        # data.xlsx file 내 1열 15행~20행
+        self.tip_dinner_menu = list(self.df.iloc[13:19, weekday])
         for menu in self.tip_lunch_menu:
             if menu == '*복수메뉴*':
                 self.tip_lunch_menu.remove(menu)
@@ -76,9 +80,11 @@ class BookTranslator:
             today_menu() 메서드에서 요일정보 획득
             data.xlsx 파일에서 요일에 해당하는 점심메뉴, 저녁메뉴 추출
         """
-        self.e_lunch_menu = list(self.df.iloc[22:29, weekday])  # data.xlsx file 내 1열 24행~30행
+        self.e_lunch_menu = list(
+            self.df.iloc[22:29, weekday])  # data.xlsx file 내 1열 24행~30행
 
-        self.e_dinner_menu = list(self.df.iloc[30:37, weekday])  # data.xlsx file 내 1열 32행~38행
+        # data.xlsx file 내 1열 32행~38행
+        self.e_dinner_menu = list(self.df.iloc[30:37, weekday])
 
     def save_tip_info(self):
         """
@@ -134,6 +140,8 @@ class BookTranslator:
             data = []
         except json.decoder.JSONDecodeError:
             data = []
+        except Exception:
+            logger.error(traceback.format_exc())
 
         restaurant_found = False
         for restaurant_data in data:
@@ -194,6 +202,8 @@ class BookTranslator:
             data = []
         except json.decoder.JSONDecodeError:
             data = []
+        except Exception:
+            logger.error(traceback.format_exc())
 
         restaurant_found = False
         for restaurant_data in data:
