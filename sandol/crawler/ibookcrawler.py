@@ -202,6 +202,8 @@ class BookTranslator:
             data = []
         except json.decoder.JSONDecodeError:
             data = []
+        except Exception:
+            logger.error(traceback.format_exc())
 
         restaurant_found = False
         for restaurant_data in data:
