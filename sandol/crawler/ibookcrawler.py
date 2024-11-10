@@ -11,7 +11,6 @@ import pandas as pd
 
 from api_server.settings import logger
 from crawler.settings import KST
-from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
 
 
 class BookTranslator:
@@ -131,7 +130,6 @@ class BookTranslator:
         # S3에서 파일 다운로드
         download_path = '/tmp/test.json'
         try:
-            download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
             with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
                 if not isinstance(data, list):
@@ -166,10 +164,6 @@ class BookTranslator:
         with open(download_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
 
-        # S3에 업로드
-        upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
-        logger.info(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
-
     def submit_e_info(self):
         """
             save_e_info 로 E동 정보 저장
@@ -193,7 +187,6 @@ class BookTranslator:
         # S3에서 파일 다운로드
         download_path = '/tmp/test.json'
         try:
-            download_file_from_s3(BUCKET_NAME, FILE_KEY, download_path)
             with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
                 if not isinstance(data, list):
@@ -227,10 +220,6 @@ class BookTranslator:
         # 임시 파일에 데이터 저장
         with open(download_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
-
-        # S3에 업로드
-        upload_file_to_s3(download_path, BUCKET_NAME, FILE_KEY)
-        print(f"File {FILE_KEY} uploaded to S3 bucket {BUCKET_NAME}")
 
 
 if __name__ == "__main__":

@@ -7,8 +7,11 @@ import os
 import json
 import datetime as dt
 
-from bucket.common import download_file_from_s3, BUCKET_NAME, FILE_KEY, upload_file_to_s3
 from crawler import settings
+
+
+BUCKET_NAME = "sandol-bucket"
+FILE_KEY = "test.json"
 
 DOWNLOAD_PATH = "/tmp/test.json"
 UPLOAD_PATH = "/tmp/test.json"
@@ -130,8 +133,6 @@ class Restaurant:
         restaurant_name = settings.RESTAURANT_ACCESS_ID.get(id_address)
 
         if restaurant_name:
-            download_file_from_s3(BUCKET_NAME, FILE_KEY, DOWNLOAD_PATH)
-
             with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
                 data = json.load(file)
 
@@ -323,8 +324,6 @@ class Restaurant:
             FileNotFoundError: 디렉터리에서 파일을 찾지 못할 경우 발생합니다.
             ValueError: json파일에 존재하지 않는 식당일 경우 발생합니다.
         """
-        download_file_from_s3(BUCKET_NAME, FILE_KEY, DOWNLOAD_PATH)
-
         # read and write
         try:
             with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
@@ -362,8 +361,6 @@ class Restaurant:
 
         if os.path.exists(temp_menu_path):
             os.remove(temp_menu_path)
-
-        upload_file_to_s3(UPLOAD_PATH, BUCKET_NAME, FILE_KEY)
 
     def __str__(self):
         # print test 시 가시성 완화 목적
