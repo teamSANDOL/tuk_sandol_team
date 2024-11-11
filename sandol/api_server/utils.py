@@ -151,7 +151,7 @@ def make_meal_card(
     textcard.add_button(
         label="식당 정보 보기",
         action="block",
-        block_id="665ca91ba99186411b75b8c9",
+        block_id="672183965e0ed128077abfe3",
         extra={
             "restaurant_name": restaurant.name
         }

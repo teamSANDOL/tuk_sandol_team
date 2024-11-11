@@ -60,7 +60,7 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
         quick_reply = QuickReply(
             label=menu,
             action=ActionEnum.BLOCK,
-            block_id="66437f48dc3e762a0216a3e0",
+            block_id="67218366770f3e5a431708ac",
             extra={"meal_type": meal_type, "menu": menu},
         )
         response += quick_reply
