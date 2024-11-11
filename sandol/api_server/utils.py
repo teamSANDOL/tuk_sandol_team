@@ -256,7 +256,7 @@ def check_tip_and_e(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         # Lambda 환경에서 /tmp 디렉토리를 사용
-        file_path = "./tmp/data.xlsx"
+        file_path = "/tmp/data.xlsx"
 
         must_download = False
 

@@ -8,11 +8,13 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
+COPY ./tmp/test.json /tmp/test.json
+
 # Copy the entire 'sandol' directory to the working directory
 COPY . /app
 
 # Expose port 80
-EXPOSE 7900
+EXPOSE 7999
 
 # Command to run the FastAPI application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7900"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7999"]
