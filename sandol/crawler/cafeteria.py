@@ -13,8 +13,8 @@ from crawler import settings
 BUCKET_NAME = "sandol-bucket"
 FILE_KEY = "test.json"
 
-DOWNLOAD_PATH = "/tmp/test.json"
-UPLOAD_PATH = "/tmp/test.json"
+DOWNLOAD_PATH = "./tmp/test.json"
+UPLOAD_PATH = "./tmp/test.json"
 
 
 class Restaurant:
@@ -384,8 +384,6 @@ async def get_meals() -> list:
     Returns:
         list : 식당 객체들을 저장한 리스트
     """
-    download_file_from_s3(BUCKET_NAME, FILE_KEY, DOWNLOAD_PATH)
-
     with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
         data = json.load(file)
 

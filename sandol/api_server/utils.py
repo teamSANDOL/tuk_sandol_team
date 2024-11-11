@@ -256,7 +256,7 @@ def check_tip_and_e(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         # Lambda 환경에서 /tmp 디렉토리를 사용
-        file_path = "/tmp/data.xlsx"
+        file_path = "./tmp/data.xlsx"
 
         must_download = False
 
@@ -283,9 +283,9 @@ def check_tip_and_e(func):
 
             if registration_time < last_wednesday:
                 must_download = True
-            logger.info('tip.registration_time:', tip.registration_time.isoformat())
-            logger.info('start_of_day:', start_of_day.isoformat())
-            logger.info('registration_time:', registration_time.isoformat())
+            logger.info(f'tip.registration_time: {tip.registration_time.isoformat()}')
+            logger.info(f'start_of_day: {start_of_day.isoformat()}')
+            logger.info(f'registration_time: {registration_time.isoformat()}')
         else:
             must_download = True
 

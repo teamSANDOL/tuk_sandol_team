@@ -33,7 +33,7 @@ class BookTranslator:
         self.price_per_person = 0
 
         # Lambda 환경에서는 /tmp 디렉토리를 사용
-        filename = os.path.join('/tmp', 'data.xlsx')
+        filename = os.path.join('./tmp', 'data.xlsx')
 
         self.df = pd.read_excel(filename)
 
@@ -128,7 +128,7 @@ class BookTranslator:
         }
 
         # S3에서 파일 다운로드
-        download_path = '/tmp/test.json'
+        download_path = './tmp/test.json'
         try:
             with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)
@@ -185,7 +185,7 @@ class BookTranslator:
         }
 
         # S3에서 파일 다운로드
-        download_path = '/tmp/test.json'
+        download_path = './tmp/test.json'
         try:
             with open(download_path, 'r', encoding='utf-8') as file:
                 data = json.load(file)

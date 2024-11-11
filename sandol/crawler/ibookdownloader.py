@@ -197,11 +197,9 @@ class BookDownloader:
 
         # 파일 다운로드 성공
         if response.status_code == 200:
-            # Lambda의 /tmp 디렉토리에 파일 저장
-            save_path = os.path.join('/tmp', save_as)
-            with open(save_path, "wb") as f:
+            with open(save_as, "wb") as f:
                 f.write(response.content)
-            logger.info(f"File saved to {save_path}")
+            logger.info(f"File saved to {save_as}")
         else:  # 파일 다운로드 실패
             raise DownloadFileError(response.status_code)
 

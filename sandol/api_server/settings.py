@@ -17,15 +17,15 @@ CAFETERIA_WEB = TextCardComponent(
 # 퀵리플라이 정의
 CAFETRIA_REGISTER_QUICK_REPLY_LIST = [
     QuickReply(
-        "확정", ActionEnum.BLOCK, block_id="661bccff4df3202baf9e8bdd"),
+        "확정", ActionEnum.BLOCK, block_id="6721838c369c0a05baca37a1"),
+    QuickReply(                                   
+        "점심 메뉴 추가", ActionEnum.BLOCK, block_id="672181220b8411112c75c884"),
     QuickReply(
-        "점심 메뉴 추가", ActionEnum.BLOCK, block_id="660e009c30bfc84fad05dcbf"),
+        "저녁 메뉴 추가", ActionEnum.BLOCK, block_id="672181305e0ed128077abf5e"),
     QuickReply(
-        "저녁 메뉴 추가", ActionEnum.BLOCK, block_id="660e00a8d837db3443451ef9"),
+        "메뉴 삭제", ActionEnum.BLOCK, block_id="67218366770f3e5a431708ac"),
     QuickReply(
-        "메뉴 삭제", ActionEnum.BLOCK, block_id="66438b74334aaa30751802e9"),
-    QuickReply(
-        "모든 메뉴 삭제", ActionEnum.BLOCK, block_id="6643a2ce0431eb378ea12748")
+        "모든 메뉴 삭제", ActionEnum.BLOCK, block_id="6721837657cc8a7ef53213ef")
 ]
 
 # 식당별 네이버 지도 URL

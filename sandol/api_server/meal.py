@@ -43,6 +43,7 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
     """
     restaurant: Restaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
 
     # meal_type에 해당하는 메뉴 리스트를 불러와 퀵리플라이로 반환
     memu_list = getattr(restaurant, f"temp_{meal_type}")
@@ -73,6 +74,7 @@ async def meal_delete_all(payload: Payload = Depends(parse_payload)):
     모든 메뉴를 삭제하고 삭제된 결과를 응답으로 반환합니다.
     """
     restaurant: Restaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
     restaurant.clear_menu()
     restaurant.save_temp_menu()
     response = KakaoResponse().add_component(
@@ -89,6 +91,7 @@ async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
     삭제된 결과를 응답으로 반환합니다.
     """
     restaurant: Restaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
 
     meal_type = payload.action.client_extra["meal_type"]
     menu = payload.action.client_extra["menu"]
@@ -124,6 +127,7 @@ async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload
     """
 
     restaurant: Restaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
 
     # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
     assert payload.detail_params is not None
@@ -159,6 +163,7 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
     """
     # 요청을 받아 Payload 객체로 변환 및 사용자의 ID로 등록된 식당 객체를 불러옴
     restaurant: Restaurant = get_registration(payload.user_id)
+    restaurant.load_temp_menu()
 
     logger.info("확정 시작")
     # 식당 정보를 확정 등록
@@ -180,7 +185,7 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
     saved_restaurant: Restaurant = Restaurant.by_id(
-        payload.user_id, donwload=False)
+        payload.user_id)
     lunch, dinner = make_meal_cards([saved_restaurant])
 
     # 응답 생성
