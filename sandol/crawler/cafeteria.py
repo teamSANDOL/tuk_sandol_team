@@ -151,6 +151,7 @@ class Restaurant:
         Raises:
             KeyError: setting 딕셔너리에 존재하는 식당 이름이 아닐 때 발생합니다.
         """
+        
         info = settings.RESTAURANT_OPEN_PRICE
 
         if self.name in info:
@@ -372,6 +373,28 @@ class Restaurant:
                 f"Opening_time: {self.opening_time}, "
                 f"Price: {self.price_per_person}"
                 )
+
+def init_restaurant(
+        identification: str,
+        name: str,
+        opening_time: str,
+        location: str,
+        price_per_person: int,
+    ):
+    """test.json에 새로운 식당을 추가합니다."""
+    with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
+        data = json.load(file)
+    
+    new_restaurant = {
+        "identification": identification,
+        "name": name,
+        "registration_time": dt.datetime.now().isoformat(),
+        "opening_time": opening_time,
+        "lunch_menu": [],
+        "dinner_menu": [],
+        "location": location,
+        "price_per_person": price_per_person
+    }
 
 
 async def get_meals() -> list:

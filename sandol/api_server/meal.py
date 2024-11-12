@@ -26,7 +26,83 @@ from crawler import (
 )
 from crawler.settings import KST
 
+import json
+
 meal_api = APIRouter(prefix="/meal")
+
+
+@meal_api.post("/register/restaurant/approve")
+async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
+    """신청한 업체를 승인하는 API입니다.
+    """
+    with open("./data/restaurant_register.json", "r") as f:
+        data = json.load(f)
+
+
+@meal_api.post("/register/restaurant")
+async def register_restaurant(payload: Payload = Depends(parse_payload)):
+    """업체 등록 신청을 관리하는 API입니다.
+    """
+    lunch_start_hours, lunch_start_minutes, _ = map(
+        int, payload.action.detail_params["lunch_start"].origin.split(':'))
+    lunch_end_hours, lunch_end_minutes, _ = map(
+        int, payload.action.detail_params["lunch_end"].origin.split(':'))
+    dinner_start_hours, dinner_start_minutes, _ = map(
+        int, payload.action.detail_params["dinner_start"].origin.split(':'))
+    dinner_end_hours, dinner_end_minutes, _ = map(
+        int, payload.action.detail_params["dinner_end"].origin.split(':'))
+
+    lunch_time = [f"{lunch_start_hours}:{lunch_start_minutes}",
+                  f"{lunch_end_hours}:{lunch_end_minutes}"]
+    dinner_time = [f"{dinner_start_hours}:{dinner_start_minutes}",
+                   f"{dinner_end_hours}:{dinner_end_minutes}"]
+
+    opening_time = [lunch_time, dinner_time]
+
+    temp_data = {
+        "identification": payload.user_id,
+        "name": payload.action.detail_params["name"].origin,
+        "location": payload.action.detail_params["location"].origin,
+        "price_per_person": int(payload.action.detail_params["price_per_person"].origin),
+        "opening_time": opening_time,
+    }
+
+    try:
+        with open("./data/restaurant_register.json", "r") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = []
+
+    data.append(temp_data)
+
+    with open("./data/restaurant_register.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+    response = KakaoResponse()
+    response.add_component(
+        SimpleTextComponent("아래 정보로 식당 등록 신청이 완료되었습니다.")
+    )
+
+    item_card = ItemCardComponent([])
+    item_card.image_title = ImageTitle(
+        title=temp_data["name"],
+        description="식당 정보"
+    )
+    item_card.add_item(
+        title="점심 시간",
+        description="~".join(opening_time[0])
+    )
+    item_card.add_item(
+        title="저녁 시간",
+        description="~".join(opening_time[1])
+    )
+    item_card.add_item(
+        title="가격",
+        description=f"{temp_data['price_per_person']}원"
+    )
+    response.add_component(item_card)
+
+    return JSONResponse(response.get_dict())
 
 
 @meal_api.post("/register/delete/{meal_type}")
