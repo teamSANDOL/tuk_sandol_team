@@ -13,7 +13,7 @@ from kakao_chatbot import Payload, ValidationPayload
 from kakao_chatbot.response import (
     KakaoResponse, QuickReply, ActionEnum, ValidationResponse
 )
-from kakao_chatbot.response.components import SimpleTextComponent, ItemCardComponent, ImageTitle
+from kakao_chatbot.response.components import CarouselComponent, SimpleTextComponent, ItemCardComponent, ImageTitle
 
 from api_server.utils import (
     meal_error_response_maker, split_string,
@@ -24,19 +24,137 @@ from api_server.settings import NAVER_MAP_URL_DICT, logger
 from crawler import (
     get_registration, Restaurant, get_meals
 )
-from crawler.settings import KST
+from crawler.settings import KST, _PATH
 
 import json
 
+from crawler.cafeteria import init_restaurant
+
 meal_api = APIRouter(prefix="/meal")
 
+@meal_api.post("/register/restaurant/decline")
+async def register_restaurant_decline(payload: Payload = Depends(parse_payload)):
+    assert payload.detail_params is not None
+    double_check = payload.detail_params["double_check"].origin
+    if double_check not in ['예', '네', 'ㅖ', '응', '어']:
+        response = KakaoResponse()
+        response.add_component(
+            SimpleTextComponent(
+                "등록 거절이 취소 되었습니다. 거절하시려면 다시 승인 버튼을 눌러주세요."
+            )
+        ).get_dict()
+        return JSONResponse(response.get_dict())
+    
+    restaurant_id = payload.action.client_extra["identification"]
+    with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
+        data = json.load(f)
+    
+    restaurant_data = list(filter(lambda x: x["identification"] != restaurant_id, data))
+    
+    with open(f"{_PATH}/data/restaurant_register.json", "w") as f:
+        json.dump(restaurant_data, f, indent=4)
+    response = KakaoResponse()
+    response.add_component(
+        SimpleTextComponent("등록이 거절되었습니다.")
+    )
+    return JSONResponse(response.get_dict())
 
 @meal_api.post("/register/restaurant/approve")
 async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
+    assert payload.detail_params is not None
+    location = payload.detail_params["place"].origin
+
+    response = KakaoResponse()
+    if location not in ["교내", "교외"]:
+        response.add_component(
+            SimpleTextComponent(
+                "등록 승인이 취소되었습니다. 승인하시려면 다시 승인 버튼을 눌러주세요."
+            )
+        ).get_dict()
+        return JSONResponse(response.get_dict())
+
+    restaurant_id = payload.action.client_extra["identification"]
+    with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
+        data = json.load(f)
+    
+    restaurant_data_list = list(filter(lambda x: x["identification"] == restaurant_id, data))
+    restaurant_data = restaurant_data_list[0]
+    identification = restaurant_data["identification"]
+    name = restaurant_data["name"]
+    price_per_person = restaurant_data["price_per_person"]
+    opening_time = restaurant_data["opening_time"]
+
+    init_restaurant(
+        identification, name, opening_time, location, price_per_person
+    )
+
+    new_restaurant_data = list(filter(lambda x: x["identification"] != restaurant_id, data))
+    
+    with open(f"{_PATH}/data/restaurant_register.json", "w") as f:
+        json.dump(new_restaurant_data, f, indent=4)
+
+    response = KakaoResponse().add_component(
+        SimpleTextComponent("등록 완료")
+    )
+    
+
+    return JSONResponse(response.get_dict())
+
+
+
+
+
+
+@meal_api.post("/register/restaurant/list")
+async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     """신청한 업체를 승인하는 API입니다.
     """
-    with open("./data/restaurant_register.json", "r") as f:
+    with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
         data = json.load(f)
+    
+    response = KakaoResponse()
+
+    carousel = CarouselComponent()
+    for apply in data:
+        item_card = ItemCardComponent([])
+        item_card.image_title = ImageTitle(
+            title=apply["name"],
+            description="식당 정보"
+        )
+
+        opening_time = apply["opening_time"]
+
+        item_card.add_item(
+            title="점심 시간",
+            description="~".join(opening_time[0])
+        )
+        item_card.add_item(
+            title="저녁 시간",
+            description="~".join(opening_time[1])
+        )
+        item_card.add_item(
+            title="가격",
+            description=f"{apply['price_per_person']}원"
+        )
+        item_card.add_button(
+            label="승인",
+            action="block",
+            block_id="673ab011bdae5e01db2d959d",
+            extra={"identification": apply["identification"]}
+        )
+        item_card.add_button(
+            label="거절",
+            action="block",
+            block_id="673ab1fb72ca387abe6381b7",
+            extra={"identification": apply["identification"]}
+        )
+        carousel.add_item(item_card)
+    response.add_component(carousel)
+
+    return JSONResponse(response.get_dict())
+
+
+
 
 
 @meal_api.post("/register/restaurant")
@@ -52,6 +170,27 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
     dinner_end_hours, dinner_end_minutes, _ = map(
         int, payload.action.detail_params["dinner_end"].origin.split(':'))
 
+    if lunch_start_hours > 12:
+        lunch_start_hours -= 12
+        lunch_start_hours = f"오후 {str(lunch_start_hours).zfill(2)}"
+    else:
+        lunch_start_hours = f"오전 {str(lunch_start_hours).zfill(2)}"
+
+    if lunch_end_hours > 12:
+        lunch_end_hours -= 12
+    lunch_end_hours = str(lunch_end_hours).zfill(2)
+    
+
+    if dinner_start_hours > 12:
+        dinner_start_hours -= 12
+        dinner_start_hours = f"오후 {str(dinner_start_hours).zfill(2)}"
+    else:
+        dinner_start_hours = f"오전 {str(dinner_start_hours).zfill(2)}"
+    
+    if dinner_end_hours > 12:
+        dinner_end_hours -= 12
+    dinner_end_hours = str(dinner_end_hours).zfill(2)
+
     lunch_time = [f"{lunch_start_hours}:{lunch_start_minutes}",
                   f"{lunch_end_hours}:{lunch_end_minutes}"]
     dinner_time = [f"{dinner_start_hours}:{dinner_start_minutes}",
@@ -62,20 +201,19 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
     temp_data = {
         "identification": payload.user_id,
         "name": payload.action.detail_params["name"].origin,
-        "location": payload.action.detail_params["location"].origin,
         "price_per_person": int(payload.action.detail_params["price_per_person"].origin),
         "opening_time": opening_time,
     }
 
     try:
-        with open("./data/restaurant_register.json", "r") as f:
+        with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
             data = json.load(f)
     except FileNotFoundError:
         data = []
 
     data.append(temp_data)
 
-    with open("./data/restaurant_register.json", "w") as f:
+    with open(f"{_PATH}/data/restaurant_register.json", "w") as f:
         json.dump(data, f, indent=4)
 
     response = KakaoResponse()

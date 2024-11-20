@@ -46,31 +46,6 @@
         "price_per_person": 6000
     },
     {
-        "identification": "0029ff0cd22a70533cf6b647e5dd36aa13e6981d3f958f953c6c5ef3b879032743",
-        "name": "산돌식당",
-        "registration_time": "2024-11-11T17:53:20.161704",
-        "opening_time": [
-            [
-                "PM 12:00",
-                "01:00"
-            ],
-            [
-                "PM 05:30",
-                "06:30"
-            ]
-        ],
-        "lunch_menu": [
-            "아이스크림",
-            "쌀",
-            "제육볶음"
-        ],
-        "dinner_menu": [
-            "지렁이"
-        ],
-        "location": "교내",
-        "price_per_person": 6500
-    },
-    {
         "identification": "001",
         "name": "TIP 가가식당",
         "registration_time": "2024-11-11T18:03:28.748636+09:00",

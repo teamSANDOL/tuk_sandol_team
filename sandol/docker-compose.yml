@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  sandol:
+      build:
+        context: ./  # Dockerfile이 위치한 디렉터리
+        dockerfile: Dockerfile  # Dockerfile 이름 (기본값: Dockerfile)
+      container_name: sandol_container
+      ports:
+        - "7999:7999"
+      volumes:
+        - ./crawler/data:/app/crawler/data

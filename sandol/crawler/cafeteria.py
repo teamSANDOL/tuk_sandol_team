@@ -396,6 +396,47 @@ def init_restaurant(
         "price_per_person": price_per_person
     }
 
+    for restaurant in data:
+        if restaurant["name"] == name:
+            raise ValueError("동일한 이름의 식당이 이미 존재합니다.")
+        if restaurant["identification"] == identification:
+            raise ValueError("동일한 식당 ID가 이미 존재합니다.")
+
+    data.append(new_restaurant)
+    
+    with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+    with open(f'{settings._PATH}/data/restaurant_info.json', 'r') as f:
+        OPEN_PRICE = json.load(f)
+    
+    # lunch_time = [f"{lunch_start_hours}:{lunch_start_minutes}",
+    #               f"{lunch_end_hours}:{lunch_end_minutes}"]
+    # dinner_time = [f"{dinner_start_hours}:{dinner_start_minutes}",
+    #                f"{dinner_end_hours}:{dinner_end_minutes}"]
+
+    # opening_time = [lunch_time, dinner_time]
+
+    #opening_time_str 형식
+    # "오전 11:00-1:00 / 오후 5:00-6:30"
+    lunch_time_str = "-".join(opening_time[0])
+    dinner_time_str = "-".join(opening_time[1])
+    opening_time_str = f"{lunch_time_str} / {dinner_time_str}"
+    OPEN_PRICE[name] = [opening_time_str, price_per_person]
+
+    with open(f'{settings._PATH}/data/restaurant_info.json', 'w') as f:
+        json.dump(OPEN_PRICE, f, ensure_ascii=False, indent=4)
+    
+    with open(f'{settings._PATH}/data/restaurant_id.json', 'r') as f:
+        RESTAURANT_ACCESS_ID = json.load(f)
+    
+    RESTAURANT_ACCESS_ID[identification] = name
+
+    with open(f'{settings._PATH}/data/restaurant_id.json', 'w') as f:
+        json.dump(RESTAURANT_ACCESS_ID, f, ensure_ascii=False, indent=4)
+    settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
+    settings.RESTAURANT_OPEN_PRICE = OPEN_PRICE
+
 
 async def get_meals() -> list:
     """S3버킷에서 서비스 중인 식당을 객체로 생성 후 리스트로 저장하여 반환합니다.
