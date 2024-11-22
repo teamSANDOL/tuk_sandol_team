@@ -1,7 +1,7 @@
 """산돌이에 입점한 식당의 정보를 담는 클래스를 정의하는 모듈입니다.
 
 Restaurant(class): 각 식당의 정보와 점심, 저녁 메뉴를 업데이트하여, 식당의 이름으로 객체를 반환합니다.
-get_meals(): s3 버킷에 저장된 data를 json파일로 변환 후 식당의 이름 정보로 식당의 객체를 생성합니다.
+get_meals(): json파일을 열어 식당의 객체를 생성합니다.
 """
 import os
 import json
@@ -58,13 +58,14 @@ class Restaurant:
     }
     """
     def __init__(self, name, lunch, dinner, location, registration):
-        """Restaurant 객체 초기화
+        """Restaurant 객체 초기화 메서드입니다.
 
         Args:
-            name (str) : 식당의 이름
-            lunch (list) : 식당의 점심 메뉴 정보
-            dinner (list) : 식당의 저녁 메뉴 정보
-            location (str) : 식당의 위치 정보(교내/외)
+            name (str): 식당의 이름
+            lunch (list): 식당의 점심 메뉴 정보
+            dinner (list): 식당의 저녁 메뉴 정보
+            location (str): 식당의 위치 정보(교내/외)
+            registration (datetime): 식당 객체 생성(식당 정보 등록) 시간
         """
         self.registration_time = registration
         self.opening_time = []
@@ -116,7 +117,6 @@ class Restaurant:
     def by_id(cls, id_address):
         """주어진 ID코드를 조회하여 식당 객체를 생성합니다.
 
-        S3버킷의 데이터를 임시 json 파일(/tmp/test.json)로 다운로드 합니다.
         crawler.settings.py의 ACCESS_ID 딕셔너리를 조회합니다.
         ID정보가 존재한다면 ID의 value인 NAME을 이름으로 가지는
         Restaurant 객체를 생성하여 반환합니다.
@@ -125,7 +125,7 @@ class Restaurant:
             id_address (str) : 조회할 ID 코드
 
         Returns:
-            Restaurant: S3버킷 데이터를 변환한 식당 객체
+            Restaurant: 파일 내용을 변환한 식당 객체
 
         Raises:
             KeyError: setting 딕셔너리에 존재하는 ID코드가 아닐 때 발생합니다.
@@ -151,7 +151,6 @@ class Restaurant:
         Raises:
             KeyError: setting 딕셔너리에 존재하는 식당 이름이 아닐 때 발생합니다.
         """
-        
         info = settings.RESTAURANT_OPEN_PRICE
 
 
@@ -314,11 +313,11 @@ class Restaurant:
             return self.temp_dinner
 
     def submit(self):
-        """식당 객체 정보를 S3파일로 업로드합니다.
+        """식당 객체 정보를 파일로 저장합니다.
 
-        S3버킷의 데이터를 다운로드하여 식당을 검색합니다.
-        검색한 식당이 존재할 경우, 변경된 식당 정보들을 '/tmp/test.json'파일에 저장 후
-        S3버킷에 업로드합니다.
+        메뉴가 저장된 파일을 열어 식당을 검색합니다.
+        검색한 식당이 존재할 경우, 변경된 식당 정보들을 json 파일에 저장 후
+        업로드합니다.
 
         임시 메뉴 파일인 '이름_temp_menu.json'파일은 디렉터리에서 삭제합니다.
 
@@ -432,7 +431,7 @@ class Restaurant:
         settings.RESTAURANT_OPEN_PRICE = OPEN_PRICE
 
     def __str__(self):
-        # print test 시 가시성 완화 목적
+        """명령어 print test시 가시성을 완화합니다."""
         return (f"Restaurant: {self.name}, "
                 f"Lunch: {self.lunch}, "
                 f"Dinner: {self.dinner}, "
@@ -550,9 +549,8 @@ class Restaurant:
 
 
 async def get_meals() -> list:
-    """S3버킷에서 서비스 중인 식당을 객체로 생성 후 리스트로 저장하여 반환합니다.
+    """JSON 파일을 열어 내용을 객체로 생성 후 리스트로 저장하여 반환합니다.
 
-    S3버킷에서 파일을 다운로드 합니다.
     파일의 각 딕셔너리 데이터를 식당 객체로 생성하여
     식당 목록 리스트에 저장 후 식당 목록 리스트를 반환합니다.
 

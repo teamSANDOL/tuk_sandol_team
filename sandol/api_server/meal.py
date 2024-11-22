@@ -1,4 +1,4 @@
-"""학식 관련 API 파일
+"""학식 관련 API 파일입니다.
 
 학식 관련 API가 작성되어 있습니다.
 학식 보기, 등록, 삭제 등의 기능을 담당합니다.
@@ -32,6 +32,11 @@ meal_api = APIRouter(prefix="/meal")
 
 @meal_api.post("/register/restaurant/decline")
 async def register_restaurant_decline(payload: Payload = Depends(parse_payload)):
+    """업체 등록을 거절하는 api 입니다.
+
+    Returns:
+        str: 거절 결과를 반환합니다.
+    """
     assert payload.detail_params is not None
     double_check = payload.detail_params["double_check"].origin
     if double_check not in ['예', '네', 'ㅖ', '응', '어']:
@@ -60,6 +65,11 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
 
 @meal_api.post("/register/restaurant/approve")
 async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
+    """업체 등록을 승인하는 API 입니다.
+
+    Returns:
+        str: 승인 결과를 반환합니다.
+    """
     assert payload.detail_params is not None
     location = payload.detail_params["place"].origin
 
@@ -92,8 +102,7 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
 
 @meal_api.post("/register/restaurant/list")
 async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
-    """신청한 업체를 승인하는 API입니다.
-    """
+    """등록을 신청한 업체 목록을 반환하는 API입니다."""
     data = Restaurant.load_pending_restaurants()
     
     response = KakaoResponse()
@@ -150,6 +159,8 @@ async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
 @meal_api.post("/register/restaurant")
 async def register_restaurant(payload: Payload = Depends(parse_payload)):
     """업체 등록 신청을 관리하는 API입니다.
+    
+    등록하려는 업체의 등록 정보를 받아 신청 리스트에 저장합니다.
     """
     lunch_start_hours, lunch_start_minutes, _ = map(
         int, payload.action.detail_params["lunch_start"].origin.split(':'))
@@ -327,7 +338,6 @@ async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload
         meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
     """
-
     restaurant: Restaurant = get_registration(payload.user_id)
     restaurant.load_temp_menu()
 
