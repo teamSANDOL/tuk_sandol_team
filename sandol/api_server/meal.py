@@ -28,8 +28,6 @@ from crawler.settings import KST, _PATH
 
 import json
 
-from crawler.cafeteria import init_restaurant
-
 meal_api = APIRouter(prefix="/meal")
 
 @meal_api.post("/register/restaurant/decline")
@@ -40,7 +38,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
         response = KakaoResponse()
         response.add_component(
             SimpleTextComponent(
-                "등록 거절이 취소 되었습니다. 거절하시려면 다시 승인 버튼을 눌러주세요."
+                "등록 거절이 취소 되었습니다. 거절하시려면 다시 거절 버튼을 눌러주세요."
             )
         ).get_dict()
         return JSONResponse(response.get_dict())
@@ -84,7 +82,7 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
     price_per_person = restaurant_data["price_per_person"]
     opening_time = restaurant_data["opening_time"]
 
-    init_restaurant(
+    Restaurant.init_restaurant(
         identification, name, opening_time, location, price_per_person
     )
 
@@ -97,12 +95,7 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
         SimpleTextComponent("등록 완료")
     )
     
-
     return JSONResponse(response.get_dict())
-
-
-
-
 
 
 @meal_api.post("/register/restaurant/list")
