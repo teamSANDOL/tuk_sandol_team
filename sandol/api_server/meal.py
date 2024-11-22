@@ -129,13 +129,13 @@ async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
         item_card.add_button(
             label="승인",
             action="block",
-            block_id="673ab011bdae5e01db2d959d",
+            block_id="6731d9b89fb8545410e9d29b",
             extra={"identification": apply["identification"]}
         )
         item_card.add_button(
             label="거절",
             action="block",
-            block_id="673ab1fb72ca387abe6381b7",
+            block_id="674031c1aeded40bd4bd58d9",
             extra={"identification": apply["identification"]}
         )
         carousel.add_item(item_card)
