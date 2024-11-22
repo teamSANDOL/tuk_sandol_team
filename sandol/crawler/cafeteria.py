@@ -441,6 +441,112 @@ class Restaurant:
                 f"Opening_time: {self.opening_time}, "
                 f"Price: {self.price_per_person}"
                 )
+    
+    @classmethod
+    def load_pending_restaurants(cls):
+        """등록 대기 중인 식당 목록을 로드합니다."""
+        try:
+            with open(f"{settings._PATH}/data/restaurant_register.json", "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = []
+        return data
+
+    @classmethod
+    def save_pending_restaurants(cls, data):
+        """등록 대기 중인 식당 목록을 저장합니다."""
+        with open(f"{settings._PATH}/data/restaurant_register.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    @classmethod
+    def load_restaurant_info(cls):
+        """등록된 식당 정보를 로드합니다."""
+        with open(f"{settings._PATH}/data/restaurant_info.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    @classmethod
+    def save_restaurant_info(cls, data):
+        """등록된 식당 정보를 저장합니다."""
+        with open(f"{settings._PATH}/data/restaurant_info.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    @classmethod
+    def load_restaurant_ids(cls):
+        """식당 ID 정보를 로드합니다."""
+        with open(f"{settings._PATH}/data/restaurant_id.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    @classmethod
+    def save_restaurant_ids(cls, data):
+        """식당 ID 정보를 저장합니다."""
+        with open(f"{settings._PATH}/data/restaurant_id.json", "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+    @classmethod
+    def register_new_restaurant(cls, temp_data, location):
+        """새로운 식당을 등록합니다."""
+        # 기존 데이터 로드
+        data = cls.load_pending_restaurants()
+
+        # 중복 확인
+        for restaurant in data:
+            if restaurant["name"] == temp_data["name"]:
+                raise ValueError("동일한 이름의 식당이 이미 등록 대기 중입니다.")
+            if restaurant["identification"] == temp_data["identification"]:
+                raise ValueError("동일한 식당 ID가 이미 등록 대기 중입니다.")
+
+        # 신규 식당 추가
+        data.append(temp_data)
+        cls.save_pending_restaurants(data)
+
+        # restaurant_info.json 업데이트
+        OPEN_PRICE = cls.load_restaurant_info()
+
+        lunch_time_str = "-".join(temp_data["opening_time"][0])
+        dinner_time_str = "-".join(temp_data["opening_time"][1])
+        opening_time_str = f"{lunch_time_str} / {dinner_time_str}"
+        OPEN_PRICE[temp_data["name"]] = [opening_time_str, temp_data["price_per_person"]]
+        cls.save_restaurant_info(OPEN_PRICE)
+
+        # restaurant_id.json 업데이트
+        RESTAURANT_ACCESS_ID = cls.load_restaurant_ids()
+        RESTAURANT_ACCESS_ID[temp_data["identification"]] = temp_data["name"]
+        cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
+
+        # settings 업데이트
+        settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
+        settings.RESTAURANT_OPEN_PRICE = OPEN_PRICE
+
+    @classmethod
+    def approve_restaurant(cls, identification, location):
+        """식당 등록을 승인합니다."""
+        data = cls.load_pending_restaurants()
+        restaurant_data_list = list(filter(lambda x: x["identification"] == identification, data))
+
+        if not restaurant_data_list:
+            raise ValueError("등록 대기 중인 식당을 찾을 수 없습니다.")
+
+        restaurant_data = restaurant_data_list[0]
+        identification = restaurant_data["identification"]
+        name = restaurant_data["name"]
+        price_per_person = restaurant_data["price_per_person"]
+        opening_time = restaurant_data["opening_time"]
+
+        # 새로운 식당 등록
+        cls.init_restaurant(
+            identification, name, opening_time, location, price_per_person
+        )
+
+        # 대기 목록에서 제거
+        new_restaurant_data = list(filter(lambda x: x["identification"] != identification, data))
+        cls.save_pending_restaurants(new_restaurant_data)
+
+    @classmethod
+    def decline_restaurant(cls, identification):
+        """식당 등록을 거절합니다."""
+        data = cls.load_pending_restaurants()
+        restaurant_data = list(filter(lambda x: x["identification"] != identification, data))
+        cls.save_pending_restaurants(restaurant_data)
 
 
 async def get_meals() -> list:

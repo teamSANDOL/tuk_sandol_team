@@ -44,13 +44,14 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
         return JSONResponse(response.get_dict())
     
     restaurant_id = payload.action.client_extra["identification"]
-    with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
-        data = json.load(f)
-    
-    restaurant_data = list(filter(lambda x: x["identification"] != restaurant_id, data))
-    
-    with open(f"{_PATH}/data/restaurant_register.json", "w") as f:
-        json.dump(restaurant_data, f, indent=4)
+    try:
+        Restaurant.decline_restaurant(restaurant_id)
+    except ValueError as e:
+        return JSONResponse(
+            KakaoResponse().add_component(
+                SimpleTextComponent(str(e))
+            ).get_dict()
+        )
     response = KakaoResponse()
     response.add_component(
         SimpleTextComponent("등록이 거절되었습니다.")
@@ -72,24 +73,15 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
         return JSONResponse(response.get_dict())
 
     restaurant_id = payload.action.client_extra["identification"]
-    with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
-        data = json.load(f)
-    
-    restaurant_data_list = list(filter(lambda x: x["identification"] == restaurant_id, data))
-    restaurant_data = restaurant_data_list[0]
-    identification = restaurant_data["identification"]
-    name = restaurant_data["name"]
-    price_per_person = restaurant_data["price_per_person"]
-    opening_time = restaurant_data["opening_time"]
 
-    Restaurant.init_restaurant(
-        identification, name, opening_time, location, price_per_person
-    )
-
-    new_restaurant_data = list(filter(lambda x: x["identification"] != restaurant_id, data))
-    
-    with open(f"{_PATH}/data/restaurant_register.json", "w") as f:
-        json.dump(new_restaurant_data, f, indent=4)
+    try:
+        Restaurant.approve_restaurant(restaurant_id, location)
+    except ValueError as e:
+        return JSONResponse(
+            KakaoResponse().add_component(
+                SimpleTextComponent(str(e))
+            ).get_dict()
+        )
 
     response = KakaoResponse().add_component(
         SimpleTextComponent("등록 완료")
@@ -102,10 +94,15 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
 async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     """신청한 업체를 승인하는 API입니다.
     """
-    with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
-        data = json.load(f)
+    data = Restaurant.load_pending_restaurants()
     
     response = KakaoResponse()
+
+    if not data:
+        response.add_component(
+            SimpleTextComponent("등록 대기 중인 식당이 없습니다.")
+        )
+        return JSONResponse(response.get_dict())
 
     carousel = CarouselComponent()
     for apply in data:
@@ -199,15 +196,13 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
     }
 
     try:
-        with open(f"{_PATH}/data/restaurant_register.json", "r") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = []
-
-    data.append(temp_data)
-
-    with open(f"{_PATH}/data/restaurant_register.json", "w") as f:
-        json.dump(data, f, indent=4)
+        Restaurant.register_new_restaurant(temp_data, location=None)
+    except ValueError as e:
+        return JSONResponse(
+            KakaoResponse().add_component(
+                SimpleTextComponent(str(e))
+            ).get_dict()
+        )
 
     response = KakaoResponse()
     response.add_component(
