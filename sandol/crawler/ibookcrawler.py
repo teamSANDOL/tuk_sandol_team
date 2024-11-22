@@ -139,6 +139,7 @@ class BookTranslator:
         except json.decoder.JSONDecodeError:
             data = []
         except Exception:
+            data = []
             logger.error(traceback.format_exc())
 
         restaurant_found = False
@@ -196,6 +197,7 @@ class BookTranslator:
         except json.decoder.JSONDecodeError:
             data = []
         except Exception:
+            data = []
             logger.error(traceback.format_exc())
 
         restaurant_found = False
