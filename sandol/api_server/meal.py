@@ -457,12 +457,8 @@ async def meal_restaurant(payload: Payload = Depends(parse_payload)):
 
     item_card = ItemCardComponent([])
     item_card.image_title = ImageTitle(title=restaurant.name, description="식당 정보")
-    item_card.add_item(
-        title="점심 시간", description="~".join(restaurant.opening_time[0])
-    )
-    item_card.add_item(
-        title="저녁 시간", description="~".join(restaurant.opening_time[1])
-    )
+    item_card.add_item(title="점심 시간", description=Restaurant.opening_time_str(restaurant.opening_time[0]))
+    item_card.add_item(title="저녁 시간", description=Restaurant.opening_time_str(restaurant.opening_time[1]))
     item_card.add_item(title="위치", description=restaurant.location)
     item_card.add_item(title="가격", description=f"{restaurant.price_per_person}원")
     item_card.add_button(
