@@ -34,15 +34,3 @@ with open(f"{_PATH}/data/admin_id.json", "r", encoding="UTF-8") as f:
 #     "001": "TIP 가가식당",
 #     "002": "E동 레스토랑"
 # }
-
-with open(f"{_PATH}/data/restaurant_id.json", "r", encoding="UTF-8") as f:
-    RESTAURANT_ACCESS_ID = json.load(f)
-
-
-# RESTAURANT_OPEN_PRICE: dict = {
-#     "미가식당": ["오전 11:00-1:00 / 오후 5:00-6:30", 6000],
-#     "세미콘식당": ["오전 11:30-1:30 / 오후 5:00-6:00", 6000],
-#     # "산돌식당": ["오후 12:00-1:00 / 오후 5:30-6:30", 6500],
-#     "TIP 가가식당": ["오전 11:00-2:00 / 오후 5:00-6:50", 6000],
-#     "E동 레스토랑": ["오전 11:30-1:50 / 오후 4:50-6:40", 6500]
-# }
