@@ -119,8 +119,8 @@ async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
 
         opening_time = apply["opening_time"]
 
-        item_card.add_item(title="점심 시간", description="~".join(opening_time[0]))
-        item_card.add_item(title="저녁 시간", description="~".join(opening_time[1]))
+        item_card.add_item(title="점심 시간", description=Restaurant.opening_time_str(opening_time[0]))
+        item_card.add_item(title="저녁 시간", description=Restaurant.opening_time_str(opening_time[1]))
         item_card.add_item(title="가격", description=f"{apply['price_per_person']}원")
         item_card.add_button(
             label="승인",
@@ -159,36 +159,7 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
         int, payload.action.detail_params["dinner_end"].origin.split(":")
     )
 
-    if lunch_start_hours > 12:
-        lunch_start_hours -= 12
-        lunch_start_hours = f"오후 {str(lunch_start_hours).zfill(2)}"
-    else:
-        lunch_start_hours = f"오전 {str(lunch_start_hours).zfill(2)}"
-
-    if lunch_end_hours > 12:
-        lunch_end_hours -= 12
-    lunch_end_hours = str(lunch_end_hours).zfill(2)
-
-    if dinner_start_hours > 12:
-        dinner_start_hours -= 12
-        dinner_start_hours = f"오후 {str(dinner_start_hours).zfill(2)}"
-    else:
-        dinner_start_hours = f"오전 {str(dinner_start_hours).zfill(2)}"
-
-    if dinner_end_hours > 12:
-        dinner_end_hours -= 12
-    dinner_end_hours = str(dinner_end_hours).zfill(2)
-
-    lunch_time = [
-        f"{lunch_start_hours}:{str(lunch_start_minutes).zfill(2)}",
-        f"{lunch_end_hours}:{str(lunch_end_minutes).zfill(2)}",
-    ]
-    dinner_time = [
-        f"{dinner_start_hours}:{str(dinner_start_minutes).zfill(2)}",
-        f"{dinner_end_hours}:{str(dinner_end_minutes).zfill(2)}",
-    ]
-
-    opening_time = [lunch_time, dinner_time]
+    opening_time = [[(lunch_start_hours, lunch_start_minutes), (lunch_end_hours,lunch_end_minutes)], [(dinner_start_hours, dinner_start_minutes), (dinner_end_hours, dinner_end_minutes)]]
 
     temp_data = {
         "identification": payload.user_id,
@@ -213,8 +184,8 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
 
     item_card = ItemCardComponent([])
     item_card.image_title = ImageTitle(title=temp_data["name"], description="식당 정보")
-    item_card.add_item(title="점심 시간", description="~".join(opening_time[0]))
-    item_card.add_item(title="저녁 시간", description="~".join(opening_time[1]))
+    item_card.add_item(title="점심 시간", description=Restaurant.opening_time_str(opening_time[0]))
+    item_card.add_item(title="저녁 시간", description=Restaurant.opening_time_str(opening_time[1]))
     item_card.add_item(title="가격", description=f"{temp_data['price_per_person']}원")
     response.add_component(item_card)
 

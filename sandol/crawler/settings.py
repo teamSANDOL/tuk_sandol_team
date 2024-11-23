@@ -46,6 +46,3 @@ with open(f"{_PATH}/data/restaurant_id.json", "r", encoding="UTF-8") as f:
 #     "TIP 가가식당": ["오전 11:00-2:00 / 오후 5:00-6:50", 6000],
 #     "E동 레스토랑": ["오전 11:30-1:50 / 오후 4:50-6:40", 6500]
 # }
-
-with open(f"{_PATH}/data/restaurant_info.json", "r", encoding="UTF-8") as f:
-    RESTAURANT_OPEN_PRICE = json.load(f)

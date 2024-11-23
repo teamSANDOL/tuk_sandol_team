@@ -59,7 +59,16 @@ class Restaurant:
     }
     """
 
-    def __init__(self, name, lunch, dinner, location, registration):
+    def __init__(
+        self,
+        name,
+        lunch,
+        dinner,
+        location,
+        registration,
+        opening_time,
+        price_per_person,
+    ):
         """Restaurant 객체 초기화 메서드입니다.
 
         Args:
@@ -68,17 +77,17 @@ class Restaurant:
             dinner (list): 식당의 저녁 메뉴 정보
             location (str): 식당의 위치 정보(교내/외)
             registration (datetime): 식당 객체 생성(식당 정보 등록) 시간
+            opening_time (list[list[str]]): 식당의 개점 시간
+            price_per_person (int, optional): 식당의 1인분 가격 정보
         """
         self.registration_time = registration
-        self.opening_time = []
+        self.opening_time = opening_time
         self.name = name
         self.lunch = lunch
         self.dinner = dinner
         self.location = location
-        self.price_per_person = 0
+        self.price_per_person = price_per_person
         self.temp_lunch, self.temp_dinner = [], []
-
-        self.rest_info()
 
     @classmethod
     def by_dict(cls, data):
@@ -90,8 +99,8 @@ class Restaurant:
             "name": "TIP 가가식당",
             "registration_time": "2024-05-25T13:47:41.667713",
             "opening_time": [
-                [ "AM 11:00", "02:00"],
-                ["PM 05:00", "06:50" ]
+                [(11,0), (14,0)],
+                [(17,0), (18,50)]
             ],
             "lunch_menu": [],
             "dinner_menu": [],
@@ -117,6 +126,8 @@ class Restaurant:
             data["dinner_menu"],
             data["location"],
             registration_time,
+            data["opening_time"],
+            data["price_per_person"],
         )
 
     @classmethod
@@ -146,51 +157,6 @@ class Restaurant:
                     if restaurant_data["identification"] == id_address:
                         return cls.by_dict(restaurant_data)
         raise KeyError(f"해당 식당을 찾을 수 없습니다. ID: {id_address}")
-
-    def rest_info(self):
-        """각 식당의 불변 정보를 저장합니다.
-
-        crawler.settings.py의 OPNE_PRICE 딕셔너리에서
-        식당 이름을 조회하여 식당 정보를 객체에 저장합니다.
-        저장하는 정보는 식당 개점 시간(datetime), 가격정보(int) 입니다.
-
-        Raises:
-            KeyError: setting 딕셔너리에 존재하는 식당 이름이 아닐 때 발생합니다.
-        """
-        info = settings.RESTAURANT_OPEN_PRICE
-
-        if self.name in info:
-            time_info, self.price_per_person = info[self.name]
-            time_slots = time_info.split(" / ")
-
-            self.opening_time = []
-            for slot in time_slots:
-                if "오전" in slot:
-                    slot = slot.replace("오전", "AM ")
-                elif "오후" in slot:
-                    slot = slot.replace("오후", "PM ")
-
-                start_time, end_time = slot.split("-")
-                start_time = start_time.strip().replace("시", ":").replace("분", "")
-                end_time = end_time.strip().replace("시", ":").replace("분", "")
-
-                # 분 정보가 없는 경우 :00 추가
-                if ":" not in start_time.split()[1]:
-                    start_time = (
-                        start_time.split()[0] + " " + start_time.split()[1] + ":00"
-                    )
-                elif ":" not in end_time:
-                    end_time = end_time + ":00"
-
-                start = dt.datetime.strptime(start_time, "%p %I:%M").time()
-                end = dt.datetime.strptime(end_time, "%I:%M").time()
-
-                self.opening_time.append(
-                    [start.strftime("%p %I:%M"), end.strftime("%I:%M")]
-                )
-
-        else:
-            raise KeyError(f"레스토랑 {self.name}에 대한 정보를 찾을 수 없습니다.")
 
     def add_menu(self, meal_time, menu):
         """시간 정보를 토대로 메뉴를 추가합니다.
@@ -413,25 +379,13 @@ class Restaurant:
         with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
 
-        # restaurant_info.json 업데이트
-        OPEN_PRICE = cls.load_restaurant_info()
-
-        # opening_time 포맷 변환
-        lunch_time_str = "-".join(opening_time[0])
-        dinner_time_str = "-".join(opening_time[1])
-        opening_time_str = f"{lunch_time_str} / {dinner_time_str}"
-        OPEN_PRICE[name] = [opening_time_str, price_per_person]
-
-        cls.save_restaurant_info(OPEN_PRICE)
-
-        # restaurant_id.json 업데이트
+            # restaurant_id.json 업데이트
         RESTAURANT_ACCESS_ID = cls.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[identification] = name
         cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
 
         # settings 업데이트
         settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
-        settings.RESTAURANT_OPEN_PRICE = OPEN_PRICE
 
     def __str__(self):
         """명령어 print test시 가시성을 완화합니다."""
@@ -517,8 +471,8 @@ class Restaurant:
         # restaurant_info.json 업데이트
         OPEN_PRICE = cls.load_restaurant_info()
 
-        lunch_time_str = "-".join(temp_data["opening_time"][0])
-        dinner_time_str = "-".join(temp_data["opening_time"][1])
+        lunch_time_str = cls.opening_time_str(temp_data["opening_time"][0])
+        dinner_time_str = cls.opening_time_str(temp_data["opening_time"][1])
         opening_time_str = f"{lunch_time_str} / {dinner_time_str}"
         OPEN_PRICE[temp_data["name"]] = [
             opening_time_str,
@@ -571,6 +525,26 @@ class Restaurant:
             filter(lambda x: x["identification"] != identification, data)
         )
         cls.save_pending_restaurants(restaurant_data)
+
+    @staticmethod
+    def opening_time_str(opening_time: list) -> str:
+        """식당의 개점 시간을 문자열로 변환합니다.
+
+        Args:
+            opening_time (list): 식당의 개점 시간 정보
+
+        Returns:
+            str: 변환된 개점 시간 문자열
+        """
+
+        def format_time(hour, minute):
+            period = "오후" if hour >= 12 else "오전"
+            hour = hour if hour <= 12 else hour - 12
+            return f"{period} {hour:02}:{minute:02}"
+
+        start = format_time(*opening_time[0])
+        end = format_time(*opening_time[1])
+        return f"{start} - {end}"
 
 
 async def get_meals() -> list:
