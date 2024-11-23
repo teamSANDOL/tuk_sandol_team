@@ -4,7 +4,6 @@ import traceback
 
 from fastapi import FastAPI, HTTPException, Request, status  # noqa: F401 # pylint: disable=W0611
 from fastapi.responses import JSONResponse  # noqa: F401
-from mangum import Mangum
 from kakao_chatbot.response import KakaoResponse
 import uvicorn
 
@@ -31,9 +30,6 @@ async def http_exception_handler(request: Request, exc: Exception):
 async def root():
     logger.info("Root endpoint accessed")
     return {"test": "Hello Sandol"}
-
-
-handler = Mangum(app)
 
 
 if __name__ == "__main__":
