@@ -11,24 +11,32 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from kakao_chatbot import Payload, ValidationPayload
 from kakao_chatbot.response import (
-    KakaoResponse, QuickReply, ActionEnum, ValidationResponse
+    KakaoResponse,
+    QuickReply,
+    ActionEnum,
+    ValidationResponse,
 )
-from kakao_chatbot.response.components import CarouselComponent, SimpleTextComponent, ItemCardComponent, ImageTitle
+from kakao_chatbot.response.components import (
+    CarouselComponent,
+    SimpleTextComponent,
+    ItemCardComponent,
+    ImageTitle,
+)
 
 from api_server.utils import (
-    meal_error_response_maker, split_string,
-    meal_response_maker, make_meal_cards,
-    parse_payload, check_tip_and_e,
+    meal_error_response_maker,
+    split_string,
+    meal_response_maker,
+    make_meal_cards,
+    parse_payload,
+    check_tip_and_e,
 )
 from api_server.settings import NAVER_MAP_URL_DICT, logger
-from crawler import (
-    get_registration, Restaurant, get_meals
-)
-from crawler.settings import KST, _PATH
-
-import json
+from crawler import get_registration, Restaurant, get_meals
+from crawler.settings import KST
 
 meal_api = APIRouter(prefix="/meal")
+
 
 @meal_api.post("/register/restaurant/decline")
 async def register_restaurant_decline(payload: Payload = Depends(parse_payload)):
@@ -39,7 +47,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
     """
     assert payload.detail_params is not None
     double_check = payload.detail_params["double_check"].origin
-    if double_check not in ['예', '네', 'ㅖ', '응', '어']:
+    if double_check not in ["예", "네", "ㅖ", "응", "어"]:
         response = KakaoResponse()
         response.add_component(
             SimpleTextComponent(
@@ -47,21 +55,18 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
             )
         ).get_dict()
         return JSONResponse(response.get_dict())
-    
+
     restaurant_id = payload.action.client_extra["identification"]
     try:
         Restaurant.decline_restaurant(restaurant_id)
     except ValueError as e:
         return JSONResponse(
-            KakaoResponse().add_component(
-                SimpleTextComponent(str(e))
-            ).get_dict()
+            KakaoResponse().add_component(SimpleTextComponent(str(e))).get_dict()
         )
     response = KakaoResponse()
-    response.add_component(
-        SimpleTextComponent("등록이 거절되었습니다.")
-    )
+    response.add_component(SimpleTextComponent("등록이 거절되었습니다."))
     return JSONResponse(response.get_dict())
+
 
 @meal_api.post("/register/restaurant/approve")
 async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
@@ -88,15 +93,11 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
         Restaurant.approve_restaurant(restaurant_id, location)
     except ValueError as e:
         return JSONResponse(
-            KakaoResponse().add_component(
-                SimpleTextComponent(str(e))
-            ).get_dict()
+            KakaoResponse().add_component(SimpleTextComponent(str(e))).get_dict()
         )
 
-    response = KakaoResponse().add_component(
-        SimpleTextComponent("등록 완료")
-    )
-    
+    response = KakaoResponse().add_component(SimpleTextComponent("등록 완료"))
+
     return JSONResponse(response.get_dict())
 
 
@@ -104,48 +105,34 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
 async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     """등록을 신청한 업체 목록을 반환하는 API입니다."""
     data = Restaurant.load_pending_restaurants()
-    
+
     response = KakaoResponse()
 
     if not data:
-        response.add_component(
-            SimpleTextComponent("등록 대기 중인 식당이 없습니다.")
-        )
+        response.add_component(SimpleTextComponent("등록 대기 중인 식당이 없습니다."))
         return JSONResponse(response.get_dict())
 
     carousel = CarouselComponent()
     for apply in data:
         item_card = ItemCardComponent([])
-        item_card.image_title = ImageTitle(
-            title=apply["name"],
-            description="식당 정보"
-        )
+        item_card.image_title = ImageTitle(title=apply["name"], description="식당 정보")
 
         opening_time = apply["opening_time"]
 
-        item_card.add_item(
-            title="점심 시간",
-            description="~".join(opening_time[0])
-        )
-        item_card.add_item(
-            title="저녁 시간",
-            description="~".join(opening_time[1])
-        )
-        item_card.add_item(
-            title="가격",
-            description=f"{apply['price_per_person']}원"
-        )
+        item_card.add_item(title="점심 시간", description="~".join(opening_time[0]))
+        item_card.add_item(title="저녁 시간", description="~".join(opening_time[1]))
+        item_card.add_item(title="가격", description=f"{apply['price_per_person']}원")
         item_card.add_button(
             label="승인",
             action="block",
             block_id="6731d9b89fb8545410e9d29b",
-            extra={"identification": apply["identification"]}
+            extra={"identification": apply["identification"]},
         )
         item_card.add_button(
             label="거절",
             action="block",
             block_id="674031c1aeded40bd4bd58d9",
-            extra={"identification": apply["identification"]}
+            extra={"identification": apply["identification"]},
         )
         carousel.add_item(item_card)
     response.add_component(carousel)
@@ -153,23 +140,24 @@ async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     return JSONResponse(response.get_dict())
 
 
-
-
-
 @meal_api.post("/register/restaurant")
 async def register_restaurant(payload: Payload = Depends(parse_payload)):
     """업체 등록 신청을 관리하는 API입니다.
-    
+
     등록하려는 업체의 등록 정보를 받아 신청 리스트에 저장합니다.
     """
     lunch_start_hours, lunch_start_minutes, _ = map(
-        int, payload.action.detail_params["lunch_start"].origin.split(':'))
+        int, payload.action.detail_params["lunch_start"].origin.split(":")
+    )
     lunch_end_hours, lunch_end_minutes, _ = map(
-        int, payload.action.detail_params["lunch_end"].origin.split(':'))
+        int, payload.action.detail_params["lunch_end"].origin.split(":")
+    )
     dinner_start_hours, dinner_start_minutes, _ = map(
-        int, payload.action.detail_params["dinner_start"].origin.split(':'))
+        int, payload.action.detail_params["dinner_start"].origin.split(":")
+    )
     dinner_end_hours, dinner_end_minutes, _ = map(
-        int, payload.action.detail_params["dinner_end"].origin.split(':'))
+        int, payload.action.detail_params["dinner_end"].origin.split(":")
+    )
 
     if lunch_start_hours > 12:
         lunch_start_hours -= 12
@@ -180,39 +168,42 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
     if lunch_end_hours > 12:
         lunch_end_hours -= 12
     lunch_end_hours = str(lunch_end_hours).zfill(2)
-    
 
     if dinner_start_hours > 12:
         dinner_start_hours -= 12
         dinner_start_hours = f"오후 {str(dinner_start_hours).zfill(2)}"
     else:
         dinner_start_hours = f"오전 {str(dinner_start_hours).zfill(2)}"
-    
+
     if dinner_end_hours > 12:
         dinner_end_hours -= 12
     dinner_end_hours = str(dinner_end_hours).zfill(2)
 
-    lunch_time = [f"{lunch_start_hours}:{lunch_start_minutes}",
-                  f"{lunch_end_hours}:{lunch_end_minutes}"]
-    dinner_time = [f"{dinner_start_hours}:{dinner_start_minutes}",
-                   f"{dinner_end_hours}:{dinner_end_minutes}"]
+    lunch_time = [
+        f"{lunch_start_hours}:{str(lunch_start_minutes).zfill(2)}",
+        f"{lunch_end_hours}:{str(lunch_end_minutes).zfill(2)}",
+    ]
+    dinner_time = [
+        f"{dinner_start_hours}:{str(dinner_start_minutes).zfill(2)}",
+        f"{dinner_end_hours}:{str(dinner_end_minutes).zfill(2)}",
+    ]
 
     opening_time = [lunch_time, dinner_time]
 
     temp_data = {
         "identification": payload.user_id,
         "name": payload.action.detail_params["name"].origin,
-        "price_per_person": int(payload.action.detail_params["price_per_person"].origin),
+        "price_per_person": int(
+            payload.action.detail_params["price_per_person"].origin
+        ),
         "opening_time": opening_time,
     }
 
     try:
-        Restaurant.register_new_restaurant(temp_data, location=None)
+        Restaurant.register_new_restaurant(temp_data)
     except ValueError as e:
         return JSONResponse(
-            KakaoResponse().add_component(
-                SimpleTextComponent(str(e))
-            ).get_dict()
+            KakaoResponse().add_component(SimpleTextComponent(str(e))).get_dict()
         )
 
     response = KakaoResponse()
@@ -221,22 +212,10 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
     )
 
     item_card = ItemCardComponent([])
-    item_card.image_title = ImageTitle(
-        title=temp_data["name"],
-        description="식당 정보"
-    )
-    item_card.add_item(
-        title="점심 시간",
-        description="~".join(opening_time[0])
-    )
-    item_card.add_item(
-        title="저녁 시간",
-        description="~".join(opening_time[1])
-    )
-    item_card.add_item(
-        title="가격",
-        description=f"{temp_data['price_per_person']}원"
-    )
+    item_card.image_title = ImageTitle(title=temp_data["name"], description="식당 정보")
+    item_card.add_item(title="점심 시간", description="~".join(opening_time[0]))
+    item_card.add_item(title="저녁 시간", description="~".join(opening_time[1]))
+    item_card.add_item(title="가격", description=f"{temp_data['price_per_person']}원")
     response.add_component(item_card)
 
     return JSONResponse(response.get_dict())
@@ -262,9 +241,9 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
     memu_list = getattr(restaurant, f"temp_{meal_type}")
     if not memu_list:
         return JSONResponse(
-            KakaoResponse().add_component(
-                SimpleTextComponent("삭제할 메뉴가 없습니다.")
-            ).get_dict()
+            KakaoResponse()
+            .add_component(SimpleTextComponent("삭제할 메뉴가 없습니다."))
+            .get_dict()
         )
     response = KakaoResponse()
     simple_text = SimpleTextComponent("삭제할 메뉴를 선택해주세요.")
@@ -343,8 +322,7 @@ async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload
 
     # 카카오에서 전달받은 menu 파라미터를 구분자를 기준으로 분리해 리스트로 변환
     assert payload.detail_params is not None
-    menu_list = split_string(
-        payload.detail_params["menu"].origin)
+    menu_list = split_string(payload.detail_params["menu"].origin)
 
     # TODO(Seokyoung_Hong): 메뉴 등록 개수 제한기능 필요시 활성화
     # if len(getattr(restaurant, f"temp_{meal_type}", []) + menu_list) > 5:
@@ -382,11 +360,18 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
     try:
         restaurant.submit()
     except ValueError as e:
-        if str(e) == f"레스토랑 '{restaurant.name}'가 test.json 파일에 존재하지 않습니다.":
+        if (
+            str(e)
+            == f"레스토랑 '{restaurant.name}'가 test.json 파일에 존재하지 않습니다."
+        ):
             return JSONResponse(
-                KakaoResponse().add_component(
-                    SimpleTextComponent("저장된 식당 정보가 없습니다. 관리자에게 문의해주세요.")
-                ).get_dict()
+                KakaoResponse()
+                .add_component(
+                    SimpleTextComponent(
+                        "저장된 식당 정보가 없습니다. 관리자에게 문의해주세요."
+                    )
+                )
+                .get_dict()
             )
         else:
             raise e
@@ -396,13 +381,14 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
     logger.info("확정 작업 완료 | 확정 정보 불러오기")
 
     # 확정된 식당 정보를 다시 불러와 카드를 생성
-    saved_restaurant: Restaurant = Restaurant.by_id(
-        payload.user_id)
+    saved_restaurant: Restaurant = Restaurant.by_id(payload.user_id)
     lunch, dinner = make_meal_cards([saved_restaurant])
 
     # 응답 생성
     response = KakaoResponse()
-    submit_message = SimpleTextComponent("식단 정보가 아래 내용으로 확정 등록되었습니다.")
+    submit_message = SimpleTextComponent(
+        "식단 정보가 아래 내용으로 확정 등록되었습니다."
+    )
     response.add_component(submit_message)
     response.add_component(lunch)
     response.add_component(dinner)
@@ -425,21 +411,21 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
 
     # cafeteria 값이 있을 경우 해당 식당 정보로 필터링
     if target_cafeteria:
-        restaurants = list(
-            filter(lambda x: x.name == target_cafeteria, cafeteria_list))
+        restaurants = list(filter(lambda x: x.name == target_cafeteria, cafeteria_list))
     else:
         restaurants = cafeteria_list
 
     # 어제 7시를 기준으로 식당 정보를 필터링
     standard_time = datetime.now(tz=KST) - timedelta(days=1)
-    standard_time = standard_time.replace(
-        hour=19, minute=0, second=0, microsecond=0)
+    standard_time = standard_time.replace(hour=19, minute=0, second=0, microsecond=0)
 
     af_standard: list[Restaurant] = []
     bf_standard: list[Restaurant] = []
     for r in restaurants:
         if r.registration_time.tzinfo is None:
-            logger.warning("등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다.")
+            logger.warning(
+                "등록시간에 시간대 정보가 없어 9시간을 더해 KST로 변환합니다."
+            )
             temp = r.registration_time + timedelta(hours=9)
             r.registration_time = temp.replace(tzinfo=KST)
         if r.registration_time < standard_time:
@@ -465,9 +451,7 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
     if not dinner_carousel.is_empty:
         response.add_component(dinner_carousel)
     if not response.component_list:
-        response.add_component(
-            SimpleTextComponent("식단 정보가 없습니다.")
-        )
+        response.add_component(SimpleTextComponent("식단 정보가 없습니다."))
 
     # 퀵리플라이 추가
     # 현재 선택된 식단을 제외한 다른 식당을 퀵리플라이로 추가
@@ -497,40 +481,26 @@ async def meal_restaurant(payload: Payload = Depends(parse_payload)):
     cafeteria_list: list[Restaurant] = await get_meals()
 
     restaurant: Restaurant = list(
-        filter(lambda x: x.name == restaurant_name, cafeteria_list))[0]
+        filter(lambda x: x.name == restaurant_name, cafeteria_list)
+    )[0]
 
     item_card = ItemCardComponent([])
-    item_card.image_title = ImageTitle(
-        title=restaurant.name,
-        description="식당 정보"
+    item_card.image_title = ImageTitle(title=restaurant.name, description="식당 정보")
+    item_card.add_item(
+        title="점심 시간", description="~".join(restaurant.opening_time[0])
     )
     item_card.add_item(
-        title="점심 시간",
-        description="~".join(restaurant.opening_time[0])
+        title="저녁 시간", description="~".join(restaurant.opening_time[1])
     )
-    item_card.add_item(
-        title="저녁 시간",
-        description="~".join(restaurant.opening_time[1])
-    )
-    item_card.add_item(
-        title="위치",
-        description=restaurant.location
-    )
-    item_card.add_item(
-        title="가격",
-        description=f"{restaurant.price_per_person}원"
-    )
+    item_card.add_item(title="위치", description=restaurant.location)
+    item_card.add_item(title="가격", description=f"{restaurant.price_per_person}원")
     item_card.add_button(
-        label="메뉴 보기",
-        action="message",
-        message_text=f"학식 {restaurant_name}"
+        label="메뉴 보기", action="message", message_text=f"학식 {restaurant_name}"
     )
     url = NAVER_MAP_URL_DICT.get(restaurant_name, None)
     if url:
         item_card.add_button(
-            label="식당 위치 지도 보기",
-            action="webLink",
-            web_link_url=url
+            label="식당 위치 지도 보기", action="webLink", web_link_url=url
         )
     response = KakaoResponse().add_component(item_card)
 
@@ -542,12 +512,13 @@ async def validation_menu(request: Request):
     """메뉴 유효성 검사 API입니다."""
     payload = ValidationPayload.from_dict(await request.json())
 
-    menu_list = split_string(
-        payload.utterance)
+    menu_list = split_string(payload.utterance)
 
     if len(menu_list) > 5:
         response = ValidationResponse(
-            status="ERROR", message="메뉴는 5개까지만 등록할 수 있습니다.\n다시 입력해주세요.")
+            status="ERROR",
+            message="메뉴는 5개까지만 등록할 수 있습니다.\n다시 입력해주세요.",
+        )
     else:
         response = ValidationResponse(status="SUCCESS")
     return JSONResponse(response.get_dict())

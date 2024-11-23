@@ -1,4 +1,4 @@
-
+"""Crawler에서 사용할 설정값들을 모아놓은 파일입니다."""
 import os
 import json
 import pytz
@@ -7,10 +7,10 @@ import pytz
 _PATH = os.path.abspath(os.path.dirname(__file__))  # 프로젝트 절대경로
 DEBUG = False  # True 일때 디버그 모드 작동
 
-KST = pytz.timezone('Asia/Seoul')
+KST = pytz.timezone("Asia/Seoul")
 
 # BUCKET
-BUCKET_NAME: str = 'aws-sandol-bucket'
+BUCKET_NAME: str = "aws-sandol-bucket"
 
 # Access Token
 # SANDOL_ACCESS_ID: dict = {
@@ -23,7 +23,7 @@ BUCKET_NAME: str = 'aws-sandol-bucket'
 #     'HAMIN': "c0657ad2b0ade045e546d8abb33f45d85f3c826ce797800e0bf25aac0652bf175c",
 #     'JDONG': "cbdb6ec7c1427fd603a9c87ee5a1f7d1cc948ca896a2d65f88c770aa742218cef0"
 # }
-with open(f'{_PATH}/data/admin_id.json', 'r') as f:
+with open(f"{_PATH}/data/admin_id.json", "r", encoding="UTF-8") as f:
     SANDOL_ACCESS_ID = json.load(f)
 
 # 산돌팀만 접근할 수 있는 컨텐츠에 인증 수단으로 사용 (현재 아이디의 정확한 위치가 기억이 나지 않아.. KEY를 메니저와, CONTRIBUTOR로 명명함.)
@@ -35,7 +35,7 @@ with open(f'{_PATH}/data/admin_id.json', 'r') as f:
 #     "002": "E동 레스토랑"
 # }
 
-with open(f'{_PATH}/data/restaurant_id.json', 'r') as f:
+with open(f"{_PATH}/data/restaurant_id.json", "r", encoding="UTF-8") as f:
     RESTAURANT_ACCESS_ID = json.load(f)
 
 
@@ -47,5 +47,5 @@ with open(f'{_PATH}/data/restaurant_id.json', 'r') as f:
 #     "E동 레스토랑": ["오전 11:30-1:50 / 오후 4:50-6:40", 6500]
 # }
 
-with open(f'{_PATH}/data/restaurant_info.json', 'r') as f:
+with open(f"{_PATH}/data/restaurant_info.json", "r", encoding="UTF-8") as f:
     RESTAURANT_OPEN_PRICE = json.load(f)
