@@ -22,21 +22,31 @@ jobs:
       with:
         project_id: '${{ secrets.GCP_PROJECT_ID }}'
 
+    - name: Generate SSH key
+      run: |
+        ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""
+
+    - name: Add SSH key to GCP project metadata
+      run: |
+        gcloud compute project-info add-metadata --metadata "ssh-keys=${GCP_VM_USER}:$(cat ~/.ssh/id_rsa.pub)"
+      env:
+        GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
+
     - name: Copy code to GCP VM
       run: |
-        gcloud compute scp --recurse . ${GCP_VM_USER}@${GCP_INSTANCE_NAME}:/home/${GCP_VM_USER}/app --zone ${GCP_ZONE}
+        gcloud compute scp --recurse --quiet ./* $GCP_VM_USER@$GCP_INSTANCE_NAME:/home/$GCP_VM_USER/app --zone $GCP_ZONE
       env:
         GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
         GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
         GCP_ZONE: '${{ secrets.GCP_ZONE }}'
 
     - name: Deploy to GCP VM
-      uses: google-github-actions/ssh-compute@v1.1.1
-      with:
-        instance_name: '${{ secrets.GCP_INSTANCE_NAME }}'
-        zone: '${{ secrets.GCP_ZONE }}'
-        user: '${{ secrets.GCP_VM_USER }}'
-        ssh_private_key: '${{ secrets.GCP_SA_KEY }}'
-        command: |
-          cd /home/${{ secrets.GCP_VM_USER }}/app
+      run: |
+        gcloud compute ssh $GCP_VM_USER@$GCP_INSTANCE_NAME --zone $GCP_ZONE --command "
+          cd /home/$GCP_VM_USER/app &&
           docker compose -f sandol/docker-compose.yml up -d --build
+        "
+      env:
+        GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
+        GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
+        GCP_ZONE: '${{ secrets.GCP_ZONE }}'
