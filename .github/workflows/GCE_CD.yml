@@ -2,7 +2,7 @@ name: Deploy to GCP VM
 
 on:
   push:
-    branches: [ feature/deploy-test ]
+    branches: [ feature/deploy-t ]
 
 jobs:
   deploy:
@@ -44,7 +44,7 @@ jobs:
       run: |
         gcloud compute ssh $GCP_VM_USER@$GCP_INSTANCE_NAME --zone $GCP_ZONE --command "
           cd /home/$GCP_VM_USER/app &&
-          docker compose -f sandol/docker-compose.yml up -d --build
+          sudo docker-compose -f sandol/docker-compose.yml up -d --build
         "
       env:
         GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
