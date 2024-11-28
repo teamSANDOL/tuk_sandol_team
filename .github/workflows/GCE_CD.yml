@@ -2,7 +2,7 @@ name: Deploy to GCP VM
 
 on:
   push:
-    branches: [ feature/deploy-test ]
+    branches: [ feature/deploy ]
 
 jobs:
   deploy:
