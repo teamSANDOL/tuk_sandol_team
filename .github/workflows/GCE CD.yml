@@ -1,0 +1,37 @@
+name: Deploy to GCP VM
+
+on:
+  push:
+    branches: [ deploy ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup SSH keys
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_SECRET_KEY }}
+
+    - name: Copy code to GCP VM
+      env:
+        HOST: '34.83.137.193'
+        USER: 'tjrdud0330'  # GCP VM의 사용자 이름
+        APP_PATH: '~/app'  # 서버에서 애플리케이션이 위치할 경로
+      run: |
+        scp -r . $USER@$HOST:$APP_PATH
+
+    - name: Deploy to GCP VM
+      env:
+        HOST: '34.83.137.193'
+        USER: 'tjrdud0330'  # GCP VM의 사용자 이름
+        APP_PATH: '~/app'  # 서버에서 애플리케이션이 위치할 경로
+      run: |
+        ssh $USER@$HOST '
+          cd $APP_PATH
+          docker compose -f sandol/docker-compose.yml up -d --build
+        '
