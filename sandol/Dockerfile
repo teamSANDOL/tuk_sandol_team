@@ -14,7 +14,7 @@ COPY ./tmp/test.json /tmp/test.json
 COPY . /app
 
 # Expose port 80
-EXPOSE 7999
+EXPOSE 80
 
 # Command to run the FastAPI application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7999"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]
