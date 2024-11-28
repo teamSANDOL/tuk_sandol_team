@@ -34,3 +34,5 @@ with open(f"{_PATH}/data/admin_id.json", "r", encoding="UTF-8") as f:
 #     "001": "TIP 가가식당",
 #     "002": "E동 레스토랑"
 # }
+with open(f"{_PATH}/data/restaurant_id.json", "r", encoding="UTF-8") as f:
+    RESTAURANT_ACCESS_ID = json.load(f)
