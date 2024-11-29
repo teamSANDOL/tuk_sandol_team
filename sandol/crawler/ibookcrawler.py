@@ -11,8 +11,7 @@ import traceback
 import pandas as pd
 
 from api_server.settings import logger
-from crawler.settings import KST
-from sandol.crawler import settings
+from crawler.settings import KST,_PATH
 
 
 class BookTranslator:
@@ -127,7 +126,7 @@ class BookTranslator:
             "price_per_person": self.price_per_person,
         }
 
-        download_path = f"{settings._PATH}/data/test.json"
+        download_path = f"{_PATH}/data/test.json"
         try:
             with open(download_path, "r", encoding="utf-8") as file:
                 data = json.load(file)
@@ -189,7 +188,7 @@ class BookTranslator:
             "price_per_person": self.price_per_person,
         }
 
-        download_path = f"{settings._PATH}/data/test.json"
+        download_path = f"{_PATH}/data/test.json"
         try:
             with open(download_path, "r", encoding="utf-8") as file:
                 data = json.load(file)
