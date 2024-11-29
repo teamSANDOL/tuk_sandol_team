@@ -11,7 +11,7 @@ import traceback
 import pandas as pd
 
 from api_server.settings import logger
-from crawler.settings import KST,_PATH
+from crawler.settings import KST, _PATH
 
 
 class BookTranslator:
