@@ -1,0 +1,114 @@
+[
+    {
+        "identification": "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6",
+        "name": "미가식당",
+        "registration_time": "2024-05-26T13:49:42.588862",
+        "opening_time": [
+            [
+                [11,0],
+                [13,0]
+            ],
+            [
+                [17,0],
+                [18,30]
+            ]
+        ],
+        "lunch_menu": [
+            "어향가지"
+        ],
+        "dinner_menu": [
+            "광어회"
+        ],
+        "location": "교외",
+        "price_per_person": 6000
+    },
+    {
+        "identification": "380da59920b84d81eb8c444e684a53290021b38f544fe0029f4b38ab347bc44e08",
+        "name": "세미콘식당",
+        "registration_time": "2024-05-25T13:50:27.028355",
+        "opening_time": [
+            [
+                [
+                    11,
+                    30
+                ],
+                [
+                    13,
+                    30
+                ]
+            ],
+            [
+                [
+                    17,
+                    0
+                ],
+                [
+                    18,
+                    0
+                ]
+            ]
+        ],
+        "lunch_menu": [
+            "어향가지"
+        ],
+        "dinner_menu": [
+            "광어회"
+        ],
+        "location": "교외",
+        "price_per_person": 6000
+    },
+    {
+        "identification": "001",
+        "name": "TIP 가가식당",
+        "registration_time": "2024-05-25T13:47:41.667713",
+        "opening_time": [
+            [   
+                [11,0],
+                [14,0]
+            ],
+            [
+                [17,0],
+                [18,50]
+            ]
+        ],
+        "lunch_menu": [
+            "김밥볶음밥",
+            "순두부백탕",
+            "미트볼라따뚜이",
+            "배추김치",
+            "만다린샐러드"
+        ],
+        "dinner_menu": [
+            "닭볶음탕",
+            "된장국",
+            "잡채어묵&칠리소스",
+            "미나리무생채",
+            "배추김치"
+        ],
+        "location": "TIP 지하 1층",
+        "price_per_person": 6000
+    },
+    {
+        "identification": "002",
+        "name": "E동 레스토랑",
+        "registration_time": "2024-05-25T13:52:26.357232",
+        "opening_time": [
+            [   
+                [11,30],
+                [13,50]
+            ],
+            [
+                [16,50],
+                [18,40]
+            ]
+        ],
+        "lunch_menu": [
+            "미운영"
+        ],
+        "dinner_menu": [
+            "미운영"
+        ],
+        "location": "E동 1층",
+        "price_per_person": 6500
+    }
+]
