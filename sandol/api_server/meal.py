@@ -31,7 +31,7 @@ from api_server.utils import (
     parse_payload,
     check_tip_and_e,
 )
-from api_server.settings import NAVER_MAP_URL_DICT, logger
+from api_server.settings import NAVER_MAP_URL_DICT, logger, BLOCK_IDS
 from crawler import get_registration, Restaurant, get_meals
 from crawler.settings import KST
 
@@ -47,7 +47,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
     """
     assert payload.detail_params is not None
     double_check = payload.detail_params["double_check"].origin
-    if double_check != "거절":
+    if (double_check != "거절"):
         response = KakaoResponse()
         response.add_component(
             SimpleTextComponent(
@@ -125,13 +125,13 @@ async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
         item_card.add_button(
             label="승인",
             action="block",
-            block_id="6731d9b89fb8545410e9d29b",
+            block_id=BLOCK_IDS["approve_restaurant"],
             extra={"identification": apply["identification"]},
         )
         item_card.add_button(
             label="거절",
             action="block",
-            block_id="674031c1aeded40bd4bd58d9",
+            block_id=BLOCK_IDS["decline_restaurant"],
             extra={"identification": apply["identification"]},
         )
         carousel.add_item(item_card)
@@ -223,7 +223,7 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
         quick_reply = QuickReply(
             label=menu,
             action=ActionEnum.BLOCK,
-            block_id="67218366770f3e5a431708ac",
+            block_id=BLOCK_IDS["delete_menu"],
             extra={"meal_type": meal_type, "menu": menu},
         )
         response += quick_reply
