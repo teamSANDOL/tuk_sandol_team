@@ -47,7 +47,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
     """
     assert payload.detail_params is not None
     double_check = payload.detail_params["double_check"].origin
-    if double_check not in ["예", "네", "ㅖ", "응", "어"]:
+    if double_check != "거절":
         response = KakaoResponse()
         response.add_component(
             SimpleTextComponent(
