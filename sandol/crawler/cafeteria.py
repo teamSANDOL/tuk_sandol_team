@@ -346,6 +346,7 @@ class Restaurant:
         opening_time: list,
         location: str,
         price_per_person: int,
+        varification_key: str,
     ):
         """test.json에 새로운 식당을 추가합니다."""
         # 기존 데이터 로드
@@ -364,6 +365,7 @@ class Restaurant:
             "dinner_menu": [],
             "location": location,
             "price_per_person": price_per_person,
+            "varification_key": varification_key,
         }
 
         # 중복 체크
@@ -476,10 +478,11 @@ class Restaurant:
         name = restaurant_data["name"]
         price_per_person = restaurant_data["price_per_person"]
         opening_time = restaurant_data["opening_time"]
+        varification_key = restaurant_data["varification_key"]
 
         # 새로운 식당 등록
         cls.init_restaurant(
-            identification, name, opening_time, location, price_per_person
+            identification, name, opening_time, location, price_per_person, varification_key
         )
 
         # 대기 목록에서 제거
@@ -496,6 +499,43 @@ class Restaurant:
             filter(lambda x: x["identification"] != identification, data)
         )
         cls.save_pending_restaurants(restaurant_data)
+
+    @staticmethod
+    def change_identification(varification_key, new_identification):
+        """식당의 카카오톡 ID를 변경합니다.
+        
+        varification_key에 해당하는 식당의 identification을 new_identification으로 변경합니다.
+        이를통해 기존 식당을 유지한 채로, 식당을 관리하는 계정 ID를 변경할 수 있습니다.
+
+        Args:
+            varification_key (str): 변경할 식당의 varification_key
+            new_identification (str): 변경할 식당의 identification
+
+        Raises:
+            FileNotFoundError: 등록된 식당이 없을 경우 발생합니다.
+            ValueError: 변경할 식당을 찾을 수 없을 경우 발생합니다.
+        """
+        try:
+            with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
+                data = json.load(file)
+        except FileNotFoundError as error:
+            raise FileNotFoundError("등록된 식당이 없습니다.") from error
+
+        for restaurant in data:
+            if restaurant["identification"] == varification_key:
+                old_identification = restaurant["identification"]
+                restaurant["identification"] = new_identification
+                break
+        else:
+            raise ValueError("식당을 찾을 수 없습니다.")
+
+        RESTAURANT_ACCESS_ID = Restaurant.load_restaurant_ids()
+        RESTAURANT_ACCESS_ID[new_identification] = restaurant["name"]
+        del RESTAURANT_ACCESS_ID[old_identification]
+        Restaurant.save_restaurant_ids(RESTAURANT_ACCESS_ID)
+
+        with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
 
     @staticmethod
     def opening_time_str(opening_time: list) -> str:
