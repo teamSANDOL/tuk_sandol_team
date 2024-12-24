@@ -517,6 +517,16 @@ class Restaurant:
         end = format_time(*opening_time[1])
         return f"{start} - {end}"
 
+    @property
+    def lunch_time(self):
+        """식당의 점심 시간을 반환합니다."""
+        return self.opening_time_str(self.opening_time[0])
+
+    @property
+    def dinner_time(self):
+        """식당의 저녁 시간을 반환합니다."""
+        return self.opening_time_str(self.opening_time[1])
+
 
 async def get_meals() -> list:
     """JSON 파일을 열어 내용을 객체로 생성 후 리스트로 저장하여 반환합니다.
