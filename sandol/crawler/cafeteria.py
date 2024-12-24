@@ -420,22 +420,6 @@ class Restaurant:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
     @classmethod
-    def load_restaurant_info(cls):
-        """등록된 식당 정보를 로드합니다."""
-        with open(
-            f"{settings._PATH}/data/restaurant_info.json", "r", encoding="utf-8"
-        ) as f:
-            return json.load(f)
-
-    @classmethod
-    def save_restaurant_info(cls, data):
-        """등록된 식당 정보를 저장합니다."""
-        with open(
-            f"{settings._PATH}/data/restaurant_info.json", "w", encoding="utf-8"
-        ) as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-
-    @classmethod
     def load_restaurant_ids(cls):
         """식당 ID 정보를 로드합니다."""
         with open(
@@ -468,18 +452,6 @@ class Restaurant:
         data.append(temp_data)
         cls.save_pending_restaurants(data)
 
-        # restaurant_info.json 업데이트
-        OPEN_PRICE = cls.load_restaurant_info()
-
-        lunch_time_str = cls.opening_time_str(temp_data["opening_time"][0])
-        dinner_time_str = cls.opening_time_str(temp_data["opening_time"][1])
-        opening_time_str = f"{lunch_time_str} / {dinner_time_str}"
-        OPEN_PRICE[temp_data["name"]] = [
-            opening_time_str,
-            temp_data["price_per_person"],
-        ]
-        cls.save_restaurant_info(OPEN_PRICE)
-
         # restaurant_id.json 업데이트
         RESTAURANT_ACCESS_ID = cls.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[temp_data["identification"]] = temp_data["name"]
@@ -487,7 +459,6 @@ class Restaurant:
 
         # settings 업데이트
         settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
-        settings.RESTAURANT_OPEN_PRICE = OPEN_PRICE
 
     @classmethod
     def approve_restaurant(cls, identification, location):
