@@ -82,7 +82,7 @@ async def register_restaurant_change_id(payload: Payload = Depends(parse_payload
 
 
 @meal_api.post("/register/restaurant/decline")
-@check_access_id("admin")
+@check_access_id("sandol")
 async def register_restaurant_decline(payload: Payload = Depends(parse_payload)):
     """업체 등록을 거절하는 api 입니다.
 
@@ -113,7 +113,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/restaurant/approve")
-@check_access_id("admin")
+@check_access_id("sandol")
 async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
     """업체 등록을 승인하는 API 입니다.
 
@@ -147,7 +147,7 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/restaurant/list")
-@check_access_id("admin")
+@check_access_id("sandol")
 async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     """등록을 신청한 업체 목록을 반환하는 API입니다."""
     data = Restaurant.load_pending_restaurants()
