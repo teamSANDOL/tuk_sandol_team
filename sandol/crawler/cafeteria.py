@@ -11,7 +11,6 @@ import datetime as dt
 from api_server.settings import logger
 from crawler import settings
 
-
 BUCKET_NAME = "sandol-bucket"
 FILE_KEY = "test.json"
 
@@ -517,7 +516,8 @@ class Restaurant:
             raise FileNotFoundError("등록된 식당이 없습니다.") from error
 
         for restaurant in data:
-            if restaurant["identification"] == varification_key:
+            if restaurant["varification_key"] == varification_key:
+                logger.info("key 일치")
                 old_identification = restaurant["identification"]
                 restaurant["identification"] = new_identification
                 break
