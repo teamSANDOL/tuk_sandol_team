@@ -266,9 +266,9 @@ def check_access_id(id_type: Literal["restaurant", "sandol"] = "sandol"):
             )
             if (
                 (
-                    id_type == "restaurant" and access_id not in RESTAURANT_ACCESS_ID().values()
+                    id_type == "restaurant" and access_id not in RESTAURANT_ACCESS_ID().keys()
                 ) or (
-                    id_type == "sandol" and access_id not in SANDOL_ACCESS_ID().keys()
+                    id_type == "sandol" and access_id not in SANDOL_ACCESS_ID().values()
                 )
             ):
                 return JSONResponse(response.get_dict())

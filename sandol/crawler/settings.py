@@ -23,7 +23,7 @@ BUCKET_NAME: str = "aws-sandol-bucket"
 #     'HAMIN': "c0657ad2b0ade045e546d8abb33f45d85f3c826ce797800e0bf25aac0652bf175c",
 #     'JDONG': "cbdb6ec7c1427fd603a9c87ee5a1f7d1cc948ca896a2d65f88c770aa742218cef0"
 # }
-def SANDOL_ACCESS_ID():
+def SANDOL_ACCESS_ID() -> dict:
     with open(f"{_PATH}/data/admin_id.json", "r", encoding="UTF-8") as f:
         return json.load(f)
 
@@ -35,6 +35,6 @@ def SANDOL_ACCESS_ID():
 #     "001": "TIP 가가식당",
 #     "002": "E동 레스토랑"
 # }
-def RESTAURANT_ACCESS_ID():
+def RESTAURANT_ACCESS_ID() -> dict:
     with open(f"{_PATH}/data/restaurant_id.json", "r", encoding="UTF-8") as f:
         return json.load(f)
