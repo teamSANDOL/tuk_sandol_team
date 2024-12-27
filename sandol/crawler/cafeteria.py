@@ -14,8 +14,7 @@ from crawler import settings
 BUCKET_NAME = "sandol-bucket"
 FILE_KEY = "test.json"
 
-DOWNLOAD_PATH = "/tmp/test.json"
-UPLOAD_PATH = "/tmp/test.json"
+DOWNLOAD_PATH = f"{settings._PATH}/data/crawler/test.json"
 
 
 class Restaurant:
