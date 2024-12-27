@@ -1,6 +1,7 @@
 [
     {
         "identification": "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6",
+        "varification_key": "miga32",
         "name": "미가식당",
         "registration_time": "2024-05-25T13:49:42.588862",
         "opening_time": [
@@ -90,6 +91,7 @@
     },
     {
         "identification": "002",
+        "varification_key": "ed00",
         "name": "E동 레스토랑",
         "registration_time": "2024-05-25T13:52:26.357232",
         "opening_time": [
