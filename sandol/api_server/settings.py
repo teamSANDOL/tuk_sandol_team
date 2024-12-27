@@ -30,9 +30,9 @@ CAFETRIA_REGISTER_QUICK_REPLY_LIST = [
                block_id=BLOCK_IDS["add_lunch_menu"]),
     QuickReply("저녁 메뉴 추가", ActionEnum.BLOCK,
                block_id=BLOCK_IDS["add_dinner_menu"]),
-    QuickReply("메뉴 삭제", ActionEnum.BLOCK, block_id=BLOCK_IDS["delete_menu"]),
-    QuickReply("모든 메뉴 삭제", ActionEnum.BLOCK,
-               block_id=BLOCK_IDS["delete_all_menus"]),
+    # QuickReply("메뉴 삭제", ActionEnum.BLOCK, block_id=BLOCK_IDS["delete_menu"]),
+    # QuickReply("모든 메뉴 삭제", ActionEnum.BLOCK,
+    #            block_id=BLOCK_IDS["delete_all_menus"]),
 ]
 
 # 식당별 네이버 지도 URL
