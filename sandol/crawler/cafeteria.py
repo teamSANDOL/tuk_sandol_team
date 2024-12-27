@@ -8,6 +8,7 @@ import os
 import json
 import datetime as dt
 
+from api_server.settings import logger
 from crawler import settings
 
 
@@ -527,13 +528,20 @@ class Restaurant:
                 restaurant["identification"] = new_identification
                 break
         else:
+            logger.info("key 불일치")
+            logger.info("==================")
+            logger.info(str(data))
+            logger.info("==================")
+
             raise ValueError("식당을 찾을 수 없습니다.")
 
         RESTAURANT_ACCESS_ID = Restaurant.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[new_identification] = restaurant["name"]
         del RESTAURANT_ACCESS_ID[old_identification]
         Restaurant.save_restaurant_ids(RESTAURANT_ACCESS_ID)
-
+        logger.info("==================")
+        logger.info(str(data))
+        logger.info("==================")
         with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
 
