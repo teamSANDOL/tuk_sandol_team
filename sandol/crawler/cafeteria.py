@@ -8,14 +8,13 @@ import os
 import json
 import datetime as dt
 
+from api_server.settings import logger
 from crawler import settings
-
 
 BUCKET_NAME = "sandol-bucket"
 FILE_KEY = "test.json"
 
-DOWNLOAD_PATH = "/tmp/test.json"
-UPLOAD_PATH = "/tmp/test.json"
+DOWNLOAD_PATH = f"{settings._PATH}/data/test.json"
 
 
 class Restaurant:
@@ -147,15 +146,12 @@ class Restaurant:
         Raises:
             KeyError: setting 딕셔너리에 존재하는 ID코드가 아닐 때 발생합니다.
         """
-        restaurant_name = settings.RESTAURANT_ACCESS_ID.get(id_address)
+        with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
+            data = json.load(file)
 
-        if restaurant_name:
-            with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
-                data = json.load(file)
-
-                for restaurant_data in data:
-                    if restaurant_data["identification"] == id_address:
-                        return cls.by_dict(restaurant_data)
+        for restaurant_data in data:
+            if restaurant_data["identification"] == id_address:
+                return cls.by_dict(restaurant_data)
         raise KeyError(f"해당 식당을 찾을 수 없습니다. ID: {id_address}")
 
     def add_menu(self, meal_time, menu):
@@ -346,6 +342,7 @@ class Restaurant:
         opening_time: list,
         location: str,
         price_per_person: int,
+        varification_key: str,
     ):
         """test.json에 새로운 식당을 추가합니다."""
         # 기존 데이터 로드
@@ -364,6 +361,7 @@ class Restaurant:
             "dinner_menu": [],
             "location": location,
             "price_per_person": price_per_person,
+            "varification_key": varification_key,
         }
 
         # 중복 체크
@@ -383,9 +381,6 @@ class Restaurant:
         RESTAURANT_ACCESS_ID = cls.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[identification] = name
         cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
-
-        # settings 업데이트
-        settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
 
     def __str__(self):
         """명령어 print test시 가시성을 완화합니다."""
@@ -457,9 +452,6 @@ class Restaurant:
         RESTAURANT_ACCESS_ID[temp_data["identification"]] = temp_data["name"]
         cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
 
-        # settings 업데이트
-        settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
-
     @classmethod
     def approve_restaurant(cls, identification, location):
         """식당 등록을 승인합니다."""
@@ -476,10 +468,11 @@ class Restaurant:
         name = restaurant_data["name"]
         price_per_person = restaurant_data["price_per_person"]
         opening_time = restaurant_data["opening_time"]
+        varification_key = restaurant_data["varification_key"]
 
         # 새로운 식당 등록
         cls.init_restaurant(
-            identification, name, opening_time, location, price_per_person
+            identification, name, opening_time, location, price_per_person, varification_key
         )
 
         # 대기 목록에서 제거
@@ -496,6 +489,51 @@ class Restaurant:
             filter(lambda x: x["identification"] != identification, data)
         )
         cls.save_pending_restaurants(restaurant_data)
+
+    @staticmethod
+    def change_identification(varification_key, new_identification):
+        """식당의 카카오톡 ID를 변경합니다.
+        
+        varification_key에 해당하는 식당의 identification을 new_identification으로 변경합니다.
+        이를통해 기존 식당을 유지한 채로, 식당을 관리하는 계정 ID를 변경할 수 있습니다.
+
+        Args:
+            varification_key (str): 변경할 식당의 varification_key
+            new_identification (str): 변경할 식당의 identification
+
+        Raises:
+            FileNotFoundError: 등록된 식당이 없을 경우 발생합니다.
+            ValueError: 변경할 식당을 찾을 수 없을 경우 발생합니다.
+        """
+        try:
+            with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
+                data = json.load(file)
+        except FileNotFoundError as error:
+            raise FileNotFoundError("등록된 식당이 없습니다.") from error
+
+        for restaurant in data:
+            if restaurant["varification_key"] == varification_key:
+                logger.info("key 일치")
+                old_identification = restaurant["identification"]
+                restaurant["identification"] = new_identification
+                break
+        else:
+            logger.info("key 불일치")
+            logger.info("==================")
+            logger.info(str(data))
+            logger.info("==================")
+
+            raise ValueError("식당을 찾을 수 없습니다.")
+
+        RESTAURANT_ACCESS_ID = Restaurant.load_restaurant_ids()
+        RESTAURANT_ACCESS_ID[new_identification] = restaurant["name"]
+        del RESTAURANT_ACCESS_ID[old_identification]
+        Restaurant.save_restaurant_ids(RESTAURANT_ACCESS_ID)
+        logger.info("==================")
+        logger.info(str(data))
+        logger.info("==================")
+        with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
 
     @staticmethod
     def opening_time_str(opening_time: list) -> str:

@@ -8,8 +8,6 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-COPY ./tmp/test.json /tmp/test.json
-
 # Copy the entire 'sandol' directory to the working directory
 COPY . /app
 

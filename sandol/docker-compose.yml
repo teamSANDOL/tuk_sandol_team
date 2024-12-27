@@ -9,4 +9,4 @@ services:
       ports:
         - "80:80"
       volumes:
-        - ./crawler/data:/app/crawler/data
+        - /tmp/sandol/data:/app/crawler/data

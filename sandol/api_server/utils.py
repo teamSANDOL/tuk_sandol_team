@@ -3,13 +3,15 @@
 주로 코드 중복을 줄이고 가독성을 높이기 위한 함수들이 정의되어 있습니다.
 """
 
-from datetime import datetime, timedelta
 import os
 import re
+from typing import Literal
 from functools import wraps
 import traceback
+from datetime import datetime, timedelta
 
 from fastapi import Request
+from fastapi.responses import JSONResponse
 from kakao_chatbot import Payload
 from kakao_chatbot.response import KakaoResponse
 from kakao_chatbot.response.components import (
@@ -21,7 +23,7 @@ from kakao_chatbot.response.components import (
 import openpyxl
 
 from crawler import Restaurant
-from crawler.settings import KST
+from crawler.settings import KST, RESTAURANT_ACCESS_ID, SANDOL_ACCESS_ID
 from crawler.ibookcrawler import BookTranslator
 from crawler.ibookdownloader import BookDownloader
 from api_server.settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST, logger
@@ -242,6 +244,37 @@ def error_message(message: str | BaseException) -> TextCardComponent:
     message += "\n죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
     return TextCardComponent(title="오류 발생", description=message)
 
+def check_access_id(id_type: Literal["restaurant", "sandol"] = "sandol"):
+    """식당 혹은 산돌 ID 접근을 확인하는 데코레이터입니다."""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            payload: Payload = kwargs.get("payload")
+            if not payload:
+                # 필요한 경우 args에서 Payload 인스턴스를 찾아 할당
+                for arg in args:
+                    if isinstance(arg, Payload):
+                        payload = arg
+                        break
+            access_id = payload.user_id if payload else None
+
+            logger.info(f"{id_type} 권한 접근 시도 access_id: {access_id}")
+
+            response = KakaoResponse()
+            response.add_component(
+                SimpleTextComponent("접근 권한이 없습니다.")
+            )
+            if (
+                (
+                    id_type == "restaurant" and access_id not in RESTAURANT_ACCESS_ID().keys()
+                ) or (
+                    id_type == "sandol" and access_id not in SANDOL_ACCESS_ID().values()
+                )
+            ):
+                return JSONResponse(response.get_dict())
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 def check_tip_and_e(func):
     """TIP 가가식당과 E동 레스토랑 정보를 업데이트하는 데코레이터 입니다.

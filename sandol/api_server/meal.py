@@ -30,6 +30,7 @@ from api_server.utils import (
     make_meal_cards,
     parse_payload,
     check_tip_and_e,
+    check_access_id
 )
 from api_server.settings import NAVER_MAP_URL_DICT, logger, BLOCK_IDS
 from crawler import get_registration, Restaurant, get_meals
@@ -38,7 +39,50 @@ from crawler.settings import KST
 meal_api = APIRouter(prefix="/meal")
 
 
+@meal_api.post("/register/restaurant/change_id")
+async def register_restaurant_change_id(payload: Payload = Depends(parse_payload)):
+    """업체를 관리하는 관리자 ID를 변경하는 API입니다.
+
+    Returns:
+        str: ID 변경 결과를 반환합니다.
+    """
+    assert payload.detail_params is not None
+    varification = payload.detail_params["varification"].origin
+
+    response = KakaoResponse()
+    try:
+        Restaurant.change_identification(varification, payload.user_id)
+    except (FileNotFoundError, ValueError) as error:
+        if str(error) in ("등록된 식당이 없습니다.", "식당을 찾을 수 없습니다."):
+            return JSONResponse(
+                response.add_component(SimpleTextComponent(str(error))).get_dict()
+            )
+
+    restaurant: Restaurant = Restaurant.by_id(payload.user_id)
+    item_card = ItemCardComponent([])
+    item_card.image_title = ImageTitle(title=restaurant.name, description="식당 정보")
+    item_card.add_item(title="점심 시간", description=restaurant.lunch_time)
+    item_card.add_item(title="저녁 시간", description=restaurant.dinner_time)
+    item_card.add_item(title="위치", description=restaurant.location)
+    item_card.add_item(title="가격", description=f"{restaurant.price_per_person}원")
+    item_card.add_button(
+        label="메뉴 보기", action="message", message_text=f"학식 {restaurant.name}"
+    )
+    url = NAVER_MAP_URL_DICT.get(restaurant.name, None)
+    if url:
+        item_card.add_button(
+            label="식당 위치 지도 보기", action="webLink", web_link_url=url
+        )
+    response.add_component(
+        SimpleTextComponent(
+            "ID 변경이 완료되었습니다. 이제부터 위 식당의 식단 정보를 관리할 수 있습니다."
+        )
+    )
+    return JSONResponse(response.get_dict())
+
+
 @meal_api.post("/register/restaurant/decline")
+@check_access_id("sandol")
 async def register_restaurant_decline(payload: Payload = Depends(parse_payload)):
     """업체 등록을 거절하는 api 입니다.
 
@@ -47,7 +91,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
     """
     assert payload.detail_params is not None
     double_check = payload.detail_params["double_check"].origin
-    if (double_check != "거절"):
+    if double_check != "거절":
         response = KakaoResponse()
         response.add_component(
             SimpleTextComponent(
@@ -69,6 +113,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/restaurant/approve")
+@check_access_id("sandol")
 async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
     """업체 등록을 승인하는 API 입니다.
 
@@ -102,6 +147,7 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/restaurant/list")
+@check_access_id("sandol")
 async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     """등록을 신청한 업체 목록을 반환하는 API입니다."""
     data = Restaurant.load_pending_restaurants()
@@ -119,8 +165,12 @@ async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
 
         opening_time = apply["opening_time"]
 
-        item_card.add_item(title="점심 시간", description=Restaurant.opening_time_str(opening_time[0]))
-        item_card.add_item(title="저녁 시간", description=Restaurant.opening_time_str(opening_time[1]))
+        item_card.add_item(
+            title="점심 시간", description=Restaurant.opening_time_str(opening_time[0])
+        )
+        item_card.add_item(
+            title="저녁 시간", description=Restaurant.opening_time_str(opening_time[1])
+        )
         item_card.add_item(title="가격", description=f"{apply['price_per_person']}원")
         item_card.add_button(
             label="승인",
@@ -146,6 +196,16 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
 
     등록하려는 업체의 등록 정보를 받아 신청 리스트에 저장합니다.
     """
+    assert payload.detail_params is not None
+    if (
+        payload.detail_params["varification_key"].origin
+        != payload.detail_params["varification_key_check"].origin
+    ):
+        return JSONResponse(
+            KakaoResponse()
+            .add_component(SimpleTextComponent("인증키가 일치하지 않습니다."))
+            .get_dict()
+        )
     lunch_start_hours, lunch_start_minutes, _ = map(
         int, payload.action.detail_params["lunch_start"].origin.split(":")
     )
@@ -159,7 +219,16 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
         int, payload.action.detail_params["dinner_end"].origin.split(":")
     )
 
-    opening_time = [[(lunch_start_hours, lunch_start_minutes), (lunch_end_hours,lunch_end_minutes)], [(dinner_start_hours, dinner_start_minutes), (dinner_end_hours, dinner_end_minutes)]]
+    opening_time = [
+        [
+            (lunch_start_hours, lunch_start_minutes),
+            (lunch_end_hours, lunch_end_minutes),
+        ],
+        [
+            (dinner_start_hours, dinner_start_minutes),
+            (dinner_end_hours, dinner_end_minutes),
+        ],
+    ]
 
     temp_data = {
         "identification": payload.user_id,
@@ -168,6 +237,7 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
             payload.action.detail_params["price_per_person"].origin
         ),
         "opening_time": opening_time,
+        "varification_key": payload.action.detail_params["varification_key"].origin,
     }
 
     try:
@@ -184,8 +254,12 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
 
     item_card = ItemCardComponent([])
     item_card.image_title = ImageTitle(title=temp_data["name"], description="식당 정보")
-    item_card.add_item(title="점심 시간", description=Restaurant.opening_time_str(opening_time[0]))
-    item_card.add_item(title="저녁 시간", description=Restaurant.opening_time_str(opening_time[1]))
+    item_card.add_item(
+        title="점심 시간", description=Restaurant.opening_time_str(opening_time[0])
+    )
+    item_card.add_item(
+        title="저녁 시간", description=Restaurant.opening_time_str(opening_time[1])
+    )
     item_card.add_item(title="가격", description=f"{temp_data['price_per_person']}원")
     response.add_component(item_card)
 
@@ -193,6 +267,7 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
 
 
 @meal_api.post("/register/delete/{meal_type}")
+@check_access_id("restaurant")
 async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload)):
     """삭제할 메뉴를 선택하는 API입니다.
 
@@ -231,6 +306,7 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/delete_all")
+@check_access_id("restaurant")
 async def meal_delete_all(payload: Payload = Depends(parse_payload)):
     """모든 메뉴를 삭제하는 API입니다.
 
@@ -247,6 +323,7 @@ async def meal_delete_all(payload: Payload = Depends(parse_payload)):
 
 
 @meal_api.post("/register/delete_menu")
+@check_access_id("restaurant")
 async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
     """선택한 메뉴를 삭제하는 API입니다.
 
@@ -278,6 +355,7 @@ async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
 
 
 @meal_api.post("/register/{meal_type}")
+@check_access_id("restaurant")
 async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload)):
     """식단 정보를 등록합니다.
 
@@ -317,6 +395,7 @@ async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload
 
 @meal_api.post("/submit")
 @check_tip_and_e
+@check_access_id("restaurant")
 async def meal_submit(payload: Payload = Depends(parse_payload)):
     """식단 정보를 확정하는 API입니다.
 

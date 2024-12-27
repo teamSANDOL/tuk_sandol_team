@@ -1,8 +1,9 @@
 [
     {
         "identification": "32d8a05a91242ffb4c64b5630ec55953121dffd83a121d985e26e06e2c457197e6",
+        "varification_key": "miga32",
         "name": "미가식당",
-        "registration_time": "2024-05-25T13:49:42.588862",
+        "registration_time": "2024-05-26T13:49:42.588862",
         "opening_time": [
             [
                 [11,0],
@@ -24,6 +25,7 @@
     },
     {
         "identification": "380da59920b84d81eb8c444e684a53290021b38f544fe0029f4b38ab347bc44e08",
+        "varification_key": "semi38",
         "name": "세미콘식당",
         "registration_time": "2024-05-25T13:50:27.028355",
         "opening_time": [
@@ -59,6 +61,7 @@
     },
     {
         "identification": "001",
+        "varification_key": "ti00",
         "name": "TIP 가가식당",
         "registration_time": "2024-05-25T13:47:41.667713",
         "opening_time": [
@@ -90,6 +93,7 @@
     },
     {
         "identification": "002",
+        "varification_key": "ed00",
         "name": "E동 레스토랑",
         "registration_time": "2024-05-25T13:52:26.357232",
         "opening_time": [
