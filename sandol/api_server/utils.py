@@ -247,8 +247,15 @@ def check_access_id(id_type: str = "restaurant"):
     """식당 혹은 산돌 ID 접근을 확인하는 데코레이터입니다."""
     def decorator(func):
         @wraps(func)
-        async def wrapper(self, payload: Payload):
-            access_id = payload.user_id
+        async def wrapper(*args, **kwargs):
+            payload: Payload = kwargs.get("payload")
+            if not payload:
+                # 필요한 경우 args에서 Payload 인스턴스를 찾아 할당
+                for arg in args:
+                    if isinstance(arg, Payload):
+                        payload = arg
+                        break
+            access_id = payload.user_id if payload else None
             response = KakaoResponse()
             response.add_component(
                 SimpleTextComponent("접근 권한이 없습니다.")
@@ -261,7 +268,7 @@ def check_access_id(id_type: str = "restaurant"):
                 )
             ):
                 return JSONResponse(response.get_dict())
-            return await func(self, payload)
+            return await func(*args, **kwargs)
         return wrapper
     return decorator
 
