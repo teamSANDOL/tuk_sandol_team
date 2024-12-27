@@ -355,6 +355,7 @@ async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
 
 
 @meal_api.post("/register/{meal_type}")
+@check_access_id("restaurant")
 async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload)):
     """식단 정보를 등록합니다.
 

@@ -3,11 +3,12 @@
 주로 코드 중복을 줄이고 가독성을 높이기 위한 함수들이 정의되어 있습니다.
 """
 
-from datetime import datetime, timedelta
 import os
 import re
+from typing import Literal
 from functools import wraps
 import traceback
+from datetime import datetime, timedelta
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -243,7 +244,7 @@ def error_message(message: str | BaseException) -> TextCardComponent:
     message += "\n죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
     return TextCardComponent(title="오류 발생", description=message)
 
-def check_access_id(id_type: str = "restaurant"):
+def check_access_id(id_type: Literal["restaurant", "sandol"] = "sandol"):
     """식당 혹은 산돌 ID 접근을 확인하는 데코레이터입니다."""
     def decorator(func):
         @wraps(func)
