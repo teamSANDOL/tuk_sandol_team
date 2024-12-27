@@ -146,15 +146,12 @@ class Restaurant:
         Raises:
             KeyError: setting 딕셔너리에 존재하는 ID코드가 아닐 때 발생합니다.
         """
-        restaurant_name = settings.RESTAURANT_ACCESS_ID().get(id_address)
+        with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
+            data = json.load(file)
 
-        if restaurant_name:
-            with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
-                data = json.load(file)
-
-                for restaurant_data in data:
-                    if restaurant_data["identification"] == id_address:
-                        return cls.by_dict(restaurant_data)
+        for restaurant_data in data:
+            if restaurant_data["identification"] == id_address:
+                return cls.by_dict(restaurant_data)
         raise KeyError(f"해당 식당을 찾을 수 없습니다. ID: {id_address}")
 
     def add_menu(self, meal_time, menu):
