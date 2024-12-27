@@ -30,6 +30,7 @@ from api_server.utils import (
     make_meal_cards,
     parse_payload,
     check_tip_and_e,
+    check_access_id
 )
 from api_server.settings import NAVER_MAP_URL_DICT, logger, BLOCK_IDS
 from crawler import get_registration, Restaurant, get_meals
@@ -81,6 +82,7 @@ async def register_restaurant_change_id(payload: Payload = Depends(parse_payload
 
 
 @meal_api.post("/register/restaurant/decline")
+@check_access_id("admin")
 async def register_restaurant_decline(payload: Payload = Depends(parse_payload)):
     """업체 등록을 거절하는 api 입니다.
 
@@ -111,6 +113,7 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/restaurant/approve")
+@check_access_id("admin")
 async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
     """업체 등록을 승인하는 API 입니다.
 
@@ -144,6 +147,7 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/restaurant/list")
+@check_access_id("admin")
 async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     """등록을 신청한 업체 목록을 반환하는 API입니다."""
     data = Restaurant.load_pending_restaurants()
@@ -263,6 +267,7 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
 
 
 @meal_api.post("/register/delete/{meal_type}")
+@check_access_id("restaurant")
 async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload)):
     """삭제할 메뉴를 선택하는 API입니다.
 
@@ -301,6 +306,7 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
 
 
 @meal_api.post("/register/delete_all")
+@check_access_id("restaurant")
 async def meal_delete_all(payload: Payload = Depends(parse_payload)):
     """모든 메뉴를 삭제하는 API입니다.
 
@@ -317,6 +323,7 @@ async def meal_delete_all(payload: Payload = Depends(parse_payload)):
 
 
 @meal_api.post("/register/delete_menu")
+@check_access_id("restaurant")
 async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
     """선택한 메뉴를 삭제하는 API입니다.
 
@@ -387,6 +394,7 @@ async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload
 
 @meal_api.post("/submit")
 @check_tip_and_e
+@check_access_id("restaurant")
 async def meal_submit(payload: Payload = Depends(parse_payload)):
     """식단 정보를 확정하는 API입니다.
 
