@@ -256,6 +256,9 @@ def check_access_id(id_type: str = "restaurant"):
                         payload = arg
                         break
             access_id = payload.user_id if payload else None
+
+            logger.info(f"{id_type} 권한 접근 시도 access_id: {access_id}")
+
             response = KakaoResponse()
             response.add_component(
                 SimpleTextComponent("접근 권한이 없습니다.")
