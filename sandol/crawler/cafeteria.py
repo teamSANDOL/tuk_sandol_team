@@ -148,7 +148,7 @@ class Restaurant:
         Raises:
             KeyError: setting 딕셔너리에 존재하는 ID코드가 아닐 때 발생합니다.
         """
-        restaurant_name = settings.RESTAURANT_ACCESS_ID.get(id_address)
+        restaurant_name = settings.RESTAURANT_ACCESS_ID().get(id_address)
 
         if restaurant_name:
             with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
@@ -387,9 +387,6 @@ class Restaurant:
         RESTAURANT_ACCESS_ID[identification] = name
         cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
 
-        # settings 업데이트
-        settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
-
     def __str__(self):
         """명령어 print test시 가시성을 완화합니다."""
         return (
@@ -459,9 +456,6 @@ class Restaurant:
         RESTAURANT_ACCESS_ID = cls.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[temp_data["identification"]] = temp_data["name"]
         cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
-
-        # settings 업데이트
-        settings.RESTAURANT_ACCESS_ID = RESTAURANT_ACCESS_ID
 
     @classmethod
     def approve_restaurant(cls, identification, location):
