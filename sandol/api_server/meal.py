@@ -73,6 +73,7 @@ async def register_restaurant_change_id(payload: Payload = Depends(parse_payload
         item_card.add_button(
             label="식당 위치 지도 보기", action="webLink", web_link_url=url
         )
+    response.add_component(item_card)
     response.add_component(
         SimpleTextComponent(
             "ID 변경이 완료되었습니다. 이제부터 위 식당의 식단 정보를 관리할 수 있습니다."
