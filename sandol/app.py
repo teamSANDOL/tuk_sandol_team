@@ -2,14 +2,16 @@
 
 import traceback
 
-from fastapi import FastAPI, HTTPException, Request, status  # noqa: F401 # pylint: disable=W0611
+from fastapi import FastAPI, HTTPException, Request, status, Depends  # noqa: F401 # pylint: disable=W0611
 from fastapi.responses import JSONResponse  # noqa: F401
+from kakao_chatbot import Payload
 from kakao_chatbot.response import KakaoResponse
+from kakao_chatbot.response.components import SimpleTextComponent
 import uvicorn
 
 from api_server.settings import logger
 from api_server.meal import meal_api
-from api_server.utils import error_message
+from api_server.utils import error_message, parse_payload
 
 
 app = FastAPI()
@@ -31,6 +33,10 @@ async def root():
     logger.info("Root endpoint accessed")
     return {"test": "Hello Sandol"}
 
+@app.post("/get_id")
+async def get_id(payload: Payload = Depends(parse_payload)):
+    response = KakaoResponse()
+    response.add_component(SimpleTextComponent(payload.user_id))
 
 if __name__ == "__main__":
     logger.info("Starting Sandol server")
