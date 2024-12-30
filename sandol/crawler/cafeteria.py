@@ -527,7 +527,10 @@ class Restaurant:
 
         RESTAURANT_ACCESS_ID = Restaurant.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[new_identification] = restaurant["name"]
-        del RESTAURANT_ACCESS_ID[old_identification]
+        try:
+            del RESTAURANT_ACCESS_ID[old_identification]
+        except KeyError:
+            pass
         Restaurant.save_restaurant_ids(RESTAURANT_ACCESS_ID)
         logger.info("==================")
         logger.info(str(data))
