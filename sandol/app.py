@@ -33,8 +33,11 @@ async def root():
     logger.info("Root endpoint accessed")
     return {"test": "Hello Sandol"}
 
+
 @app.post("/get_id")
 async def get_id(payload: Payload = Depends(parse_payload)):
+    logger.info("Get ID endpoint accessed")
+    logger.debug(f"User ID: {payload.user_id}")
     response = KakaoResponse()
     response.add_component(SimpleTextComponent(payload.user_id))
 

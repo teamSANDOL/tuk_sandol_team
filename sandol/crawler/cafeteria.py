@@ -115,6 +115,7 @@ class Restaurant:
         Returns:
             Restaurant: 변환된 Restaurant 객체
         """
+        logger.debug("딕셔너리에서 Restaurant 객체 생성: %s", data["name"])
         registration_time = dt.datetime.fromisoformat(data["registration_time"])
         class_name = f'{data["name"]}'
         new_class = type(class_name, (Restaurant,), {})
@@ -146,12 +147,15 @@ class Restaurant:
         Raises:
             KeyError: setting 딕셔너리에 존재하는 ID코드가 아닐 때 발생합니다.
         """
+        logger.info("ID로 Restaurant 객체 조회: ID=%s", id_address)
         with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
             data = json.load(file)
 
         for restaurant_data in data:
             if restaurant_data["identification"] == id_address:
+                logger.debug("ID로 식당 찾음: %s", restaurant_data["name"])
                 return cls.by_dict(restaurant_data)
+        logger.warning("해당 ID로 식당을 찾을 수 없음: ID=%s", id_address)
         raise KeyError(f"해당 식당을 찾을 수 없습니다. ID: {id_address}")
 
     def add_menu(self, meal_time, menu):
@@ -169,21 +173,30 @@ class Restaurant:
             TypeError: meal_time 값이 "lunch", "dinner"가 아닐 경우 발생합니다.
             ValueError: 추가하려는 메뉴가 객체의 temp_시간 리스트에 이미 존재할 경우 발생합니다.
         """
+        logger.info(
+            "메뉴 추가 요청: name=%s, meal_time=%s, menu=%s", self.name, meal_time, menu
+        )
         if not isinstance(meal_time, str):
+            logger.error("meal_time은 문자열이어야 합니다.")
             raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu not in self.temp_lunch:
                 self.temp_lunch.append(menu)
                 self.save_temp_menu()
+                logger.debug("점심 메뉴 추가: %s", menu)
+            logger.warning("점심 메뉴 중복 추가 시도: %s", menu)
             raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
 
         if meal_time.lower() == "dinner":
             if menu not in self.temp_dinner:
                 self.temp_dinner.append(menu)
                 self.save_temp_menu()
+                logger.debug("저녁 메뉴 추가: %s", menu)
+            logger.warning("저녁 메뉴 중복 추가 시도: %s", menu)
             raise ValueError("해당 메뉴는 이미 메뉴 목록에 존재합니다.")
 
+        logger.error("meal_time이 유효하지 않음: %s", meal_time)
         raise TypeError("meal_time should be 'lunch' or 'dinner'.")
 
     def delete_menu(self, meal_time, menu):
@@ -201,21 +214,30 @@ class Restaurant:
             TypeError: meal_time 값이 "lunch", "dinner"가 아닐 경우 발생합니다.
             ValueError: 삭제하려는 메뉴가 객체의 temp_시간 리스트에 존재하지 않을 경우 발생합니다.
         """
+        logger.info(
+            "메뉴 삭제 요청: name=%s, meal_time=%s, menu=%s", self.name, meal_time, menu
+        )
         if not isinstance(meal_time, str):
+            logger.error("meal_time은 문자열이어야 합니다.")
             raise TypeError("meal_time should be a string 'lunch' or 'dinner'.")
 
         if meal_time.lower() == "lunch":
             if menu in self.temp_lunch:
                 self.temp_lunch.remove(menu)
                 self.save_temp_menu()
+                logger.debug("점심 메뉴 삭제: %s", menu)
+            logger.warning("삭제하려는 점심 메뉴가 존재하지 않음: %s", menu)
             raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
         if meal_time.lower() == "dinner":
             if menu in self.temp_dinner:
                 self.temp_dinner.remove(menu)
                 self.save_temp_menu()
+                logger.debug("저녁 메뉴 삭제: %s", menu)
+            logger.warning("삭제하려는 저녁 메뉴가 존재하지 않음: %s", menu)
             raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
+        logger.error("meal_time이 유효하지 않음: %s", meal_time)
         raise TypeError("meal_time should be 'lunch' or 'dinner'.")
 
     def clear_menu(self):
@@ -223,6 +245,7 @@ class Restaurant:
 
         식당 객체의 메뉴 정보와 관련된 모든 인스턴스를 초기화합니다.
         """
+        logger.info("모든 메뉴 초기화: name=%s", self.name)
         self.lunch = []
         self.dinner = []
         self.temp_lunch = []
@@ -236,14 +259,14 @@ class Restaurant:
 
         생성된 json파일은 load_temp_menu에서 임시 메뉴 데이터를 다운로드 할 때 사용된다.
         """
-        # only write
+        logger.debug("임시 메뉴 저장 요청: name=%s", self.name)
         temp_menu = {"lunch": self.temp_lunch, "dinner": self.temp_dinner}
-
         current_dir = os.path.dirname(__file__)
         filename = os.path.join(current_dir, f"{self.name}_temp_menu.json")
 
         with open(filename, "w", encoding="utf-8") as file:
             json.dump(temp_menu, file, ensure_ascii=False, indent=4)
+        logger.info("임시 메뉴 저장 완료: file=%s", filename)
 
     def load_temp_menu(self):
         """디렉터리에 저장된 임시 메뉴 파일(json)을 다운로드합니다.
@@ -251,7 +274,7 @@ class Restaurant:
         임시 메뉴 파일(이름_temp_menu.json)의 데이터를
         식당 객체의 임시 메뉴 리스트(temp_lunch, temp_dinner)에 저장합니다.
         """
-        # only read
+        logger.debug("임시 메뉴 로드 요청: name=%s", self.name)
         current_dir = os.path.dirname(__file__)
         filename = os.path.join(current_dir, f"{self.name}_temp_menu.json")
 
@@ -261,6 +284,9 @@ class Restaurant:
 
                 self.temp_lunch = temp_menu.get("lunch", [])
                 self.temp_dinner = temp_menu.get("dinner", [])
+            logger.info("임시 메뉴 로드 완료: file=%s", filename)
+        else:
+            logger.warning("임시 메뉴 파일이 존재하지 않음: file=%s", filename)
 
     def submit_update_menu(self, meal_time):
         """임시 메뉴의 변경 사항이 있을 때 메뉴를 업데이트합니다.
@@ -274,10 +300,16 @@ class Restaurant:
         Returns:
             list: 식당 객체의 임시 메뉴 리스트(temp_시간)
         """
+        logger.info(
+            "임시 메뉴 업데이트 요청: name=%s, meal_time=%s", self.name, meal_time
+        )
         if meal_time == "lunch" and self.temp_lunch:
+            logger.debug("점심 메뉴 업데이트: %s", self.temp_lunch)
             return self.temp_lunch
         if meal_time == "dinner" and self.temp_dinner:
+            logger.debug("저녁 메뉴 업데이트: %s", self.temp_dinner)
             return self.temp_dinner
+        logger.debug("업데이트할 메뉴가 없음: meal_time=%s", meal_time)
 
     def submit(self):
         """식당 객체 정보를 파일로 저장합니다.
@@ -298,41 +330,40 @@ class Restaurant:
                 data = json.load(file)
         except json.decoder.JSONDecodeError:
             data = []
+            logger.error("JSON 디코딩 오류 발생: file=%s", DOWNLOAD_PATH)
         except FileNotFoundError as e:
+            logger.error("파일을 찾을 수 없음: file=%s", DOWNLOAD_PATH)
             raise FileNotFoundError(f"{DOWNLOAD_PATH} 파일을 찾을 수 없습니다.") from e
 
         restaurant_found = False
         for restaurant_data in data:
-            if restaurant_data["name"] == self.name:  # 식당 검색
-                restaurant_data["lunch_menu"] = self.submit_update_menu(
-                    "lunch"
-                )  # 점심 메뉴 변경 사항 존재 시 submit
-                restaurant_data["dinner_menu"] = self.submit_update_menu(
-                    "dinner"
-                )  # 저녁 메뉴 변경 사항 존재 시 submit
-                restaurant_data["registration_time"] = (
-                    dt.datetime.now().isoformat()
-                )  # registration time update
-                # opining time update
+            if restaurant_data["name"] == self.name:
+                restaurant_data["lunch_menu"] = self.submit_update_menu("lunch")
+                restaurant_data["dinner_menu"] = self.submit_update_menu("dinner")
+                restaurant_data["registration_time"] = dt.datetime.now().isoformat()
                 restaurant_data["opening_time"] = self.opening_time
                 restaurant_data["price_per_person"] = self.price_per_person
                 restaurant_found = True
+                logger.debug("식당 정보 업데이트 완료: %s", self.name)
                 break
 
         if not restaurant_found:
+            logger.error("제출하려는 식당을 찾을 수 없음: name=%s", self.name)
             raise ValueError(
                 f"레스토랑 {self.name}가 test.json 파일에 존재하지 않습니다."
             )
 
-        # json data 한꺼번에 test.json으로 덮어씌우기
         with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
+        logger.info("식당 정보 저장 완료: name=%s, file=%s", self.name, DOWNLOAD_PATH)
 
-        # delete temp_menu.json file
-        temp_menu_path = os.path.join("/tmp", f"{self.name}_temp_menu.json")
+        temp_menu_path = os.path.join(
+            os.path.dirname(__file__), f"{self.name}_temp_menu.json"
+        )
 
         if os.path.exists(temp_menu_path):
             os.remove(temp_menu_path)
+            logger.info("임시 메뉴 파일 삭제 완료: file=%s", temp_menu_path)
 
     @classmethod
     def init_restaurant(
@@ -345,12 +376,15 @@ class Restaurant:
         varification_key: str,
     ):
         """test.json에 새로운 식당을 추가합니다."""
-        # 기존 데이터 로드
+        logger.info(
+            "새로운 식당 초기화 요청: name=%s, identification=%s", name, identification
+        )
         try:
             with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
                 data = json.load(file)
         except FileNotFoundError:
             data = []
+            logger.warning("등록된 데이터 파일을 찾을 수 없음: file=%s", DOWNLOAD_PATH)
 
         new_restaurant = {
             "identification": identification,
@@ -367,8 +401,12 @@ class Restaurant:
         # 중복 체크
         for restaurant in data:
             if restaurant["name"] == name:
+                logger.error("동일한 이름의 식당이 이미 존재: name=%s", name)
                 raise ValueError("동일한 이름의 식당이 이미 존재합니다.")
             if restaurant["identification"] == identification:
+                logger.error(
+                    "동일한 식당 ID가 이미 존재: identification=%s", identification
+                )
                 raise ValueError("동일한 식당 ID가 이미 존재합니다.")
 
         data.append(new_restaurant)
@@ -376,11 +414,17 @@ class Restaurant:
         # 데이터 저장
         with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
+        logger.info("새로운 식당 초기화 완료: name=%s, file=%s", name, DOWNLOAD_PATH)
 
-            # restaurant_id.json 업데이트
+        # restaurant_id.json 업데이트
         RESTAURANT_ACCESS_ID = cls.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[identification] = name
         cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
+        logger.debug(
+            "restaurant_id.json 업데이트 완료: name=%s, identification=%s",
+            name,
+            identification,
+        )
 
     def __str__(self):
         """명령어 print test시 가시성을 완화합니다."""
@@ -403,6 +447,10 @@ class Restaurant:
             ) as f:
                 data = json.load(f)
         except FileNotFoundError:
+            logger.warning(
+                "등록 대기 중인 식당 파일을 찾을 수 없음: file=%s",
+                "restaurant_register.json",
+            )
             data = []
         return data
 
@@ -433,38 +481,78 @@ class Restaurant:
     @classmethod
     def register_new_restaurant(cls, temp_data):
         """새로운 식당을 등록합니다."""
+        logger.info(
+            "새로운 식당 등록 요청: name=%s, identification=%s",
+            temp_data["name"],
+            temp_data["identification"],
+        )
+
         # 기존 데이터 로드
         data = cls.load_pending_restaurants()
+        logger.debug("현재 대기 중인 식당 데이터 로드 완료: count=%d", len(data))
 
         # 중복 확인
         for restaurant in data:
             if restaurant["name"] == temp_data["name"]:
+                logger.error(
+                    "동일한 이름의 식당이 이미 등록 대기 중: name=%s", temp_data["name"]
+                )
                 raise ValueError("동일한 이름의 식당이 이미 등록 대기 중입니다.")
             if restaurant["identification"] == temp_data["identification"]:
+                logger.error(
+                    "동일한 식당 ID가 이미 등록 대기 중: identification=%s",
+                    temp_data["identification"],
+                )
                 raise ValueError("동일한 식당 ID가 이미 등록 대기 중입니다.")
 
         # 신규 식당 추가
         data.append(temp_data)
         cls.save_pending_restaurants(data)
+        logger.info(
+            "신규 식당 등록 성공: name=%s, identification=%s",
+            temp_data["name"],
+            temp_data["identification"],
+        )
 
         # restaurant_id.json 업데이트
         RESTAURANT_ACCESS_ID = cls.load_restaurant_ids()
         RESTAURANT_ACCESS_ID[temp_data["identification"]] = temp_data["name"]
         cls.save_restaurant_ids(RESTAURANT_ACCESS_ID)
+        logger.debug(
+            "restaurant_id.json 업데이트 완료: name=%s, identification=%s",
+            temp_data["name"],
+            temp_data["identification"],
+        )
 
     @classmethod
     def approve_restaurant(cls, identification, location):
         """식당 등록을 승인합니다."""
+        logger.info(
+            "식당 등록 승인 요청: identification=%s, location=%s",
+            identification,
+            location,
+        )
+
         data = cls.load_pending_restaurants()
+        logger.debug("현재 대기 중인 식당 데이터 로드 완료: count=%d", len(data))
+
         restaurant_data_list = list(
             filter(lambda x: x["identification"] == identification, data)
         )
 
         if not restaurant_data_list:
+            logger.error(
+                "등록 대기 중인 식당을 찾을 수 없음: identification=%s", identification
+            )
             raise ValueError("등록 대기 중인 식당을 찾을 수 없습니다.")
 
         restaurant_data = restaurant_data_list[0]
-        identification = restaurant_data["identification"]
+        logger.debug(
+            "승인 대상 식당 데이터 확인: name=%s, identification=%s",
+            restaurant_data["name"],
+            restaurant_data["identification"],
+        )
+
         name = restaurant_data["name"]
         price_per_person = restaurant_data["price_per_person"]
         opening_time = restaurant_data["opening_time"]
@@ -472,7 +560,17 @@ class Restaurant:
 
         # 새로운 식당 등록
         cls.init_restaurant(
-            identification, name, opening_time, location, price_per_person, varification_key
+            identification,
+            name,
+            opening_time,
+            location,
+            price_per_person,
+            varification_key,
+        )
+        logger.info(
+            "식당 등록 승인 및 초기화 완료: name=%s, identification=%s",
+            name,
+            identification,
         )
 
         # 대기 목록에서 제거
@@ -480,20 +578,36 @@ class Restaurant:
             filter(lambda x: x["identification"] != identification, data)
         )
         cls.save_pending_restaurants(new_restaurant_data)
+        logger.debug(
+            "등록 대기 목록 업데이트 완료: identification=%s 제거됨", identification
+        )
 
     @classmethod
     def decline_restaurant(cls, identification):
         """식당 등록을 거절합니다."""
+        logger.info("식당 등록 거절 요청: identification=%s", identification)
         data = cls.load_pending_restaurants()
+        logger.debug("현재 대기 중인 식당 데이터 로드 완료: count=%d", len(data))
+
         restaurant_data = list(
             filter(lambda x: x["identification"] != identification, data)
         )
+        if len(restaurant_data) < len(data):
+            logger.info("식당 등록 거절 완료: identification=%s", identification)
+        else:
+            logger.warning(
+                "등록 대기 목록에서 식당을 찾지 못함: identification=%s", identification
+            )
+
         cls.save_pending_restaurants(restaurant_data)
+        logger.debug(
+            "등록 대기 목록 업데이트 완료: identification=%s 제거됨", identification
+        )
 
     @staticmethod
     def change_identification(varification_key, new_identification):
         """식당의 카카오톡 ID를 변경합니다.
-        
+
         varification_key에 해당하는 식당의 identification을 new_identification으로 변경합니다.
         이를통해 기존 식당을 유지한 채로, 식당을 관리하는 계정 ID를 변경할 수 있습니다.
 
@@ -505,24 +619,31 @@ class Restaurant:
             FileNotFoundError: 등록된 식당이 없을 경우 발생합니다.
             ValueError: 변경할 식당을 찾을 수 없을 경우 발생합니다.
         """
+        logger.info(
+            "식당 ID 변경 요청: varification_key=%s, new_identification=%s",
+            varification_key,
+            new_identification,
+        )
         try:
             with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
                 data = json.load(file)
         except FileNotFoundError as error:
+            logger.error("등록된 식당 파일을 찾을 수 없음: file=%s", DOWNLOAD_PATH)
             raise FileNotFoundError("등록된 식당이 없습니다.") from error
 
         for restaurant in data:
             if restaurant["varification_key"] == varification_key:
-                logger.info("key 일치")
+                logger.debug(
+                    "varification_key 일치하는 식당 찾음: name=%s", restaurant["name"]
+                )
                 old_identification = restaurant["identification"]
                 restaurant["identification"] = new_identification
                 break
         else:
-            logger.info("key 불일치")
-            logger.info("==================")
-            logger.info(str(data))
-            logger.info("==================")
-
+            logger.warning(
+                "varification_key와 일치하는 식당을 찾을 수 없음: varification_key=%s",
+                varification_key,
+            )
             raise ValueError("식당을 찾을 수 없습니다.")
 
         RESTAURANT_ACCESS_ID = Restaurant.load_restaurant_ids()
@@ -530,13 +651,23 @@ class Restaurant:
         try:
             del RESTAURANT_ACCESS_ID[old_identification]
         except KeyError:
-            pass
+            logger.warning(
+                "기존 ID를 restaurant_id.json에서 찾을 수 없음: old_identification=%s",
+                old_identification,
+            )
+
         Restaurant.save_restaurant_ids(RESTAURANT_ACCESS_ID)
-        logger.info("==================")
-        logger.info(str(data))
-        logger.info("==================")
+        logger.info(
+            "restaurant_id.json 업데이트 완료: new_identification=%s",
+            new_identification,
+        )
+
         with open(DOWNLOAD_PATH, "w", encoding="utf-8") as file:
             json.dump(data, file, ensure_ascii=False, indent=4)
+        logger.info(
+            "식당 ID 변경 및 데이터 저장 완료: new_identification=%s",
+            new_identification,
+        )
 
     @staticmethod
     def opening_time_str(opening_time: list) -> str:
@@ -578,12 +709,12 @@ async def get_meals() -> list:
     Returns:
         list : 식당 객체들을 저장한 리스트
     """
+    logger.info("식당 목록 로드 요청")
     with open(DOWNLOAD_PATH, "r", encoding="utf-8") as file:
         data = json.load(file)
 
-    # 식당 목록 리스트
     restaurants = [Restaurant.by_dict(item) for item in data]
-
+    logger.debug("식당 목록 로드 완료: count=%d", len(restaurants))
     return restaurants
 
 
