@@ -30,16 +30,20 @@ async def http_exception_handler(request: Request, exc: Exception):
 
 @app.get("/")
 async def root():
+    """루트 엔드포인트입니다."""
     logger.info("Root endpoint accessed")
     return {"test": "Hello Sandol"}
 
 
 @app.post("/get_id")
 async def get_id(payload: Payload = Depends(parse_payload)):
+    """사용자의 ID를 반환하는 엔드포인트입니다."""
     logger.info("Get ID endpoint accessed")
     logger.debug(f"User ID: {payload.user_id}")
     response = KakaoResponse()
     response.add_component(SimpleTextComponent(payload.user_id))
+    return JSONResponse(response.get_dict())
+
 
 if __name__ == "__main__":
     logger.info("Starting Sandol server")
