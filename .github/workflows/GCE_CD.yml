@@ -1,8 +1,7 @@
 name: Deploy to GCP VM
 
 on:
-  push:
-    branches: [ feature/deploy ]
+  workflow_dispatch: # 버튼 생성
 
 jobs:
   deploy:
@@ -11,11 +10,18 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        ref: feature/deploy # feature/deploy 브랜치를 체크아웃
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: Clean up GCP authentication files
+      run: |
+        gcloud auth revoke --all
+        rm -f ~/.config/gcloud/application_default_credentials.json
 
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
@@ -50,3 +56,7 @@ jobs:
         GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
         GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
         GCP_ZONE: '${{ secrets.GCP_ZONE }}'
+
+    - name: Delete leftover GCP credential files
+      run: |
+        rm -f ~/app/gha-creds-*.json
