@@ -226,6 +226,7 @@ class Restaurant:
                 self.temp_lunch.remove(menu)
                 self.save_temp_menu()
                 logger.debug("점심 메뉴 삭제: %s", menu)
+                return
             logger.warning("삭제하려는 점심 메뉴가 존재하지 않음: %s", menu)
             raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
@@ -234,6 +235,7 @@ class Restaurant:
                 self.temp_dinner.remove(menu)
                 self.save_temp_menu()
                 logger.debug("저녁 메뉴 삭제: %s", menu)
+                return
             logger.warning("삭제하려는 저녁 메뉴가 존재하지 않음: %s", menu)
             raise ValueError("해당 메뉴는 등록되지 않은 메뉴입니다.")
 
