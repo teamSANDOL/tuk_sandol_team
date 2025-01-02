@@ -1,4 +1,5 @@
 """Crawler에서 사용할 설정값들을 모아놓은 파일입니다."""
+
 import os
 import json
 import pytz
@@ -11,6 +12,7 @@ KST = pytz.timezone("Asia/Seoul")
 
 # BUCKET
 BUCKET_NAME: str = "aws-sandol-bucket"
+
 
 # Access Token
 # SANDOL_ACCESS_ID: dict = {
@@ -26,6 +28,7 @@ BUCKET_NAME: str = "aws-sandol-bucket"
 def SANDOL_ACCESS_ID() -> dict:
     with open(f"{_PATH}/data/admin_id.json", "r", encoding="UTF-8") as f:
         return json.load(f)
+
 
 # 산돌팀만 접근할 수 있는 컨텐츠에 인증 수단으로 사용 (현재 아이디의 정확한 위치가 기억이 나지 않아.. KEY를 메니저와, CONTRIBUTOR로 명명함.)
 # RESTAURANT_ACCESS_ID: dict = {
