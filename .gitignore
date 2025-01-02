@@ -166,3 +166,6 @@ instance/*
 
 ### others
 **/node_mudules/
+
+# 데이터 파일
+sandol/crawler/data/*.json

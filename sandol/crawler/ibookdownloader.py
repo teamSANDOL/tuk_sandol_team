@@ -1,4 +1,4 @@
-"""ibook 파일 다운로드 모듈
+"""ibook 파일 다운로드 모듈입니다.
 
 한국공학대학교 iBook에서 파일을 다운로드하는 모듈입니다.
 BookDownloader 클래스를 사용하여 iBook에서 파일을 다운로드할 수 있습니다.
@@ -8,7 +8,7 @@ Example:
     downloader = BookDownloader(link)  # BookDownloader 객체 생성
     downloader.get_file("data.xlsx")  # data.xlsx에 파일 저장
 """
-import os
+
 from typing import Optional
 from xml.etree import ElementTree
 import requests
@@ -20,11 +20,10 @@ class FetchError(Exception):
     """Exception raised when fetching fails."""
 
     def __init__(self, status_code=None, message="파일 처리중 오류가 발생했습니다."):
+        """파일 처리중 오류가 발생했을 때 발생하는 예외입니다."""
         self.status_code = status_code
         self.message = (
-            message
-            if status_code is None else
-            f"{message} Status code: {status_code}"
+            message if status_code is None else f"{message} Status code: {status_code}"
         )
         super().__init__(self.message)
 
@@ -33,6 +32,7 @@ class FetchBookcodeError(FetchError):
     """Exception raised when fetching bookcode fails."""
 
     def __init__(self, status_code, message="북코드 추출 실패."):
+        """북코드 추출 실패 예외입니다."""
         super().__init__(status_code, message)
 
 
@@ -40,6 +40,7 @@ class FetchFileListError(FetchError):
     """Exception raised when fetching file list fails."""
 
     def __init__(self, status_code=None, message="파일 목록을 가져오지 못했습니다."):
+        """파일 목록을 가져오지 못했을 때 발생하는 예외입니다."""
         super().__init__(status_code, message)
 
 
@@ -47,17 +48,21 @@ class DownloadFileError(FetchError):
     """Exception raised when downloading file fails."""
 
     def __init__(self, status_code, message="파일 다운로드 실패."):
+        """파일 다운로드 실패 예외입니다."""
         super().__init__(status_code, message)
 
 
 class BookcodeNotExistError(Exception):
+    """북코드가 없을 때 발생하는 예외입니다."""
+
     def __init__(self, message="북코드가 없습니다."):
+        """북코드가 없을 때 발생하는 예외입니다."""
         self.message = message
         super().__init__(self.message)
 
 
 class BookDownloader:
-    """한국공학대학교 iBook에서 파일을 다운로드하는 클래스
+    """한국공학대학교 iBook에서 파일을 다운로드하는 클래스입니다.
 
     iBook에서 파일을 다운로드하는 클래스입니다.
     BookDownloader(iBook URL, 파일 목록 URL)로 객체를 생성하고
@@ -76,9 +81,11 @@ class BookDownloader:
     """
 
     def __init__(
-            self,
-            url="https://ibook.tukorea.ac.kr/Viewer/menu02",
-            file_list_url="https://ibook.tukorea.ac.kr/web/RawFileList"):
+        self,
+        url="https://ibook.tukorea.ac.kr/Viewer/menu02",
+        file_list_url="https://ibook.tukorea.ac.kr/web/RawFileList",
+    ):
+        """ibook 파일 다운로드 모듈입니다."""
         self.url = url
         self.file_list_url = file_list_url
         self.bookcode = None
@@ -124,7 +131,7 @@ class BookDownloader:
         return False
 
     def fetch_bookcode(self):
-        """iBook의 bookcode를 가져오는 메소드
+        """iBook의 bookcode를 가져오는 메소드입니다.
 
         iBook의 bookcode를 가져오는 메소드입니다.
         iBook url로 html을 가져와서 bookcode를 찾고,
@@ -147,7 +154,7 @@ class BookDownloader:
             raise FetchBookcodeError(response.status_code)
 
     def fetch_file_list(self):
-        """파일 목록을 가져오는 메소드
+        """파일 목록을 가져오는 메소드입니다.
 
         파일 목록 URL로 파일 목록을 가져오는 메소드입니다.
         bookcode가 없으면 "Bookcode를 가져오지 못했습니다."를 출력하고 None을 반환합니다.
@@ -162,26 +169,23 @@ class BookDownloader:
             raise BookcodeNotExistError  # bookcode가 없으면 에러
 
         # key는 kpu로 고정(한국공학대학교 iBook의 key: 바뀔 수 있음)
-        data = {
-            "key": "kpu",
-            "bookcode": self.bookcode,
-            "base64": "N"
-        }
+        data = {"key": "kpu", "bookcode": self.bookcode, "base64": "N"}
 
         # 파일 목록 가져오기
         response = requests.post(
-            self.file_list_url,
-            headers=self.file_list_headers, data=data, timeout=10)
+            self.file_list_url, headers=self.file_list_headers, data=data, timeout=10
+        )
 
         # 파일 목록 가져오기 성공
-        if (response.status_code == 200 and
-                not self.check_for_errors(response.content.decode("utf-8"))):
+        if response.status_code == 200 and not self.check_for_errors(
+            response.content.decode("utf-8")
+        ):
             return response.content.decode("utf-8")
         else:  # 파일 목록 가져오기 실패
             raise FetchFileListError(response.status_code)
 
     def download_file(self, file_url, save_as):
-        """파일을 다운로드하는 메소드
+        """파일을 다운로드하는 메소드입니다.
 
         파일을 다운로드하는 메소드입니다.
         파일 URL로 요청을 보내고,
@@ -197,16 +201,14 @@ class BookDownloader:
 
         # 파일 다운로드 성공
         if response.status_code == 200:
-            # Lambda의 /tmp 디렉토리에 파일 저장
-            save_path = os.path.join('/tmp', save_as)
-            with open(save_path, "wb") as f:
+            with open(save_as, "wb") as f:
                 f.write(response.content)
-            logger.info(f"File saved to {save_path}")
+            logger.info(f"File saved to {save_as}")
         else:  # 파일 다운로드 실패
             raise DownloadFileError(response.status_code)
 
     def get_file_url(self, file_list_content: str):
-        """file_list_content에서 파일 URL을 가져오는 메소드
+        """file_list_content에서 파일 URL을 가져오는 메소드입니다.
 
         file_list_content에서 파일 URL을 가져오는 메소드입니다.
         file_list_content를 xml로 파싱하고,
@@ -235,12 +237,14 @@ class BookDownloader:
             bookcode = root.attrib["bookcode"]
 
             # 파일 URL 생성(한국공학대학교 iBook의 파일 URL 형식)
-            file_url = (f"https://{host}/contents/{bookcode[0]}/{bookcode[:3]}"
-                        f"/{bookcode}/raw/{file_name}")
+            file_url = (
+                f"https://{host}/contents/{bookcode[0]}/{bookcode[:3]}"
+                f"/{bookcode}/raw/{file_name}"
+            )
             return file_url
 
     def get_file(self, file_name: Optional[str] = None):
-        """book 파일을 다운로드하는 메소드
+        """Book 파일을 다운로드하는 메소드입니다.
 
         book 파일을 다운로드하는 메소드입니다.
         bookcode를 가져오고,
