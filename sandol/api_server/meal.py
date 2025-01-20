@@ -24,24 +24,52 @@ from kakao_chatbot.response.components import (
 )
 
 from api_server.utils import (
-    meal_error_response_maker,
-    split_string,
-    meal_response_maker,
-    make_meal_cards,
     parse_payload,
+    create_openapi_extra,
     check_tip_and_e,
     check_access_id,
+    split_string,
+    make_meal_cards,
+    meal_response_maker,
+    meal_error_response_maker,
 )
 from api_server.settings import NAVER_MAP_URL_DICT, logger, BLOCK_IDS
+from api_server.payload import Payload as pydanticPayload
 from crawler import get_registration, Restaurant, get_meals
 from crawler.settings import KST
 
 meal_api = APIRouter(prefix="/meal")
 
 
-@meal_api.post("/register/restaurant/change_id")
+@meal_api.post(
+    "/register/restaurant/change_id",
+    openapi_extra=create_openapi_extra(
+        detail_params={
+            "varification": {
+                "origin": "test_식당_id",
+                "value": "test_식당_id",
+            },
+        },
+        utterance="업체계정변경",
+    ),
+)
 async def register_restaurant_change_id(payload: Payload = Depends(parse_payload)):
     """업체를 관리하는 관리자 ID를 변경하는 API입니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 발화
+        - "업체계정변경"
+        - "업체ID변경"
+
+    - OpenBuilder:
+        - 블럭: "계정변경"
+        - 스킬: "업체ID변경"
+
+    - Params:
+        - detail_params:
+            - varification(sys.constant): 변경할 업체 ID
+    ---
 
     Returns:
         str: ID 변경 결과를 반환합니다.
@@ -95,10 +123,36 @@ async def register_restaurant_change_id(payload: Payload = Depends(parse_payload
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/restaurant/decline")
+@meal_api.post(
+    "/register/restaurant/decline",
+    openapi_extra=create_openapi_extra(
+        detail_params={
+            "double_check": {
+                "origin": "거절",
+                "value": "거절",
+            },
+        },
+        client_extra={
+            "identification": "test_식당_id",
+        },
+    ),
+)
 @check_access_id("sandol")
 async def register_restaurant_decline(payload: Payload = Depends(parse_payload)):
     """업체 등록을 거절하는 api 입니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 버튼 연결
+
+    - OpenBuilder:
+        - 블럭: "업체 등록 거절"
+        - 스킬: "업체 등록 거절"
+
+    - Params:
+        - detail_params:
+            - double_check(sys.constant): 거절
+    ---
 
     Returns:
         str: 거절 결과를 반환합니다.
@@ -137,10 +191,36 @@ async def register_restaurant_decline(payload: Payload = Depends(parse_payload))
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/restaurant/approve")
+@meal_api.post(
+    "/register/restaurant/approve",
+    openapi_extra=create_openapi_extra(
+        detail_params={
+            "place": {
+                "origin": "교내",
+                "value": "교내",
+            },
+        },
+        client_extra={
+            "identification": "test_식당_id",
+        },
+    ),
+)
 @check_access_id("sandol")
 async def register_restaurant_approve(payload: Payload = Depends(parse_payload)):
     """업체 등록을 승인하는 API 입니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 버튼 연결
+
+    - OpenBuilder:
+        - 블럭: "업체 등록 승인"
+        - 스킬: "업체 등록 승인"
+
+    - Params:
+        - detail_params:
+            - place(sys.constant): 교내 또는 교외
+    ---
 
     Returns:
         str: 승인 결과를 반환합니다.
@@ -187,10 +267,29 @@ async def register_restaurant_approve(payload: Payload = Depends(parse_payload))
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/restaurant/list")
+@meal_api.post(
+    "/register/restaurant/list",
+    openapi_extra=create_openapi_extra(utterance="식당 승인 요청 목록"),
+)
 @check_access_id("sandol")
 async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
-    """등록을 신청한 업체 목록을 반환하는 API입니다."""
+    """등록을 신청한 업체 목록을 반환하는 API입니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 발화
+        - "식당 승인 요청 목록"
+        - "업체 승인"
+        - "업체 목록"
+
+    - OpenBuilder:
+        - 블럭: "업체 목록"
+        - 스킬: "업체 목록"
+    ---
+
+    Returns:
+        str: 업체 목록을 반환합니다.
+    """
     logger.info("등록 대기 중인 식당 목록 조회 요청 수신: user_id=%s", payload.user_id)
     data = Restaurant.load_pending_restaurants()
 
@@ -236,11 +335,74 @@ async def register_restaurant_list(payload: Payload = Depends(parse_payload)):
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/restaurant")
+@meal_api.post(
+    "/register/restaurant",
+    openapi_extra=create_openapi_extra(
+        detail_params={
+            "name": {
+                "origin": "미가식당",
+                "value": "미가식당",
+            },
+            "lunch_start": {
+                "origin": "11:30:00",
+                "value": "11:30:00",
+            },
+            "lunch_end": {
+                "origin": "14:00:00",
+                "value": "14:00:00",
+            },
+            "dinner_start": {
+                "origin": "17:30:00",
+                "value": "17:30:00",
+            },
+            "dinner_end": {
+                "origin": "20:00:00",
+                "value": "20:00:00",
+            },
+            "price_per_person": {
+                "origin": "5000",
+                "value": "5000",
+            },
+            "varification_key": {
+                "origin": "test_식당_varification_key",
+                "value": "test_식당_varification_key",
+            },
+            "varification_key_check": {
+                "origin": "test_식당_varification_key",
+                "value": "test_식당_varification_key",
+            },
+        },
+    ),
+)
 async def register_restaurant(payload: Payload = Depends(parse_payload)):
     """업체 등록 신청을 관리하는 API입니다.
 
     등록하려는 업체의 등록 정보를 받아 신청 리스트에 저장합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 발화
+        - "업체 등록"
+        - "식당 등록"
+
+    - OpenBuilder:
+        - 블럭: "업체 등록"
+        - 스킬: "업체 등록"
+
+    - Params:
+        - detail_params:
+            - name(sys.constant): 업체 이름
+            - lunch_start(sys.plugin.time): 점심 시작 시간
+            - lunch_end(sys.plugin.time): 점심 종료 시간
+            - dinner_start(sys.plugin.time): 저녁 시작 시간
+            - dinner_end(sys.plugin.time): 저녁 종료 시간
+            - price_per_person(sys.constant): 인당 가격
+            - varification_key(sys.constant): 인증키
+            - varification_key_check(sys.constant): 인증키 확인
+    ---
+
+    Returns:
+        str: 업체 등록 결과를 반환합니다.
     """
     logger.info("식당 등록 요청 수신: user_id=%s", payload.user_id)
     assert payload.detail_params is not None
@@ -327,7 +489,7 @@ async def register_restaurant(payload: Payload = Depends(parse_payload)):
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/delete/{meal_type}")
+@meal_api.post("/register/delete/{meal_type}", openapi_extra=create_openapi_extra())
 @check_access_id("restaurant")
 async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload)):
     """삭제할 메뉴를 선택하는 API입니다.
@@ -340,6 +502,22 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
     Args:
         meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작 방식: 버튼 연결
+
+    - OpenBuilder:
+        - 블럭:
+            - "메뉴 삭제 - 중식"
+            - "메뉴 삭제 - 석식"
+        - 스킬:
+            - "중식 삭제"
+            - "석식 삭제"
+    ---
+
+    Returns:
+        str: 삭제할 수 있는 메뉴 리스트를 반환합니다.
     """
     logger.info(
         "메뉴 삭제 요청 수신: user_id=%s, meal_type=%s", payload.user_id, meal_type
@@ -383,12 +561,27 @@ async def meal_delete(meal_type: str, payload: Payload = Depends(parse_payload))
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/delete_all")
+@meal_api.post(
+    "/register/delete_all",
+    openapi_extra=create_openapi_extra(utterance="식단 전체 삭제"),
+)
 @check_access_id("restaurant")
 async def meal_delete_all(payload: Payload = Depends(parse_payload)):
     """모든 메뉴를 삭제하는 API입니다.
 
     모든 메뉴를 삭제하고 삭제된 결과를 응답으로 반환합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 버튼 연결
+
+    - OpenBuilder:
+        - 블럭: "식단 삭제"
+        - 스킬: "식단 삭제"
+    ---
+
+    Returns:
+        str: 모든 메뉴가 삭제되었음을 반환합니다.
     """
     logger.info("모든 메뉴 삭제 요청 수신: user_id=%s", payload.user_id)
     restaurant: Restaurant = get_registration(payload.user_id)
@@ -403,13 +596,38 @@ async def meal_delete_all(payload: Payload = Depends(parse_payload)):
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/delete_menu")
+@meal_api.post(
+    "/register/delete_menu",
+    openapi_extra=create_openapi_extra(
+        client_extra={
+            "meal_type": "lunch",
+            "menu": "김치찌개",
+        },
+    ),
+)
 @check_access_id("restaurant")
 async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
     """선택한 메뉴를 삭제하는 API입니다.
 
     meal_delete API에서 선택한 메뉴를 삭제합니다.
     삭제된 결과를 응답으로 반환합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 버튼 연결
+
+    - OpenBuilder:
+        - 블럭: "메뉴 삭제"
+        - 스킬: "메뉴 삭제"
+
+    - Params:
+        - client_extra:
+            - meal_type(str): 삭제할 식사 종류
+            - menu(str): 삭제할 메뉴
+    ---
+
+    Returns:
+        str: 메뉴가 삭제된 결과를 반환합니다.
     """
     logger.info("메뉴 삭제 요청 수신: user_id=%s", payload.user_id)
     restaurant: Restaurant = get_registration(payload.user_id)
@@ -461,7 +679,17 @@ async def meal_menu_delete(payload: Payload = Depends(parse_payload)):
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/register/{meal_type}")
+@meal_api.post(
+    "/register/{meal_type}",
+    openapi_extra=create_openapi_extra(
+        detail_params={
+            "menu": {
+                "origin": "김치찌개",
+                "value": "김치찌개",
+            },
+        },
+    ),
+)
 @check_access_id("restaurant")
 async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload)):
     """식단 정보를 등록합니다.
@@ -472,6 +700,25 @@ async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload
     Args:
         meal_type (str): 중식 또는 석식을 나타내는 문자열입니다.
             lunch, dinner 2가지 중 하나의 문자열이어야 합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작 방식: 발화
+        - "중식 등록"
+        - "석식 등록"
+
+    - OpenBuilder:
+        - 블럭:
+            - "식단 등록 - 중식"
+            - "식단 등록 - 석식"
+        - 스킬:
+            - "중식 등록"
+            - "석식 등록"
+    ---
+
+    - Params:
+        - detail_params:
+            - menu(sys.plugin.text): 등록할 메뉴
     """
     logger.info(
         "식단 등록 요청 수신: user_id=%s, meal_type=%s", payload.user_id, meal_type
@@ -511,13 +758,28 @@ async def meal_register(meal_type: str, payload: Payload = Depends(parse_payload
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/submit")
+@meal_api.post(
+    "/submit",
+    openapi_extra=create_openapi_extra()
+)
 @check_tip_and_e
 @check_access_id("restaurant")
 async def meal_submit(payload: Payload = Depends(parse_payload)):
     """식단 정보를 확정하는 API입니다.
 
     임시 저장된 식단 정보를 확정하고 등록합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 버튼 연결
+
+    - OpenBuilder:
+        - 블럭: "식단 확정"
+        - 스킬: "식단 확정"
+    ---
+
+    Returns:
+        str: 확정된 식단 정보를 반환합니다.
     """
     # 요청을 받아 Payload 객체로 변환 및 사용자의 ID로 등록된 식당 객체를 불러옴
     logger.info("식단 확정 요청 수신: user_id=%s", payload.user_id)
@@ -577,14 +839,51 @@ async def meal_submit(payload: Payload = Depends(parse_payload)):
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/view")
+@meal_api.post(
+    "/view",
+    openapi_extra=create_openapi_extra(
+        detail_params={
+            "Cafeteria": {
+                "origin": "미가",
+                "value": "미가식당",
+            },
+        },
+        utterance="학식 미가",
+    ),
+)
 @check_tip_and_e
 async def meal_view(payload: Payload = Depends(parse_payload)):
-    """식단 정보를 Carousel TextCard 형태로 반환합니다."""
-    logger.info("식단 정보 조회 요청 수신: user_id=%s", payload.user_id)
+    """식단 정보를 Carousel TextCard 형태로 반환합니다.
+
+    등록된 식당 정보를 불러와 어제 7시 이후 등록된 식당 정보를 먼저 배치합니다.
+    그 후 어제 7시 이전 등록된 식당 정보를 배치합니다.
+    이를 통해 어제 7시 이후 등록된 식당 정보가 먼저 보이도록 합니다.
+    이를 토대로 점심과 저녁 메뉴를 담은 Carousel을 생성합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 발화
+        - "학식"
+        - "학식 <식당>"
+        - "메뉴 <식당>"
+        - 등
+
+    - OpenBuilder:
+        - 블럭: "학식 보기"
+        - 스킬: "학식 보기"
+
+    - Params:
+        - detail_params:
+            - Cafeteria(식당): 식당 이름(Optional)
+    ---
+
+    Returns:
+        str: 식단 정보를 반환합니다.
+    """
+    logger.info("식단 정보 조회 요청 수신: user_id=%s", payload.user_request.user.id)
     # payload에서 Cafeteria 값 추출
-    assert payload.detail_params is not None
-    cafeteria = payload.detail_params.get("Cafeteria")  # 학식 이름
+    assert payload.action.detail_params is not None
+    cafeteria = payload.action.detail_params.get("Cafeteria")  # 학식 이름
     target_cafeteria = getattr(cafeteria, "value", None)
 
     # 식당 정보를 가져옵니다.
@@ -603,7 +902,7 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
 
     af_standard: list[Restaurant] = []
     bf_standard: list[Restaurant] = []
-    logger.debug("식당 정보 정렬 시작: user_id=%s", payload.user_id)
+    logger.debug("식당 정보 정렬 시작: user_id=%s", payload.user_request.user.id)
     for r in restaurants:
         if r.registration_time.tzinfo is None:
             logger.warning(
@@ -636,7 +935,7 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
     if not dinner_carousel.is_empty:
         response.add_component(dinner_carousel)
     if not response.component_list:
-        logger.debug("식단 정보가 없습니다: user_id=%s", payload.user_id)
+        logger.debug("식단 정보가 없습니다: user_id=%s", payload.user_request.user.id)
         response.add_component(SimpleTextComponent("식단 정보가 없습니다."))
 
     # 퀵리플라이 추가
@@ -656,13 +955,39 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
                 message_text=f"학식 {rest.name}",
             )
 
-    logger.info("식단 정보 조회 완료: user_id=%s", payload.user_id)
+    logger.info("식단 정보 조회 완료: user_id=%s", payload.user_request.user.id)
     return JSONResponse(response.get_dict())
 
 
-@meal_api.post("/restaurant")
-async def meal_restaurant(payload: Payload = Depends(parse_payload)):
-    """식당 정보를 반환하는 API입니다."""
+@meal_api.post(
+    "/restaurant",
+    openapi_extra=create_openapi_extra(
+        client_extra={
+            "restaurant_name": "미가식당",
+        }
+    ),
+)
+async def meal_restaurant(payload: pydanticPayload = Depends(parse_payload)):
+    """식당 정보를 반환하는 API입니다.
+
+    식당의 운영시간, 위치, 가격 등의 정보를 반환합니다.
+
+    ## 카카오 챗봇 연결 정보
+    ---
+    - 동작방식: 버튼 연결
+
+    - OpenBuilder:
+        블럭: "식당 정보"
+        스킬: "식당 정보"
+
+    - Params:
+        - client_extra:
+            - restaurant_name(str): 식당 이름
+    ---
+
+    Returns:
+        str: 식당 정보를 반환합니다.
+    """
     logger.info("식당 정보 조회 요청 수신: user_id=%s", payload.user_id)
     restaurant_name: str = payload.action.client_extra["restaurant_name"]
 
