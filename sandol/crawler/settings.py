@@ -41,3 +41,7 @@ def SANDOL_ACCESS_ID() -> dict:
 def RESTAURANT_ACCESS_ID() -> dict:
     with open(f"{_PATH}/data/restaurant_id.json", "r", encoding="UTF-8") as f:
         return json.load(f)
+
+def SCHOOL_INFO() -> dict:
+    with open(f"{_PATH}/data/school_info.json", "r", encoding="UTF-8") as f:
+        return json.load(f)
