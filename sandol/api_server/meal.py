@@ -34,7 +34,6 @@ from api_server.utils import (
     meal_error_response_maker,
 )
 from api_server.settings import NAVER_MAP_URL_DICT, logger, BLOCK_IDS
-from api_server.payload import Payload as pydanticPayload
 from crawler import get_registration, Restaurant, get_meals
 from crawler.settings import KST
 
@@ -967,7 +966,7 @@ async def meal_view(payload: Payload = Depends(parse_payload)):
         }
     ),
 )
-async def meal_restaurant(payload: pydanticPayload = Depends(parse_payload)):
+async def meal_restaurant(payload: Payload = Depends(parse_payload)):
     """식당 정보를 반환하는 API입니다.
 
     식당의 운영시간, 위치, 가격 등의 정보를 반환합니다.
