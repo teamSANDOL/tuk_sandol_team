@@ -11,7 +11,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        ref: feature/deploy # feature/deploy 브랜치를 체크아웃
+        ref: ${{ github.ref_name }}  # 브랜치 자동 감지
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
