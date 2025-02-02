@@ -20,8 +20,11 @@ jobs:
 
     - name: Clean up GCP authentication files
       run: |
-        gcloud auth revoke --all
+        if gcloud auth list --format="value(account)" | grep -q '@'; then
+          gcloud auth revoke --all
+        fi
         rm -f ~/.config/gcloud/application_default_credentials.json
+
 
     - name: Set up Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
