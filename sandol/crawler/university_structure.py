@@ -138,6 +138,19 @@ class UniversityStructure(BaseModel):
 
         return None  # 찾지 못한 경우 None 반환
 
+    def _search_by_name(
+        self, node: Union[OrganizationGroup, OrganizationUnit], query: str
+    ) -> List[Union[OrganizationUnit, OrganizationGroup]]:
+        """이름 기반 전체 검색 (트리 순회)"""
+        results = []
+        if node.name == query:
+            results.append(node)
+
+        if isinstance(node, OrganizationGroup):
+            for subunit in node.subunits.values():
+                results.extend(self._search_by_name(subunit, query))
+
+        return results
 
 def get_tukorea_structure() -> UniversityStructure:
     """한국공학대학교 조직 구조를 반환"""
