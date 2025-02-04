@@ -261,7 +261,7 @@ def make_org_group_list(
             description="클릭해 정보보기",
             action="block",
             block_id="679ca1348c69ad7d00db038e",
-            extra=dict(unit),
+            extra=unit.model_dump(),
         )
 
     return (
