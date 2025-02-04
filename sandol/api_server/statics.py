@@ -69,5 +69,5 @@ def phone(payload: Payload = Depends(parse_payload)):
 def unit_info(payload: Payload = Depends(parse_payload)):
     """학교 조직 정보를 반환합니다."""
     response = KakaoResponse()
-    response.add_component(make_unit_item(payload.action.params))
+    response.add_component(make_unit_item(payload.action.client_extra))
     return JSONResponse(response.get_dict())

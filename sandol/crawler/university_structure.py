@@ -105,7 +105,6 @@ class UniversityStructure(BaseModel):
         Returns:
             Union[OrganizationUnit, List[Union[OrganizationUnit, OrganizationGroup]], None]:
                 해당하는 조직을 찾은 경우 해당 조직을 반환
-                찾은 조직이 OrganizationGroup인 경우 하위 조직을 리스트로 반환
                 찾지 못한 경우 None 반환
         """
 
@@ -116,7 +115,7 @@ class UniversityStructure(BaseModel):
 
             # 경로가 모두 탐색된 경우, 현재 노드를 반환
             if not remaining_parts:
-                return node if isinstance(node, OrganizationUnit) else node.as_list()
+                return node if isinstance(node, OrganizationUnit) else node  # OrganizationGroup 그대로 반환
 
             # 현재 노드가 OrganizationGroup인 경우 하위 유닛에서 찾기
             if isinstance(node, OrganizationGroup):
