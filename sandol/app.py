@@ -11,11 +11,15 @@ import uvicorn
 
 from api_server.settings import logger
 from api_server.meal import meal_api
+from api_server.statics import statics_router
 from api_server.utils import error_message, parse_payload
 
 
 app = FastAPI()
 app.include_router(meal_api)
+app.include_router(statics_router)
+
+
 
 
 @app.exception_handler(Exception)
