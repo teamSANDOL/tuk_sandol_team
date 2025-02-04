@@ -39,7 +39,9 @@ statics_router = APIRouter(prefix="/statics")
 )
 def phone(payload: Payload = Depends(parse_payload)):
     """학교 전화번호를 반환합니다."""
-    org = payload.action.params["organization"]
+    org = payload.action.params.get("organization", None)
+    if org is None:
+        org = "대표전화"
     tukorea: UniversityStructure = get_tukorea_structure()
     unit = tukorea.get_unit(org)
 
