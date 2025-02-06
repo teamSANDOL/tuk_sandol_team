@@ -242,12 +242,13 @@ def make_org_group_list(
         group (OrganizationGroup): 조직 그룹 객체
     """
     target_group = group.as_list()
-    chunk_size = 4  # ListCard에 들어갈 최대 아이템 개수
+    chunk_size = 4  # ListCard에 들어갈 최대 아이템 개수, CarouselComponent 사용 시 4개가 최대
 
     # 5개 이하일 경우, 하나의 ListCardComponent로 처리
     if len(target_group) <= 5:
         list_card = ListCardComponent(header=group.name)
-        target_list = [list_card]  # 단일 ListCard 처리
+        target_list = [list_card]
+        chunk_size = 5 # CarouselComponent를 사용하지 않기 때문에 chunk_size를 5로 설정
     else:
         target_list = [
             ListCardComponent(header=group.name)
