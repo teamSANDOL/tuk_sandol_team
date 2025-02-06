@@ -289,7 +289,7 @@ def make_unit_item(unit: dict | OrganizationGroup) -> ItemCardComponent:
     if unit.url:
         item_card.add_item(title="홈페이지", description=unit.url)
         item_card.add_button(
-            label="홈페이지 방문", action="webLink", webLinkUrl=unit.url
+            label="홈페이지 방문", action="webLink", web_link_url=unit.url
         )
     if not unit.phone and not unit.url:
         item_card.add_item(
