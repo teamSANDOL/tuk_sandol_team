@@ -19,6 +19,7 @@ from kakao_chatbot.response.components import (
     CarouselComponent,
     TextCardComponent,
     SimpleTextComponent,
+    ListCardComponent,
 )
 import openpyxl
 
@@ -27,6 +28,13 @@ from crawler.settings import KST, RESTAURANT_ACCESS_ID, SANDOL_ACCESS_ID
 from crawler.ibookcrawler import BookTranslator
 from crawler.ibookdownloader import BookDownloader
 from api_server.settings import CAFETRIA_REGISTER_QUICK_REPLY_LIST, logger
+
+from crawler.university_structure import (
+    UniversityStructure,
+    OrganizationUnit,
+    OrganizationGroup,
+    get_tukorea_structure,
+)
 
 
 def get_last_saved_date(filepath: str) -> datetime:
@@ -221,6 +229,109 @@ def meal_response_maker(
     return response
 
 
+def make_org_group_list(
+    group: OrganizationGroup,
+) -> ListCardComponent | CarouselComponent:
+    """조직 그룹 정보를 ListCardComponent 또는 CarouselComponent로 반환합니다.
+
+    조직 그룹의 하위 조직 개수에 따라 ListCard 또는 Carousel을 생성합니다.
+    - 5개 이하: 하나의 ListCardComponent에 모든 항목 추가
+    - 6개 이상: 4개씩 ListCardComponent로 나누어 CarouselComponent에 추가
+
+    Args:
+        group (OrganizationGroup): 조직 그룹 객체
+    """
+    target_group = group.as_list()
+    chunk_size = 4  # ListCard에 들어갈 최대 아이템 개수, CarouselComponent 사용 시 4개가 최대
+
+    # 5개 이하일 경우, 하나의 ListCardComponent로 처리
+    if len(target_group) <= 5:
+        list_card = ListCardComponent(header=group.name)
+        target_list = [list_card]
+        chunk_size = 5 # CarouselComponent를 사용하지 않기 때문에 chunk_size를 5로 설정
+    else:
+        target_list = [
+            ListCardComponent(header=group.name)
+            for _ in range((len(target_group) + chunk_size - 1) // chunk_size)
+        ]  # 4개씩 담을 ListCardComponent들 생성
+
+    # 모든 unit을 순회하면서 적절한 ListCardComponent에 추가
+    for idx, unit in enumerate(target_group):
+        if isinstance(unit, OrganizationGroup):
+            target_list[idx // chunk_size].add_item(
+                title=unit.name,
+                description="하위 조직 보기",
+                action="message",
+                message_text=f"{unit.name} 정보",
+            )
+        else:
+            target_list[idx // chunk_size].add_item(
+                title=unit.name,
+                description="클릭해 정보보기",
+                action="block",
+                block_id="679ca1348c69ad7d00db038e",
+                extra=unit.model_dump(),
+            )
+
+    return (
+        target_list[0] if len(target_group) <= 5 else CarouselComponent(*target_list)
+    )
+
+def phone_number_format(phone_number: str) -> str:
+    """전화번호를 표준 형식으로 변환합니다.
+
+    전화번호를 받아 표준 형식으로 변환하여 반환합니다.
+    전화번호가 없는 경우 빈 문자열을 반환합니다.
+
+    Args:
+        phone_number (str): 전화번호
+    """
+    if not phone_number:
+        return ""
+
+    # 전화번호에서 숫자만 추출
+    phone_number = re.sub(r"[^0-9]", "", phone_number)
+
+    # 전화번호 길이에 따라 형식을 변환
+    if len(phone_number) == 9:
+        return f"{phone_number[:2]}-{phone_number[2:5]}-{phone_number[5:]}"
+    elif len(phone_number) == 10:
+        return f"{phone_number[:3]}-{phone_number[3:6]}-{phone_number[6:]}"
+    elif len(phone_number) == 11:
+        return f"{phone_number[:3]}-{phone_number[3:7]}-{phone_number[7:]}"
+    else:
+        return phone_number
+
+def make_unit_item(unit: dict | OrganizationGroup) -> ItemCardComponent:
+    """조직 단위 정보를 ItemCardComponent로 반환합니다.
+
+    조직 단위 객체를 받아 ItemCardComponent 객체를 생성하여 반환합니다.
+    ItemCardComponent 객체는 조직 단위의 이름과 전화번호를 보여줍니다.
+
+    Args:
+        unit (OrganizationUnit): 조직 단위 객체
+    """
+    if isinstance(unit, dict):
+        logger.info(f"unit: {unit}")
+        unit = OrganizationUnit.model_validate(unit, strict=False)
+
+    item_card = ItemCardComponent(item_list=[], head=unit.name)
+    if unit.phone:
+        item_card.add_item(
+            title="전화번호",
+            description=phone_number_format(unit.phone)
+        )
+        item_card.add_button(label="전화 걸기", action="phone", phone_number=unit.phone)
+
+    if unit.url:
+        item_card.add_item(title="홈페이지", description=unit.url)
+        item_card.add_button(label="홈페이지 방문", action="webLink", web_link_url=unit.url)
+
+    if not unit.phone and not unit.url:
+        item_card.add_item(title="정보 없음", description="전화번호 및 홈페이지 정보가 없습니다.")
+    return item_card
+
+
 def error_message(message: str | BaseException) -> TextCardComponent:
     """에러 메시지를 반환합니다.
 
@@ -237,15 +348,17 @@ def error_message(message: str | BaseException) -> TextCardComponent:
         #     traceback.format_tb(message.__traceback__))
 
         detailed_message = (
-            f"예외 타입: {exception_type}\n" f"예외 메시지: {exception_message}\n"
+            f"예외 타입: {exception_type}\n예외 메시지: {exception_message}\n"
             # f"트레이스백:\n{exception_traceback}"
         )
         message = detailed_message
     message += "\n죄송합니다. 서버 오류가 발생했습니다. 오류가 지속될 경우 관리자에게 문의해주세요."
     return TextCardComponent(title="오류 발생", description=message)
 
+
 def check_access_id(id_type: Literal["restaurant", "sandol"] = "sandol"):
     """식당 혹은 산돌 ID 접근을 확인하는 데코레이터입니다."""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -261,20 +374,18 @@ def check_access_id(id_type: Literal["restaurant", "sandol"] = "sandol"):
             logger.info(f"{id_type} 권한 접근 시도 access_id: {access_id}")
 
             response = KakaoResponse()
-            response.add_component(
-                SimpleTextComponent("접근 권한이 없습니다.")
-            )
+            response.add_component(SimpleTextComponent("접근 권한이 없습니다."))
             if (
-                (
-                    id_type == "restaurant" and access_id not in RESTAURANT_ACCESS_ID().keys()
-                ) or (
-                    id_type == "sandol" and access_id not in SANDOL_ACCESS_ID().values()
-                )
-            ):
+                id_type == "restaurant"
+                and access_id not in RESTAURANT_ACCESS_ID().keys()
+            ) or (id_type == "sandol" and access_id not in SANDOL_ACCESS_ID().values()):
                 return JSONResponse(response.get_dict())
             return await func(*args, **kwargs)
+
         return wrapper
+
     return decorator
+
 
 def check_tip_and_e(func):
     """TIP 가가식당과 E동 레스토랑 정보를 업데이트하는 데코레이터 입니다.
@@ -343,12 +454,13 @@ async def parse_payload(request: Request) -> Payload:
     data_dict = await request.json()
     return Payload.from_dict(data_dict)
 
+
 def create_openapi_extra(
-        detail_params: Optional[dict] = None,
-        client_extra: Optional[dict] = None,
-        contexts: Optional[list] = None,
-        utterance: Optional[str] = None,
-    ) -> dict:
+    detail_params: Optional[dict] = None,
+    client_extra: Optional[dict] = None,
+    contexts: Optional[list] = None,
+    utterance: Optional[str] = None,
+) -> dict:
     """
     detail_params, client_extra, contexts를 받아
     OpenAPI 스키마에 맞게 변환하며, 각각을 default로 설정한다.
@@ -389,16 +501,11 @@ def create_openapi_extra(
     }
     default_params = {}
     if detail_params:
-        default_params = {
-            key : value["value"] for key, value in detail_params.items()
-        }
-
+        default_params = {key: value["value"] for key, value in detail_params.items()}
 
     client_extra_schema = {
         "type": "object",
-        "additionalProperties": {
-            "type": "string"
-        },
+        "additionalProperties": {"type": "string"},
         # client_extra를 그대로 default로 설정
         "default": client_extra,
     }
@@ -460,7 +567,9 @@ def create_openapi_extra(
                                                             "type": "array",
                                                             "items": {"type": "string"},
                                                         },
-                                                        "landing_url": {"type": "string"},
+                                                        "landing_url": {
+                                                            "type": "string"
+                                                        },
                                                         "image_url": {"type": "string"},
                                                     },
                                                 },
@@ -473,18 +582,30 @@ def create_openapi_extra(
                             "user_request": {
                                 "type": "object",
                                 "properties": {
-                                    "timezone": {"type": "string", "default": "Asia/Seoul"},
+                                    "timezone": {
+                                        "type": "string",
+                                        "default": "Asia/Seoul",
+                                    },
                                     "block": {
                                         "type": "object",
                                         "additionalProperties": True,
                                     },
-                                    "utterance": {"type": "string", "default": utterance},
+                                    "utterance": {
+                                        "type": "string",
+                                        "default": utterance,
+                                    },
                                     "lang": {"type": "string", "default": "ko"},
                                     "user": {
                                         "type": "object",
                                         "properties": {
-                                            "id": {"type": "string", "default": "test_user_id"},
-                                            "type": {"type": "string", "default": "botUserKey"},
+                                            "id": {
+                                                "type": "string",
+                                                "default": "test_user_id",
+                                            },
+                                            "type": {
+                                                "type": "string",
+                                                "default": "botUserKey",
+                                            },
                                             "properties": {
                                                 "type": "object",
                                                 "additionalProperties": True,
@@ -498,13 +619,22 @@ def create_openapi_extra(
                                     },
                                     "callback_url": {"type": ["string", "null"]},
                                 },
-                                "required": ["timezone", "block", "utterance", "lang", "user"],
+                                "required": [
+                                    "timezone",
+                                    "block",
+                                    "utterance",
+                                    "lang",
+                                    "user",
+                                ],
                             },
                             "bot": {
                                 "type": "object",
                                 "properties": {
                                     "id": {"type": "string", "default": "test_bot_id"},
-                                    "name": {"type": "string", "default": "test_bot_name"},
+                                    "name": {
+                                        "type": "string",
+                                        "default": "test_bot_name",
+                                    },
                                 },
                                 "required": ["id", "name"],
                             },
