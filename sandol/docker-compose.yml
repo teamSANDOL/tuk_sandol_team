@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: sandol_container
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - /tmp/sandol/data:/app/crawler/data
 
@@ -15,6 +15,6 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - sandol
