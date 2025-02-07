@@ -170,7 +170,10 @@ class BookDownloader:
             None: 파일 목록을 가져오지 못했을 때
         """
         if self.bookcode is None:
-            raise BookcodeNotExistError  # bookcode가 없으면 에러
+            try:
+                self.fetch_bookcode()
+            except FetchBookcodeError as error:
+                raise BookcodeNotExistError from error   # bookcode가 없으면 에러
 
         # key는 kpu로 고정(한국공학대학교 iBook의 key: 바뀔 수 있음)
         data = {"key": "kpu", "bookcode": self.bookcode, "base64": "N"}
@@ -230,6 +233,8 @@ class BookDownloader:
         if not image_urls:
             logger.info("다운로드할 이미지가 없습니다.")
             return
+        else:
+            os.makedirs(image_save_path, exist_ok=True)
 
         for idx, img_url in enumerate(image_urls, start=1):
             save_as = os.path.join(image_save_path, f"page_{idx}.jpg")
@@ -252,8 +257,11 @@ class BookDownloader:
         Returns:
             list: 이미지 URL 목록
         """
-        if not self.bookcode:
-            raise BookcodeNotExistError()
+        if self.bookcode is None:
+            try:
+                self.fetch_bookcode()
+            except FetchBookcodeError as error:
+                raise BookcodeNotExistError from error   # bookcode가 없으면 에러
 
         json_url = f"{self.url.rsplit('/', 1)[0]}/getBookXML/{self.bookcode}"
         response = requests.get(json_url, headers=self.file_list_headers, timeout=1)
@@ -330,7 +338,10 @@ class BookDownloader:
 
 if __name__ == "__main__":
     # 사용 예시
-    # bus_link = "https://ibook.tukorea.ac.kr/Viewer/bus01"
+    bus_link = "https://ibook.tukorea.ac.kr/Viewer/bus01"
     downloader = BookDownloader()  # BookDownloader(bus_link) 로 셔틀 버스 파일 다운로드
     downloader.get_file("data.xlsx")  # data.xlsx에 파일 저장
     downloader.download_images()  # 이미지 다운로드
+    bus_image = BookDownloader(bus_link)
+    bus_image.fetch_bookcode()
+    print(bus_image.fetch_image_list())  # 이미지 다운로드
