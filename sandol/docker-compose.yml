@@ -1,12 +1,20 @@
-version: '3.8'
-
 services:
   sandol:
-      build:
-        context: ./  # Dockerfile이 위치한 디렉터리
-        dockerfile: Dockerfile  # Dockerfile 이름 (기본값: Dockerfile)
-      container_name: sandol_container
-      ports:
-        - "80:80"
-      volumes:
-        - /tmp/sandol/data:/app/crawler/data
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: sandol_container
+    ports:
+      - "8080:80"
+    volumes:
+      - /tmp/sandol/data:/app/crawler/data
+
+  nginx:
+    image: nginx:alpine
+    container_name: sandol_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - sandol

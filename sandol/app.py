@@ -15,7 +15,7 @@ from api_server.statics import statics_router
 from api_server.utils import error_message, parse_payload
 
 
-app = FastAPI()
+app = FastAPI(root_path="/api")
 app.include_router(meal_api)
 app.include_router(statics_router)
 
