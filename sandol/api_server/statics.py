@@ -135,8 +135,10 @@ def shuttle_info():
         JSONResponse: 셔틀버스 정보
     """
     shuttle_images = get_shuttle_images()
+    shuttle_images = shuttle_images[::-1]
 
     response = KakaoResponse()
     for image in shuttle_images:
         response.add_component(SimpleImageComponent(image, "셔틀버스 정보 사진"))
+
     return JSONResponse(response.get_dict())
