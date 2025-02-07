@@ -40,10 +40,10 @@
                 "url": "https://tukorea.ac.kr/tukorea/2510/subview.do#hakun"
             },
             "교수학습개발센터": {
-                "url": "https://www.tukorea.ac.kr/sites/ctl/index.do"
+                "url": "https://www.tukorea.ac.kr/sites/ctl"
             },
             "공학교육혁신센터": {
-                "url": "https://www.tukorea.ac.kr/sites/icee/index.do"
+                "url": "https://www.tukorea.ac.kr/sites/icee"
             }
         },
         "기획처": {
@@ -70,19 +70,19 @@
         "학생처": {
             "학생지원팀": {
                 "phone": "03180410073",
-                "url": "https://www.tukorea.ac.kr/student/index.do"
+                "url": "https://www.tukorea.ac.kr/student"
             },
             "학생생활복지센터": {
                 "phone": "03180410083",
-                "url": "https://www.tukorea.ac.kr/supphd/index.do"
+                "url": "https://www.tukorea.ac.kr/supphd"
             },
             "장애학생지원센터": {
                 "phone": "03180410073",
-                "url": "https://www.tukorea.ac.kr/supphd/index.do"
+                "url": "https://www.tukorea.ac.kr/supphd"
             },
             "학생상담센터": {
                 "phone": "03180411554",
-                "url": "https://www.tukorea.ac.kr/counsel/index.do"
+                "url": "https://www.tukorea.ac.kr/counsel"
             },
             "예비군연대본부": {
                 "phone": "03180410103",
@@ -142,7 +142,7 @@
                 "url": "https://tukorea.ac.kr/tukorea/2516/subview.do#changgyo"
             },
             "대학일자리플러스센터": {
-                "url": "https://www.tukorea.ac.kr/sites/job/index.do"
+                "url": "https://www.tukorea.ac.kr/sites/job"
             }
         },
         "연구처": {
@@ -168,7 +168,7 @@
     "부속기관": {
         "생활관": {
             "phone": "03180410082",
-            "url": "https://www.tukorea.ac.kr/dorm/index.do"
+            "url": "https://www.tukorea.ac.kr/dorm"
         },
         "사회봉사지원센터": {
             "phone": "03180410071",
@@ -184,7 +184,7 @@
         },
         "교양교육운영센터": {
             "phone": "03180410183",
-            "url": "https://www.tukorea.ac.kr/sites/larc/index.do"
+            "url": "https://www.tukorea.ac.kr/sites/larc"
         }
     },
     "대학": {
@@ -192,61 +192,61 @@
             "SW대학": {
                 "SW대학 교학팀": {
                     "phone": "03180410502",
-                    "url": "https://www.tukorea.ac.kr/sw/index.do"
+                    "url": "https://www.tukorea.ac.kr/sw"
                 },
                 "컴퓨터공학부": {
                     "phone": "03180410510",
-                    "url": "https://www.tukorea.ac.kr/ce/index.do"
+                    "url": "https://www.tukorea.ac.kr/ce"
                 },
                 "게임공학부": {
                     "phone": "03180410550",
-                    "url": "https://www.tukorea.ac.kr/game/index.do"
+                    "url": "https://www.tukorea.ac.kr/game"
                 },
                 "인공지능학과": {
                     "phone": "03180410570",
-                    "url": "https://depofai.tukorea.ac.kr/depofai/index.do"
+                    "url": "https://depofai.tukorea.ac.kr/depofai"
                 },
                 "SW교육센터": {
                     "phone": "03180410671",
-                    "url": "https://www.tukorea.ac.kr/sites/swec/index.do"
+                    "url": "https://www.tukorea.ac.kr/sites/swec"
                 }
             },
             "IT반도체융합대학": {
                 "전자공학부": {
                     "phone": "03180410470",
-                    "url": "https://www.tukorea.ac.kr/ee/index.do"
+                    "url": "https://www.tukorea.ac.kr/ee"
                 },
                 "나노반도체공학과": {
                     "phone": "03180410710",
-                    "url": "https://www.tukorea.ac.kr/nano/index.do"
+                    "url": "https://www.tukorea.ac.kr/nano"
                 }
             },
             "스마트기계융합대학": {
                 "기계공학과": {
                     "phone": "03180410400",
-                    "url": "https://www.tukorea.ac.kr/me/index.do"
+                    "url": "https://www.tukorea.ac.kr/me"
                 },
                 "기계설계공학과": {
                     "phone": "03180410420",
-                    "url": "https://www.tukorea.ac.kr/mde/index.do"
+                    "url": "https://www.tukorea.ac.kr/mde"
                 },
                 "메카트로닉스공학부": {
                     "phone": "03180410450",
-                    "url": "https://www.tukorea.ac.kr/mec/index.do"
+                    "url": "https://www.tukorea.ac.kr/mec"
                 }
             },
             "첨단융합대학": {
                 "신소재공학과": {
                     "phone": "03180410580",
-                    "url": "https://www.tukorea.ac.kr/ame/index.do"
+                    "url": "https://www.tukorea.ac.kr/ame"
                 },
                 "생명화학공학과": {
                     "phone": "03180410610",
-                    "url": "https://www.tukorea.ac.kr/ceb/index.do"
+                    "url": "https://www.tukorea.ac.kr/ceb"
                 },
                 "에너지·전기공학과": {
                     "phone": "03180410690",
-                    "url": "https://www.tukorea.ac.kr/energy/index.do"
+                    "url": "https://www.tukorea.ac.kr/energy"
                 }
             },
             "미래대학": {
@@ -266,7 +266,7 @@
                 },
                 "기업인재대학 본부": {
                     "phone": "03180410633",
-                    "url": "https://contract.tukorea.ac.kr/contract/index.do"
+                    "url": "https://contract.tukorea.ac.kr/contract"
                 },
                 "일학습병행공동훈련센터": {
                     "phone": "03180411433",
@@ -280,41 +280,41 @@
         },
         "경영학부": {
             "phone": "03180410760",
-            "url": "https://www.tukorea.ac.kr/biz/index.do"
+            "url": "https://www.tukorea.ac.kr/biz"
         },
         "디자인공학부": {
             "phone": "03180410660",
-            "url": "https://www.tukorea.ac.kr/design/index.do"
+            "url": "https://www.tukorea.ac.kr/design"
         },
         "지식융합학부": {
             "phone": "03180410730",
-            "url": "https://www.tukorea.ac.kr/la/index.do"
+            "url": "https://www.tukorea.ac.kr/la"
         }
     },
     "사업단 및 지원팀": {
         "대학혁신지원사업단": {
             "phone": "03180410558",
-            "url": "https://www.tukorea.ac.kr/innovation/index.do"
+            "url": "https://www.tukorea.ac.kr/innovation"
         },
         "대학혁신지원사업운영지원팀": {
             "phone": "03180411455",
-            "url": "https://www.tukorea.ac.kr/innovation-support/index.do"
+            "url": "https://www.tukorea.ac.kr/innovation-support"
         },
         "K-Digital훈련원": {
             "phone": "03180411466",
-            "url": "https://www.tukorea.ac.kr/k-digital/index.do"
+            "url": "https://www.tukorea.ac.kr/k-digital"
         },
         "기획운영팀": {
             "phone": "03180411701",
-            "url": "https://www.tukorea.ac.kr/planning/index.do"
+            "url": "https://www.tukorea.ac.kr/planning"
         },
         "평생교육원": {
             "phone": "03180410475",
-            "url": "https://www.tukorea.ac.kr/life-long/index.do"
+            "url": "https://www.tukorea.ac.kr/life-long"
         },
         "법인사무과": {
             "phone": "03180410221",
-            "url": "https://www.tukorea.ac.kr/corporate/index.do"
+            "url": "https://www.tukorea.ac.kr/corporate"
         },
         "일학습병행공동훈련센터": {
             "phone": "03180411433",
