@@ -10,6 +10,8 @@ DEBUG = False  # True 일때 디버그 모드 작동
 
 KST = pytz.timezone("Asia/Seoul")
 
+SHUTTLE_URL: str = "https://ibook.tukorea.ac.kr/Viewer/bus01"
+
 # BUCKET
 BUCKET_NAME: str = "aws-sandol-bucket"
 
