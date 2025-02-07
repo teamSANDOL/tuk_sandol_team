@@ -7,6 +7,7 @@ from kakao_chatbot.response import (
 )
 from kakao_chatbot.response.components import (
     SimpleTextComponent,
+    SimpleImageComponent,
 )
 
 from api_server.utils import (
@@ -16,6 +17,7 @@ from api_server.utils import (
     make_unit_item,
 )
 from api_server.settings import logger
+from crawler import get_shuttle_images
 from crawler.university_structure import (
     UniversityStructure,
     OrganizationGroup,
@@ -109,4 +111,32 @@ def unit_info(payload: Payload = Depends(parse_payload)):
     """
     response = KakaoResponse()
     response.add_component(make_unit_item(payload.action.client_extra))
+    return JSONResponse(response.get_dict())
+
+@statics_router.post(
+    "/shuttle_info",
+    openapi_extra=create_openapi_extra(
+        utterance="셔틀버스",
+    ),
+)
+def shuttle_info():
+    """셔틀버스 정보를 반환합니다.
+
+    ## 카카오 챗봇  연결 정보
+    ---
+    - 동작방식: 발화
+
+    - OpenBuilder:
+        - 블럭: "셔틀버스 정보"
+        - 스킬: "셔틀버스 정보"
+    ---
+
+    Returns:
+        JSONResponse: 셔틀버스 정보
+    """
+    shuttle_images = get_shuttle_images()
+
+    response = KakaoResponse()
+    for image in shuttle_images:
+        response.add_component(SimpleImageComponent(image, "셔틀버스 정보 사진"))
     return JSONResponse(response.get_dict())
