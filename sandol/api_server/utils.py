@@ -277,6 +277,30 @@ def make_org_group_list(
         target_list[0] if len(target_group) <= 5 else CarouselComponent(*target_list)
     )
 
+def phone_number_format(phone_number: str) -> str:
+    """전화번호를 표준 형식으로 변환합니다.
+
+    전화번호를 받아 표준 형식으로 변환하여 반환합니다.
+    전화번호가 없는 경우 빈 문자열을 반환합니다.
+
+    Args:
+        phone_number (str): 전화번호
+    """
+    if not phone_number:
+        return ""
+
+    # 전화번호에서 숫자만 추출
+    phone_number = re.sub(r"[^0-9]", "", phone_number)
+
+    # 전화번호 길이에 따라 형식을 변환
+    if len(phone_number) == 9:
+        return f"{phone_number[:2]}-{phone_number[2:5]}-{phone_number[5:]}"
+    elif len(phone_number) == 10:
+        return f"{phone_number[:3]}-{phone_number[3:6]}-{phone_number[6:]}"
+    elif len(phone_number) == 11:
+        return f"{phone_number[:3]}-{phone_number[3:7]}-{phone_number[7:]}"
+    else:
+        return phone_number
 
 def make_unit_item(unit: dict | OrganizationGroup) -> ItemCardComponent:
     """조직 단위 정보를 ItemCardComponent로 반환합니다.
@@ -293,17 +317,18 @@ def make_unit_item(unit: dict | OrganizationGroup) -> ItemCardComponent:
 
     item_card = ItemCardComponent(item_list=[], head=unit.name)
     if unit.phone:
-        item_card.add_item(title="전화번호", description=unit.phone)
+        item_card.add_item(
+            title="전화번호",
+            description=phone_number_format(unit.phone)
+        )
         item_card.add_button(label="전화 걸기", action="phone", phone_number=unit.phone)
+
     if unit.url:
         item_card.add_item(title="홈페이지", description=unit.url)
-        item_card.add_button(
-            label="홈페이지 방문", action="webLink", web_link_url=unit.url
-        )
+        item_card.add_button(label="홈페이지 방문", action="webLink", web_link_url=unit.url)
+
     if not unit.phone and not unit.url:
-        item_card.add_item(
-            title="정보 없음", description="전화번호 및 홈페이지 정보가 없습니다."
-        )
+        item_card.add_item(title="정보 없음", description="전화번호 및 홈페이지 정보가 없습니다.")
     return item_card
 
 
