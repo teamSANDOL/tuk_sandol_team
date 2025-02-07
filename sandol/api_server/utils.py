@@ -257,16 +257,24 @@ def make_org_group_list(
 
     # 모든 unit을 순회하면서 적절한 ListCardComponent에 추가
     for idx, unit in enumerate(target_group):
-        target_list[idx // chunk_size].add_item(
-            title=unit.name,
-            description="클릭해 정보보기",
-            action="block",
-            block_id="679ca1348c69ad7d00db038e",
-            extra=unit.model_dump(),
-        )
+        if isinstance(unit, OrganizationGroup):
+            target_list[idx // chunk_size].add_item(
+                title=unit.name,
+                description="하위 조직 보기",
+                action="message",
+                message_text=f"{unit.name} 정보",
+            )
+        else:
+            target_list[idx // chunk_size].add_item(
+                title=unit.name,
+                description="클릭해 정보보기",
+                action="block",
+                block_id="679ca1348c69ad7d00db038e",
+                extra=unit.model_dump(),
+            )
 
     return (
-        target_list[0] if len(target_group) <= 5 else CarouselComponent(target_list)
+        target_list[0] if len(target_group) <= 5 else CarouselComponent(*target_list)
     )
 
 
