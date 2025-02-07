@@ -9,6 +9,8 @@ Example:
     downloader.get_file("data.xlsx")  # data.xlsx에 파일 저장
 """
 
+import os
+import json
 from typing import Optional
 from xml.etree import ElementTree
 import requests
@@ -84,10 +86,12 @@ class BookDownloader:
         self,
         url="https://ibook.tukorea.ac.kr/Viewer/menu02",
         file_list_url="https://ibook.tukorea.ac.kr/web/RawFileList",
+        image_save_path = "images",
     ):
         """ibook 파일 다운로드 모듈입니다."""
         self.url = url
         self.file_list_url = file_list_url
+        self.image_save_path = image_save_path
         self.bookcode = None
         self.file_list_headers = {
             "Accept": "*/*",
@@ -207,6 +211,63 @@ class BookDownloader:
         else:  # 파일 다운로드 실패
             raise DownloadFileError(response.status_code)
 
+    def download_images(self, image_save_path=None):
+        """모든 이미지 다운로드
+        
+        모든 이미지를 다운로드하는 메소드입니다.
+        이미지 목록을 가져와서 이미지를 다운로드합니다.
+        이미지는 image_save_path에 저장됩니다.
+
+        Args:
+            image_save_path(str, optional): 이미지 저장 경로. Defaults to None.
+        """
+        if image_save_path is None:
+            image_save_path = self.image_save_path
+
+        self.fetch_bookcode()
+        image_urls = self.fetch_image_list()
+
+        if not image_urls:
+            logger.info("다운로드할 이미지가 없습니다.")
+            return
+
+        for idx, img_url in enumerate(image_urls, start=1):
+            save_as = os.path.join(image_save_path, f"page_{idx}.jpg")
+            response = requests.get(img_url, headers=self.file_list_headers, timeout=1)
+
+            if response.status_code == 200:
+                with open(save_as, "wb") as f:
+                    f.write(response.content)
+                logger.info(f"이미지 저장 완료: {save_as}")
+            else:
+                logger.info(f"다운로드 실패: {img_url}, Status code: {response.status_code}")
+
+    def fetch_image_list(self):
+        """JSON에서 이미지 파일 목록을 가져오는 메소드
+        
+        JSON에서 이미지 파일 목록을 가져오는 메소드입니다.
+        이미지 목록을 가져와서 이미지 URL을 추출하고,
+        이미지 URL을 반환합니다.
+
+        Returns:
+            list: 이미지 URL 목록
+        """
+        if not self.bookcode:
+            raise BookcodeNotExistError()
+
+        json_url = f"{self.url.rsplit('/', 1)[0]}/getBookXML/{self.bookcode}"
+        response = requests.get(json_url, headers=self.file_list_headers, timeout=1)
+
+        if response.status_code != 200:
+            raise FetchError(response.status_code, "이미지 목록을 가져오지 못했습니다.")
+
+        try:
+            image_data = json.loads(response.text)
+            image_links = ["https:" + img["src"].replace("\\/", "/") for img in image_data]
+            return image_links
+        except json.JSONDecodeError as e:
+            raise FetchError(None, f"JSON 파싱 오류: {e}") from e
+
     def get_file_url(self, file_list_content: str):
         """file_list_content에서 파일 URL을 가져오는 메소드입니다.
 
@@ -265,12 +326,11 @@ class BookDownloader:
             file_list_content = self.fetch_file_list()  # 파일 목록 가져오기
             if file_list_content:  # 파일 목록이 있으면 파일 다운로드
                 file_url = self.get_file_url(file_list_content)
-
                 self.download_file(file_url, file_name)
-
 
 if __name__ == "__main__":
     # 사용 예시
     # bus_link = "https://ibook.tukorea.ac.kr/Viewer/bus01"
     downloader = BookDownloader()  # BookDownloader(bus_link) 로 셔틀 버스 파일 다운로드
     downloader.get_file("data.xlsx")  # data.xlsx에 파일 저장
+    downloader.download_images()  # 이미지 다운로드
