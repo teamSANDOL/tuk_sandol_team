@@ -26,7 +26,7 @@ statics_router = APIRouter(prefix="/statics")
 
 
 @statics_router.post(
-    "/phone",
+    "/info",
     openapi_extra=create_openapi_extra(
         detail_params={
             "organization": {
@@ -34,11 +34,31 @@ statics_router = APIRouter(prefix="/statics")
                 "value": "컴퓨터공학부",
             },
         },
-        utterance="전화 컴공",
+        utterance="컴공 정보",
     ),
 )
-def phone(payload: Payload = Depends(parse_payload)):
-    """학교 전화번호를 반환합니다."""
+def info(payload: Payload = Depends(parse_payload)):
+    """학교 조직정보를 반환합니다.
+    
+    조직이 하위 조직을 갖는경우 조직의 리스트를,
+    하위 조직이 없는 경우 조직의 정보를 반환합니다. 
+
+    ## 카카오 챗봇  연결 정보
+    ---
+    - 동작방식: 발화
+
+    - OpenBuilder:
+        - 블럭: "정보 검색"
+        - 스킬: "정보 검색"
+    
+    - Params:
+        - detail_params:
+            organization(조직): 컴퓨터공학부
+    ---
+    
+    Returns:
+        JSONResponse: 학교 조직 정보
+    """
     org = payload.action.params.get("organization", None)
     if org is None:
         org = "대표연락처"
@@ -62,12 +82,31 @@ def phone(payload: Payload = Depends(parse_payload)):
         client_extra={
             "name": "컴퓨터공학부",
             "phone": "03180410510",
-        },
-        utterance="컴공 정보",
+        }
     ),
 )
 def unit_info(payload: Payload = Depends(parse_payload)):
-    """학교 조직 정보를 반환합니다."""
+    """학교 조직 정보를 반환합니다.
+
+    Client Extra에 있는 정보를 기반으로 학교 조직 정보를 반환합니다.
+
+    ## 카카오 챗봇  연결 정보
+    ---
+    - 동작방식: 버튼 연결
+
+    - OpenBuilder:
+        - 블럭: "조직 정보"
+        - 스킬: "조직 정보"
+    
+    - Params:
+        - client_extra:
+            name: 컴퓨터공학부
+            phone: 03180410510
+    ---
+
+    Returns:
+        JSONResponse: 학교 조직 정보
+    """
     response = KakaoResponse()
     response.add_component(make_unit_item(payload.action.client_extra))
     return JSONResponse(response.get_dict())
