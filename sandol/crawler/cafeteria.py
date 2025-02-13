@@ -15,6 +15,7 @@ BUCKET_NAME = "sandol-bucket"
 FILE_KEY = "test.json"
 
 DOWNLOAD_PATH = f"{settings._PATH}/data/test.json"
+STACK_PATH = f"{settings._PATH}/data/stack.json"
 
 
 class Restaurant:
@@ -340,13 +341,18 @@ class Restaurant:
         restaurant_found = False
         for restaurant_data in data:
             if restaurant_data["name"] == self.name:
-                restaurant_data["lunch_menu"] = self.submit_update_menu("lunch")
-                restaurant_data["dinner_menu"] = self.submit_update_menu("dinner")
+                updated_lunch_menu = self.submit_update_menu("lunch")
+                updated_dinner_menu = self.submit_update_menu("dinner")
+                restaurant_data["lunch_menu"] = updated_lunch_menu
+                restaurant_data["dinner_menu"] = updated_dinner_menu
                 restaurant_data["registration_time"] = dt.datetime.now().isoformat()
                 restaurant_data["opening_time"] = self.opening_time
                 restaurant_data["price_per_person"] = self.price_per_person
                 restaurant_found = True
                 logger.debug("식당 정보 업데이트 완료: %s", self.name)
+
+                # 변경된 메뉴 STACK_MENU_PATH에 저장
+                self.save_stack_menu(updated_lunch_menu, updated_dinner_menu)
                 break
 
         if not restaurant_found:
@@ -366,6 +372,37 @@ class Restaurant:
         if os.path.exists(temp_menu_path):
             os.remove(temp_menu_path)
             logger.info("임시 메뉴 파일 삭제 완료: file=%s", temp_menu_path)
+
+    def save_stack_menu(self, lunch_menu, dinner_menu):
+        """STACK_MENU_PATH에 변경된 메뉴를 추가 저장합니다."""
+        try:
+            if os.path.exists(STACK_PATH):
+                with open(STACK_PATH, "r", encoding="utf-8") as file:
+                    stack_data = json.load(file)
+                    if not isinstance(stack_data, list):
+                        stack_data = []
+            else:
+                stack_data = []
+        except json.decoder.JSONDecodeError:
+            stack_data = []
+            logger.error("STACK_MENU JSON 디코딩 오류 발생: file=%s", STACK_PATH)
+        except FileNotFoundError:
+            stack_data = []
+            logger.error("STACK_MENU 파일을 찾을 수 없음: file=%s", STACK_PATH)
+
+        stack_entry = {
+            "name": self.name,
+            "lunch_menu": lunch_menu,
+            "dinner_menu": dinner_menu,
+            "timestamp": dt.datetime.now().isoformat()
+        }
+
+        stack_data.append(stack_entry)
+
+        with open(STACK_PATH, "w", encoding="utf-8") as file:
+            json.dump(stack_data, file, ensure_ascii=False, indent=4)
+
+        logger.info("STACK_MENU 업데이트 완료: name=%s, file=%s", self.name, STACK_PATH)
 
     @classmethod
     def init_restaurant(
