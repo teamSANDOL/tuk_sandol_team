@@ -6,7 +6,8 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
     depends_on:
-      - user_service
+      - user-service
+      - meal-service
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - user_static:/usr/share/nginx/static/user
@@ -14,11 +15,9 @@ services:
     networks:
       - sandol_network
 
-  user_service:
+  user-service:
     container_name: sandol_user_service
     build: ./sandol_user_service
-    ports:
-      - "8011:8000"
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
@@ -28,8 +27,20 @@ services:
     networks:
       - sandol_network
 
+  meal-service:
+    container_name: sandol_meal_service
+    build: ./sandol_meal_service
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./sandol_meal_service:/app
+    networks:
+      - sandol_network
+
 volumes:
   user_static: {}
 
 networks:
-  sandol_network: {}
+  sandol_network:
+    driver: bridge
