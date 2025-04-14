@@ -38,6 +38,17 @@ services:
     networks:
       - sandol_network
 
+  kakao-bot-service:
+    container_name: sandol_kakao_bot_service
+    build: ./sandol_kakao_bot_service
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./sandol_kakao_bot_service:/app
+    networks:
+      - sandol_network
+
 volumes:
   user_static: {}
 
