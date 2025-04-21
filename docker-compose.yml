@@ -1,0 +1,46 @@
+services:
+  gateway:
+    build: ./sandol-gateway/gateway
+    ports:
+      - "8010:80"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - user-service
+      - meal-service
+    volumes:
+      - ./sandol-gateway/gateway:/etc/nginx/conf.d
+      - user_static:/usr/share/nginx/static/user
+    command: ["/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
+    networks:
+      - sandol_network
+
+  user-service:
+    container_name: sandol_user_service
+    build: ./sandol_user_service
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./sandol_user_service:/app
+      - user_static:/app/static
+    networks:
+      - sandol_network
+
+  meal-service:
+    container_name: sandol_meal_service
+    build: ./sandol_meal_service
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./sandol_meal_service:/app
+    networks:
+      - sandol_network
+
+volumes:
+  user_static: {}
+
+networks:
+  sandol_network:
+    driver: bridge

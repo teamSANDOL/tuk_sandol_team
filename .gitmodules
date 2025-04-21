@@ -1,0 +1,9 @@
+[submodule "sandol-gateway"]
+	path = sandol-gateway
+	url = https://github.com/teamSANDOL/sandol-gateway.git
+[submodule "sandol_user_service"]
+	path = sandol_user_service
+	url = https://github.com/teamSANDOL/sandol_user_service.git
+[submodule "sandol_meal_service"]
+	path = sandol_meal_service
+	url = https://github.com/teamSANDOL/sandol_meal_service.git
