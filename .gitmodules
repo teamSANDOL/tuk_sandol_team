@@ -10,3 +10,6 @@ url = https://github.com/teamSANDOL/sandol_meal_service.git
 [submodule "sandol_kakao_bot_service"]
 	path = sandol_kakao_bot_service
 	url = https://github.com/teamSANDOL/sandol_kakao_bot_service
+[submodule "sandol-static-info-service"]
+	path = sandol-static-info-service
+	url = https://github.com/teamSANDOL/sandol-static-info-service
