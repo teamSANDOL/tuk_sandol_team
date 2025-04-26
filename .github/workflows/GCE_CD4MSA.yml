@@ -1,0 +1,54 @@
+name: Deploy sandol server to GCP VM
+
+on:
+  workflow_dispatch:  # 수동 배포 트리거
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout with submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        ref: ${{ github.ref_name }}
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: '${{ secrets.GCP_PROJECT_ID }}'
+
+    - name: Generate SSH key
+      run: |
+        ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa -q -N ""
+
+    - name: Add SSH key to GCP project metadata
+      run: |
+        gcloud compute project-info add-metadata --metadata "ssh-keys=${GCP_VM_USER}:$(cat ~/.ssh/id_rsa.pub)"
+      env:
+        GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
+
+    - name: Copy entire repo to GCP VM (including submodules)
+      run: |
+        gcloud compute scp --recurse . $GCP_VM_USER@$GCP_INSTANCE_NAME:/home/$GCP_VM_USER/tuk_sandol_team --zone $GCP_ZONE
+      env:
+        GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
+        GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
+        GCP_ZONE: '${{ secrets.GCP_ZONE }}'
+
+    - name: Run Docker Compose on GCP VM
+      run: |
+        gcloud compute ssh $GCP_VM_USER@$GCP_INSTANCE_NAME --zone $GCP_ZONE --command "
+          cd /home/$GCP_VM_USER/tuk_sandol_team &&
+          docker compose up -d --build
+        "
+      env:
+        GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
+        GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
+        GCP_ZONE: '${{ secrets.GCP_ZONE }}'

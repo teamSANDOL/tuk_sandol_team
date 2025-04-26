@@ -8,6 +8,8 @@ services:
     depends_on:
       - user-service
       - meal-service
+      - kakao-bot-service
+      - static-info-service
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - user_static:/usr/share/nginx/static/user
@@ -38,6 +40,27 @@ services:
     networks:
       - sandol_network
 
+  kakao-bot-service:
+    container_name: sandol_kakao_bot_service
+    build: ./sandol_kakao_bot_service
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./sandol_kakao_bot_service:/app
+    networks:
+      - sandol_network
+
+  static-info-service:
+    container_name: sandol_static_info_service
+    build: ./sandol-static-info-service
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./sandol-static-info-service:/app
+    networks:
+      - sandol_network
 volumes:
   user_static: {}
 

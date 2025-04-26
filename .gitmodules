@@ -1,9 +1,20 @@
 [submodule "sandol-gateway"]
-	path = sandol-gateway
-	url = https://github.com/teamSANDOL/sandol-gateway.git
+path = sandol-gateway
+branch = main
+url = https://github.com/teamSANDOL/sandol-gateway.git
 [submodule "sandol_user_service"]
-	path = sandol_user_service
-	url = https://github.com/teamSANDOL/sandol_user_service.git
+path = sandol_user_service
+branch = main
+url = https://github.com/teamSANDOL/sandol_user_service.git
 [submodule "sandol_meal_service"]
-	path = sandol_meal_service
-	url = https://github.com/teamSANDOL/sandol_meal_service.git
+path = sandol_meal_service
+url = https://github.com/teamSANDOL/sandol_meal_service.git
+branch = main
+[submodule "sandol_kakao_bot_service"]
+	path = sandol_kakao_bot_service
+	url = https://github.com/teamSANDOL/sandol_kakao_bot_service
+	branch = main
+[submodule "sandol-static-info-service"]
+	path = sandol-static-info-service
+	url = https://github.com/teamSANDOL/sandol-static-info-service
+	branch = main
