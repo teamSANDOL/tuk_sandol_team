@@ -34,6 +34,9 @@ jobs:
       env:
         GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
 
+    - name: Remove .git directory
+      run: rm -rf .git
+
     - name: Copy entire repo to GCP VM (including submodules)
       run: |
         gcloud compute scp --recurse . $GCP_VM_USER@$GCP_INSTANCE_NAME:/home/$GCP_VM_USER/tuk_sandol_team --zone $GCP_ZONE
