@@ -21,3 +21,4 @@ branch = main
 [submodule "sandol_notice_notification"]
 	path = sandol_notice_notification
 	url = https://github.com/teamSANDOL/sandol_notice_notification.git
+	branch = main
