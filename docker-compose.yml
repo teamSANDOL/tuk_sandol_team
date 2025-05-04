@@ -12,6 +12,7 @@ services:
       - static-info-service
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
+      - ./sandol-gateway/gateway/lua:/etc/nginx/lua
       - user_static:/usr/share/nginx/static/user
     command: ["/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
     networks:
