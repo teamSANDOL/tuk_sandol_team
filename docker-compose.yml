@@ -13,7 +13,7 @@ services:
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - user_static:/usr/share/nginx/static/user
-    command: ["/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
+    command: [ "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;" ]
     networks:
       - sandol_network
 
@@ -61,6 +61,63 @@ services:
       - ./sandol-static-info-service:/app
     networks:
       - sandol_network
+
+  notice-notification:
+    container_name: sandol-notice-notification
+    build:
+      context: ./sandol_notice_notification
+      dockerfile: Dockerfile
+    restart: always
+
+    env_file:
+      - ./sandol_notice_notification/sandol_amqp/.env.amqp
+      - ./sandol_notice_notification/.env.dev
+
+    ports:
+      - "8081:8081"
+    networks:
+      - sandol_network
+
+    depends_on:
+      amqp:
+        condition: service_healthy
+      notice-notification-db:
+        condition: service_healthy
+
+  notice-notification-db:
+    container_name: sandol-notice-notification-db
+    image: postgres:15
+    restart: always
+    env_file:
+      - ./sandol_notice_notification/.env.dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./sandol_notice_notification/db_data:/var/lib/postgresql/data
+    networks:
+      - sandol_network
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "db_prod" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+  amqp:
+    container_name: amqp
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - sandol_network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   user_static: {}
 
