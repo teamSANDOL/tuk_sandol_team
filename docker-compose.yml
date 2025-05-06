@@ -6,10 +6,14 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
     depends_on:
-      - user-service
-      - meal-service
-      - kakao-bot-service
-      - static-info-service
+      user-service:
+        condition: service_healthy
+      meal-service:
+        condition: service_healthy
+      kakao-bot-service:
+        condition: service_healthy
+      static-info-service:
+        condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - ./sandol-gateway/gateway/lua:/etc/nginx/lua
@@ -17,6 +21,7 @@ services:
     command: ["/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
     networks:
       - sandol_network
+    restart: on-failure
 
   user-service:
     container_name: sandol_user_service
@@ -29,6 +34,13 @@ services:
       - user_static:/app/static
     networks:
       - sandol_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/user/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
 
   meal-service:
     container_name: sandol_meal_service
@@ -40,6 +52,13 @@ services:
       - ./sandol_meal_service:/app
     networks:
       - sandol_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/meal/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
 
   kakao-bot-service:
     container_name: sandol_kakao_bot_service
@@ -51,6 +70,13 @@ services:
       - ./sandol_kakao_bot_service:/app
     networks:
       - sandol_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/kakao-bot/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
 
   static-info-service:
     container_name: sandol_static_info_service
@@ -62,6 +88,14 @@ services:
       - ./sandol-static-info-service:/app
     networks:
       - sandol_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/static-info/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
+
 volumes:
   user_static: {}
 
