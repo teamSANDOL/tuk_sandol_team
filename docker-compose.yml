@@ -109,8 +109,6 @@ services:
       - ./sandol_notice_notification/sandol_amqp/.env.amqp
       - ./sandol_notice_notification/.env.dev
 
-    ports:
-      - "8081:8081"
     networks:
       - sandol_network
 
