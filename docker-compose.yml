@@ -14,11 +14,13 @@ services:
         condition: service_healthy
       static-info-service:
         condition: service_healthy
+      notice-notification:
+        condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - ./sandol-gateway/gateway/lua:/etc/nginx/lua
       - user_static:/usr/share/nginx/static/user
-    command: ["/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
+    command: [ "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;" ]
     networks:
       - sandol_network
     restart: on-failure
@@ -35,7 +37,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/user/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/user/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -53,7 +55,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/meal/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:80/meal/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -71,7 +73,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/kakao-bot/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:80/kakao-bot/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -89,12 +91,68 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/static-info/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:80/static-info/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: on-failure
+
+  notice-notification:
+    container_name: sandol-notice-notification
+    build:
+      context: ./sandol_notice_notification
+      dockerfile: Dockerfile
+    restart: always
+
+    env_file:
+      - ./sandol_notice_notification/sandol_amqp/.env.amqp
+      - ./sandol_notice_notification/.env.dev
+
+    networks:
+      - sandol_network
+
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/notice-notification/health" ]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    depends_on:
+      amqp:
+        condition: service_healthy
+      notice-notification-db:
+        condition: service_healthy
+
+  notice-notification-db:
+    container_name: sandol-notice-notification-db
+    image: postgres:15
+    restart: always
+    env_file:
+      - ./sandol_notice_notification/.env.dev
+    volumes:
+      - ./sandol_notice_notification/db_data:/var/lib/postgresql/data
+    networks:
+      - sandol_network
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "db_prod" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+  amqp:
+    container_name: amqp
+    image: rabbitmq:3-management
+    networks:
+      - sandol_network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   user_static: {}
