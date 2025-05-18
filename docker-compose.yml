@@ -131,8 +131,6 @@ services:
     restart: always
     env_file:
       - ./sandol_notice_notification/.env.dev
-    ports:
-      - "5432:5432"
     volumes:
       - ./sandol_notice_notification/db_data:/var/lib/postgresql/data
     networks:
@@ -148,9 +146,6 @@ services:
   amqp:
     container_name: amqp
     image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     networks:
       - sandol_network
     healthcheck:
