@@ -14,6 +14,8 @@ services:
         condition: service_healthy
       static-info-service:
         condition: service_healthy
+      notice-notification:
+        condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - ./sandol-gateway/gateway/lua:/etc/nginx/lua
@@ -35,7 +37,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/user/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/user/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -53,7 +55,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/meal/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:80/meal/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -71,7 +73,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/kakao-bot/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:80/kakao-bot/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -89,7 +91,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/static-info/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:80/static-info/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -112,6 +114,13 @@ services:
       - "8081:8081"
     networks:
       - sandol_network
+
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/notice-notification/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 80s
 
     depends_on:
       amqp:
