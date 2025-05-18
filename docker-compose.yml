@@ -98,7 +98,6 @@ services:
       start_period: 10s
     restart: on-failure
 
-
   notice-notification:
     container_name: sandol-notice-notification
     build:
@@ -116,11 +115,11 @@ services:
       - sandol_network
 
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/notice-notification/health" ]
-      interval: 10s
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/notice-notification/health" ]
+      interval: 60s
       timeout: 5s
       retries: 5
-      start_period: 80s
+      start_period: 10s
 
     depends_on:
       amqp:
