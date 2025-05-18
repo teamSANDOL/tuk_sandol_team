@@ -11,18 +11,18 @@ path = sandol_meal_service
 url = https://github.com/teamSANDOL/sandol_meal_service.git
 branch = main
 [submodule "sandol_kakao_bot_service"]
-	path = sandol_kakao_bot_service
-	url = https://github.com/teamSANDOL/sandol_kakao_bot_service
-	branch = main
+path = sandol_kakao_bot_service
+url = https://github.com/teamSANDOL/sandol_kakao_bot_service
+branch = main
 [submodule "sandol-static-info-service"]
-	path = sandol-static-info-service
-	url = https://github.com/teamSANDOL/sandol-static-info-service
-	branch = main
+path = sandol-static-info-service
+url = https://github.com/teamSANDOL/sandol-static-info-service
+branch = main
 [submodule "sandol_notice_notification"]
-	path = sandol_notice_notification
-	url = https://github.com/teamSANDOL/sandol_notice_notification.git
-	branch = main
+path = sandol_notice_notification
+url = https://github.com/teamSANDOL/sandol_notice_notification.git
+branch = main
 [submodule "sandol_amqp"]
-	path = sandol_amqp
-	url = https://github.com/teamSANDOL/sandol_amqp.git
-	branch = main
+path = sandol_amqp
+url = https://github.com/teamSANDOL/sandol_amqp.git
+branch = main
