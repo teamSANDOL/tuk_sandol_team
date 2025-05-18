@@ -22,3 +22,7 @@ branch = main
 	path = sandol_notice_notification
 	url = https://github.com/teamSANDOL/sandol_notice_notification.git
 	branch = main
+[submodule "sandol_amqp"]
+	path = sandol_amqp
+	url = https://github.com/teamSANDOL/sandol_amqp.git
+	branch = main
