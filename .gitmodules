@@ -21,3 +21,4 @@ branch = main
 [submodule "sandol_classroom_timetable_service"]
 	path = sandol_classroom_timetable_service
 	url = https://github.com/teamSANDOL/sandol_classroom_timetable.git
+	branch = main
