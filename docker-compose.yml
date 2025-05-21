@@ -14,6 +14,8 @@ services:
         condition: service_healthy
       static-info-service:
         condition: service_healthy
+      classroom-timetable-service:
+        condition: service_healthy
       notice-notification:
         condition: service_healthy
     volumes:
@@ -92,6 +94,19 @@ services:
       - sandol_network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:80/static-info/health" ]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
+
+  classroom-timetable-service:
+    container_name: sandol_classroom_timetable_service
+    build: ./sandol_classroom_timetable_service
+    networks:
+      - sandol_network
+    healthcheck:
+      test: ["CMD", "wget", "-O -", "--tries=1", "http://localhost:80/classroom-timetable/health"]
       interval: 60s
       timeout: 5s
       retries: 5
