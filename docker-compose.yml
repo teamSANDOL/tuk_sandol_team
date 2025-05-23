@@ -152,7 +152,7 @@ services:
       - sandol_network
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready", "-d", "db_prod" ]
+      test: ["CMD-SHELL", "pg_isready -d postgres -U root"]
       interval: 30s
       timeout: 60s
       retries: 5
