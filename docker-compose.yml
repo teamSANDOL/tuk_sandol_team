@@ -70,8 +70,6 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
-    env_file:
-      - ./sandol_kakao_bot_service/.env.example
     volumes:
       - ./sandol_kakao_bot_service:/app
     networks:
