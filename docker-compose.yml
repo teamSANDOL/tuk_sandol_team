@@ -106,7 +106,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD", "wget", "-O -", "--tries=1", "http://localhost:80/classroom-timetable/health"]
+      test: [ "CMD", "wget", "-O -", "--tries=1", "http://localhost:80/classroom-timetable/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -121,18 +121,17 @@ services:
     restart: always
 
     env_file:
-      - ./sandol_notice_notification/sandol_amqp/.env.amqp
       - ./sandol_notice_notification/.env.dev
 
     networks:
       - sandol_network
 
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/notice-notification/health" ]
-      interval: 60s
-      timeout: 5s
-      retries: 5
-      start_period: 300s
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/notice-notification/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
     depends_on:
       amqp:
@@ -152,7 +151,7 @@ services:
       - sandol_network
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d postgres -U root"]
+      test: [ "CMD-SHELL", "pg_isready -d postgres -U root" ]
       interval: 30s
       timeout: 60s
       retries: 5
