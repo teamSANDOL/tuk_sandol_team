@@ -18,6 +18,8 @@ services:
         condition: service_healthy
       notice-notification:
         condition: service_healthy
+      discord-bot-service:
+        condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - ./sandol-gateway/gateway/lua:/etc/nginx/lua
@@ -167,6 +169,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  discord-bot-service:
+    container_name: sandol_discord_bot_service
+    build: ./sandol_discord_bot_service
+    env_file:
+      - ./sandol_discord_bot_service/.env
+    volumes:
+      - ./sandol_discord_bot_service/data:/app/data
+    networks:
+      - sandol_network
+    healthcheck:
+      test: [ "CMD", "wget", "-O -", "--tries=1", "http://localhost:80/discord-bot/health" ]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
 
 volumes:
   user_static: {}
