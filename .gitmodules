@@ -30,3 +30,6 @@ branch = main
 path = sandol_classroom_timetable_service
 url = https://github.com/teamSANDOL/sandol_classroom_timetable.git
 branch = main
+[submodule "sandol_discord_bot_service"]
+	path = sandol_discord_bot_service
+	url = https://github.com/teamSANDOL/sandol_discord_bot_service.git
