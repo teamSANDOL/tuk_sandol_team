@@ -26,6 +26,11 @@ services:
     networks:
       - sandol_network
     restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   user-service:
     container_name: sandol_user_service
@@ -45,6 +50,11 @@ services:
       retries: 5
       start_period: 10s
     restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   meal-service:
     container_name: sandol_meal_service
@@ -63,6 +73,11 @@ services:
       retries: 5
       start_period: 10s
     restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   kakao-bot-service:
     container_name: sandol_kakao_bot_service
@@ -81,6 +96,11 @@ services:
       retries: 5
       start_period: 10s
     restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   static-info-service:
     container_name: sandol_static_info_service
@@ -99,6 +119,11 @@ services:
       retries: 5
       start_period: 10s
     restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   classroom-timetable-service:
     container_name: sandol_classroom_timetable_service
@@ -112,6 +137,11 @@ services:
       retries: 5
       start_period: 10s
     restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   notice-notification:
     container_name: sandol-notice-notification
@@ -139,6 +169,12 @@ services:
       notice-notification-db:
         condition: service_healthy
 
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
   notice-notification-db:
     container_name: sandol-notice-notification-db
     image: postgres:15
@@ -157,6 +193,12 @@ services:
       retries: 5
       start_period: 80s
 
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
   amqp:
     container_name: amqp
     image: rabbitmq:3-management
@@ -167,9 +209,49 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+    - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
+    - ./sandol-log-manager/data:/var/lib/loki
+    networks:
+    - sandol_network
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
+    command: ["run", "/etc/alloy/config.alloy"]
+    depends_on:
+      - loki
+    networks:
+    - sandol_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./sandol-log-manager/config/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+    - sandol_network
 
 volumes:
   user_static: {}
+  grafana_data: {}
 
 networks:
   sandol_network:
