@@ -1,6 +1,6 @@
 services:
   gateway:
-    image: sandol-gateway:${TAG:-latest}
+    build: ./sandol-gateway/gateway
     ports:
       - "8010:80"
     environment:
@@ -33,8 +33,8 @@ services:
         max-file: "7"
 
   user-service:
-    image: sandol-sandol_user_service:${TAG:-latest}
     container_name: sandol_user_service
+    build: ./sandol_user_service
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
@@ -57,8 +57,8 @@ services:
         max-file: "7"
 
   meal-service:
-    image: sandol-sandol_meal_service:${TAG:-latest}
     container_name: sandol_meal_service
+    build: ./sandol_meal_service
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
@@ -80,8 +80,8 @@ services:
         max-file: "7"
 
   kakao-bot-service:
-    image: sandol-sandol_kakao_bot_service:${TAG:-latest}
     container_name: sandol_kakao_bot_service
+    build: ./sandol_kakao_bot_service
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
@@ -103,8 +103,8 @@ services:
         max-file: "7"
 
   static-info-service:
-    image: sandol-sandol-static-info-service:${TAG:-latest}
     container_name: sandol_static_info_service
+    build: ./sandol-static-info-service
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
@@ -126,12 +126,12 @@ services:
         max-file: "7"
 
   classroom-timetable-service:
-    image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
     container_name: sandol_classroom_timetable_service
+    build: ./sandol_classroom_timetable_service
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "wget", "-O", "-", "--tries=1", "http://localhost:80/classroom-timetable/health" ]
+      test: [ "CMD", "wget", "-O -", "--tries=1", "http://localhost:80/classroom-timetable/health" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -144,29 +144,38 @@ services:
         max-file: "7"
 
   notice-notification:
-    image: sandol-sandol_notice_notification:${TAG:-latest}
     container_name: sandol-notice-notification
+    build:
+      context: ./sandol_notice_notification
+      dockerfile: Dockerfile
     restart: always
+
     env_file:
       - ./sandol_notice_notification/.env.dev
+
     networks:
       - sandol_network
+
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3000/notice-notification/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 20s
+
     depends_on:
       amqp:
         condition: service_healthy
       notice-notification-db:
         condition: service_healthy
+
     logging:
       driver: "local"
       options:
         max-size: "10m"
         max-file: "7"
+
+    # CPU 코어를 최대 1개만 사용하도록 제한합니다.
     deploy:
       resources:
         limits:
@@ -182,12 +191,14 @@ services:
       - ./sandol_notice_notification/db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
+
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d postgres -U root" ]
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 80s
+
     logging:
       driver: "local"
       options:
@@ -216,11 +227,11 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
-      - ./sandol-log-manager/data:/var/lib/loki
+    - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
+    - ./sandol-log-manager/data:/var/lib/loki
     command: -config.file=/etc/loki/local-config.yaml
     networks:
-      - sandol_network
+    - sandol_network
     restart: always
 
   prometheus:
@@ -252,7 +263,7 @@ services:
     depends_on:
       - loki
     networks:
-      - sandol_network
+    - sandol_network
     restart: always
 
   grafana:
@@ -264,7 +275,7 @@ services:
       - grafana_data:/var/lib/grafana
       - ./sandol-log-manager/config/grafana/provisioning:/etc/grafana/provisioning
     networks:
-      - sandol_network
+    - sandol_network
     command:
       - " --remove-orphans"
     restart: always
@@ -272,6 +283,7 @@ services:
       - GF_LOG_LEVEL=warn
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+
 
 volumes:
   user_static: {}
