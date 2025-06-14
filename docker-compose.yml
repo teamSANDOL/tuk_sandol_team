@@ -175,6 +175,12 @@ services:
         max-size: "10m"
         max-file: "7"
 
+    # CPU 코어를 최대 1개만 사용하도록 제한합니다.
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+
   notice-notification-db:
     container_name: sandol-notice-notification-db
     image: postgres:15
