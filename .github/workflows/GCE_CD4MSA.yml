@@ -37,7 +37,21 @@ jobs:
     - name: Remove .git directory
       run: rm -rf .git
 
-    - name: Copy entire repo to GCP VM (including submodules)
+    - name: Build all Docker images and save as tar
+      run: |
+        TAG=${{ github.sha }}
+        find . -type f -name 'Dockerfile' | while read dockerfile; do
+          DIR=$(dirname "$dockerfile")
+          NAME=$(basename "$DIR")
+          IMAGE="sandol-${NAME}:${TAG}"
+          TAR_PATH="${DIR}/docker_image_${NAME}_${TAG}.tar"
+
+          echo "Building image: $IMAGE"
+          docker build -t "$IMAGE" "$DIR"
+          docker save -o "$TAR_PATH" "$IMAGE"
+        done
+
+    - name: Copy entire repo including images to GCP VM
       run: |
         gcloud compute scp --recurse . $GCP_VM_USER@$GCP_INSTANCE_NAME:/home/$GCP_VM_USER/tuk_sandol_team --zone $GCP_ZONE
       env:
@@ -49,7 +63,11 @@ jobs:
       run: |
         gcloud compute ssh $GCP_VM_USER@$GCP_INSTANCE_NAME --zone $GCP_ZONE --command "
           cd /home/$GCP_VM_USER/tuk_sandol_team &&
-          docker compose up -d --build
+          find . -type f -name 'docker_image_*.tar' | while read tarfile; do
+            echo \"Loading image from \$tarfile\"
+            docker load -i \"\$tarfile\"
+          done &&
+          docker compose up -d
         "
       env:
         GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
