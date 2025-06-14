@@ -223,8 +223,25 @@ services:
     volumes:
     - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
     - ./sandol-log-manager/data:/var/lib/loki
+    command: -config.file=/etc/loki/local-config.yaml
     networks:
     - sandol_network
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_VERSION:-v3.3.0}
+    container_name: prometheus
+    volumes:
+      - ./sandol-log-manager/config/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
+    ports:
+      - "9090:9090"
+    networks:
+      - sandol_network
+    restart: always
 
   alloy:
     image: grafana/alloy:latest
@@ -232,11 +249,16 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
-    command: ["run", "/etc/alloy/config.alloy"]
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    ports:
+      - 12345:12345
+      - 4317:4317
+      - 4318:4318
     depends_on:
       - loki
     networks:
     - sandol_network
+    restart: always
 
   grafana:
     image: grafana/grafana:latest
@@ -248,6 +270,14 @@ services:
       - ./sandol-log-manager/config/grafana/provisioning:/etc/grafana/provisioning
     networks:
     - sandol_network
+    command:
+      - " --remove-orphans"
+    restart: always
+    environment:
+      - GF_LOG_LEVEL=warn
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+
 
 volumes:
   user_static: {}
