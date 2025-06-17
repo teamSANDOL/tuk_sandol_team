@@ -41,6 +41,7 @@ jobs:
       run: |
         TAG=${{ github.sha }}
         find . -type f -name 'Dockerfile' | while read dockerfile; do
+          ECHO "Processing Dockerfile: $dockerfile"
           DIR=$(dirname "$dockerfile")
           NAME=$(basename "$DIR")
           IMAGE="sandol-${NAME}:${TAG}"
