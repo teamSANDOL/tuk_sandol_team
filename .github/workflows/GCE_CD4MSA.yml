@@ -13,6 +13,30 @@ jobs:
       with:
         submodules: recursive
         ref: ${{ github.ref_name }}
+    - name: Build all Docker images and save as tar (with debug)
+      run: |
+        set -euxo pipefail
+        TAG=${{ github.sha }}
+        echo "Git SHA TAG: $TAG"
+        find . -type f -name 'Dockerfile' | while read dockerfile; do
+          echo "========================================"
+          echo "Processing Dockerfile: $dockerfile"
+          DIR=$(dirname "$dockerfile")
+          NAME=$(basename "$DIR")
+          IMAGE="sandol-${NAME}:${TAG}"
+          TAR_PATH="${DIR}/docker_image_${NAME}_${TAG}.tar"
+
+          echo "Building image: $IMAGE from $DIR"
+          docker build --progress=plain -t "$IMAGE" "$DIR"
+
+          echo "Saving image $IMAGE to $TAR_PATH"
+          docker save -o "$TAR_PATH" "$IMAGE"
+
+          echo "Verifying tar file:"
+          ls -lh "$TAR_PATH"
+          echo "========================================"
+        done
+        shell: bash
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
@@ -36,21 +60,6 @@ jobs:
 
     - name: Remove .git directory
       run: rm -rf .git
-
-    - name: Build all Docker images and save as tar
-      run: |
-        TAG=${{ github.sha }}
-        find . -type f -name 'Dockerfile' | while read dockerfile; do
-          ECHO "Processing Dockerfile: $dockerfile"
-          DIR=$(dirname "$dockerfile")
-          NAME=$(basename "$DIR")
-          IMAGE="sandol-${NAME}:${TAG}"
-          TAR_PATH="${DIR}/docker_image_${NAME}_${TAG}.tar"
-
-          echo "Building image: $IMAGE"
-          docker build -t "$IMAGE" "$DIR"
-          docker save -o "$TAR_PATH" "$IMAGE"
-        done
 
     - name: Copy entire repo including images to GCP VM
       run: |
