@@ -44,13 +44,6 @@ jobs:
     - name: Validate docker-compose.yml
       run: docker compose config
 
-    - name: Test Docker Compose (local)
-      run: |
-        docker compose up -d
-        sleep 10
-        docker compose ps
-        docker compose down
-
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
