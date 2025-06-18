@@ -13,7 +13,9 @@ jobs:
       with:
         submodules: recursive
         ref: ${{ github.ref_name }}
+
     - name: Build all Docker images and save as tar (with debug)
+      shell: bash
       run: |
         set -euxo pipefail
         TAG=${{ github.sha }}
@@ -36,7 +38,18 @@ jobs:
           ls -lh "$TAR_PATH"
           echo "========================================"
         done
-        shell: bash
+
+    - name: Remove .git directory
+      run: rm -rf .git
+    - name: Validate docker-compose.yml
+      run: docker compose config
+
+    - name: Test Docker Compose (local)
+      run: |
+        docker compose up -d
+        sleep 10
+        docker compose ps
+        docker compose down
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
@@ -57,9 +70,6 @@ jobs:
         gcloud compute project-info add-metadata --metadata "ssh-keys=${GCP_VM_USER}:$(cat ~/.ssh/id_rsa.pub)"
       env:
         GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
-
-    - name: Remove .git directory
-      run: rm -rf .git
 
     - name: Copy entire repo including images to GCP VM
       run: |
