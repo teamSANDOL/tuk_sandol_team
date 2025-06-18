@@ -193,6 +193,10 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   amqp:
     container_name: amqp
