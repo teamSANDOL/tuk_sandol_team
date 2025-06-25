@@ -76,11 +76,22 @@ jobs:
       run: |
         gcloud compute ssh $GCP_VM_USER@$GCP_INSTANCE_NAME --zone $GCP_ZONE --command "
           cd /home/$GCP_VM_USER/tuk_sandol_team &&
+
+          # .env 파일에 TAG를 주입하거나 교체
+          if grep -q '^TAG=' .env 2>/dev/null; then
+            sed -i 's/^TAG=.*/TAG=${{ github.sha }}/' .env
+          else
+            echo 'TAG=${{ github.sha }}' >> .env
+          fi &&
+
+          # 이미지 로드
           find . -type f -name 'docker_image_*.tar' | while read tarfile; do
             echo \"Loading image from \$tarfile\"
             docker load -i \"\$tarfile\"
           done &&
-          docker compose up -d
+
+          # 컨테이너 실행
+          sudo docker compose up -d
         "
       env:
         GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
