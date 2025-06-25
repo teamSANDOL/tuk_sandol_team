@@ -64,8 +64,9 @@ jobs:
       env:
         GCP_VM_USER: '${{ secrets.GCP_VM_USER }}'
 
-    - name: Copy entire repo including images to GCP VM
+    - name: Delete .tar files in GCP VM and Copy entire repo including images
       run: |
+        gcloud compute ssh $GCP_VM_USER@$GCP_INSTANCE_NAME --zone $GCP_ZONE --command="find ~/tuk_sandol_team -type f -name '*.tar' -delete"
         gcloud compute scp --recurse . $GCP_VM_USER@$GCP_INSTANCE_NAME:/home/$GCP_VM_USER/tuk_sandol_team --zone $GCP_ZONE
       env:
         GCP_INSTANCE_NAME: '${{ secrets.GCP_INSTANCE_NAME }}'
