@@ -1,0 +1,69 @@
+name: Deploy sandol server to SSH server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout with submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        ref: ${{ github.ref_name }}
+
+    - name: Build all Docker images and save as tar
+      shell: bash
+      run: |
+        set -euxo pipefail
+        TAG=${{ github.sha }}
+        echo "Git SHA TAG: $TAG"
+        find . -type f -name 'Dockerfile' | while read dockerfile; do
+          DIR=$(dirname "$dockerfile")
+          NAME=$(basename "$DIR")
+          IMAGE="sandol-${NAME}:${TAG}"
+          TAR_PATH="${DIR}/docker_image_${NAME}_${TAG}.tar"
+          docker build --progress=plain -t "$IMAGE" "$DIR"
+          docker save -o "$TAR_PATH" "$IMAGE"
+        done
+
+    - name: Remove .git directory
+      run: rm -rf .git
+
+    - name: Validate docker-compose.yml
+      run: docker compose config
+
+    - name: Upload SSH private key
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Delete .tar files on remote and copy repo
+      run: |
+        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "rm -rf ~/tuk_sandol_team/*.tar"
+        scp -P $SSH_PORT -r . $SSH_USER@$SSH_HOST:~/tuk_sandol_team
+      env:
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_PORT: ${{ secrets.SSH_PORT }}
+
+    - name: Run Docker Compose on remote server
+      run: |
+        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "
+          cd ~/tuk_sandol_team &&
+          if grep -q '^TAG=' .env 2>/dev/null; then
+            sed -i 's/^TAG=.*/TAG=${{ github.sha }}/' .env
+          else
+            echo 'TAG=${{ github.sha }}' >> .env
+          fi &&
+          find . -type f -name 'docker_image_*.tar' | while read tarfile; do
+            docker load -i \"\$tarfile\"
+          done &&
+          sudo docker compose up -d
+        "
+      env:
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_PORT: ${{ secrets.SSH_PORT }}
