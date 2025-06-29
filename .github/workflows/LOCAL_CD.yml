@@ -38,13 +38,13 @@ jobs:
     - name: Upload SSH private key
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
 
     - name: Delete .tar files on remote and copy repo
       run: |
         ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "rm -rf ~/tuk_sandol_team/*.tar"
-        scp -P $SSH_PORT -r . $SSH_USER@$SSH_HOST:~/tuk_sandol_team
+        scp -P $SSH_PORT -r ./* $SSH_USER@$SSH_HOST:~/tuk_sandol_team
       env:
         SSH_USER: ${{ secrets.SSH_USER }}
         SSH_HOST: ${{ secrets.SSH_HOST }}
