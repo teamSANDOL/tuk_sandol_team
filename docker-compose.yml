@@ -41,6 +41,8 @@ services:
     volumes:
       - ./sandol_user_service:/app
       - user_static:/app/static
+    env_file:
+      - ./sandol_user_service/.env
     networks:
       - sandol_network
     healthcheck:
@@ -64,6 +66,8 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - ./sandol_meal_service:/app
+    env_file:
+      - ./sandol_meal_service/.env
     networks:
       - sandol_network
     healthcheck:
@@ -87,6 +91,8 @@ services:
       - PYTHONUNBUFFERED=1
     volumes:
       - ./sandol_kakao_bot_service:/app
+    env_file:
+      - ./sandol_kakao_bot_service/.env
     networks:
       - sandol_network
     healthcheck:
