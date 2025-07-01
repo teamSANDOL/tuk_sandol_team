@@ -41,8 +41,6 @@ services:
     volumes:
       - ./sandol_user_service:/app
       - user_static:/app/static
-    env_file:
-      - ./sandol_user_service/.env
     networks:
       - sandol_network
     healthcheck:
