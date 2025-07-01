@@ -14,6 +14,18 @@ jobs:
         submodules: recursive
         ref: ${{ github.ref_name }}
 
+    - name: Prepare .env files from templates
+      shell: bash
+      run: |
+        find . -type f \( -name ".env.example" -o -name ".env.amqp" \) | while read src; do
+          dir=$(dirname "$src")
+          target="$dir/.env"
+          if [ ! -f "$target" ]; then
+            echo "Copying $src → $target"
+            cp "$src" "$target"
+          fi
+        done
+
     - name: Build all Docker images and save as tar
       shell: bash
       run: |
@@ -34,6 +46,11 @@ jobs:
 
     - name: Validate docker-compose.yml
       run: docker compose config
+
+    - name: Delete .env files before upload
+      shell: bash
+      run: |
+        find . -type f -name ".env" -delete
 
     - name: Upload SSH private key
       run: |
