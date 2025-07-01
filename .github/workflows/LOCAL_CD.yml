@@ -14,16 +14,30 @@ jobs:
         submodules: recursive
         ref: ${{ github.ref_name }}
 
-    - name: Prepare .env files from templates
+    - name: Merge .env.dev > .env.amqp > .env.example into .env
       shell: bash
       run: |
-        find . -type f \( -name ".env.example" -o -name ".env.amqp" \) | while read src; do
-          dir=$(dirname "$src")
-          target="$dir/.env"
-          if [ ! -f "$target" ]; then
-            echo "Copying $src → $target"
-            cp "$src" "$target"
-          fi
+        find . -type d | while read dir; do
+          combined_env="$dir/.env"
+          > "$combined_env"
+
+          declare -A env_map
+
+          for src in ".env.dev" ".env.amqp" ".env.example"; do
+            src_path="$dir/$src"
+            if [ -f "$src_path" ]; then
+              while IFS= read -r line; do
+                [[ "$line" =~ ^\s*$ || "$line" =~ ^\s*# ]] && continue
+                key=$(echo "$line" | cut -d= -f1)
+                value=$(echo "$line" | cut -d= -f2-)
+                env_map["$key"]="$value"
+              done < "$src_path"
+            fi
+          done
+
+          for key in "${!env_map[@]}"; do
+            echo "$key=${env_map[$key]}" >> "$combined_env"
+          done
         done
 
     - name: Build all Docker images and save as tar
@@ -47,10 +61,10 @@ jobs:
     - name: Validate docker-compose.yml
       run: docker compose config
 
-    - name: Delete .env files before upload
+    - name: Delete all .env* files before upload
       shell: bash
       run: |
-        find . -type f -name ".env" -delete
+        find . -type f -name ".env*" -delete
 
     - name: Upload SSH private key
       run: |
