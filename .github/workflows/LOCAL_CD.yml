@@ -6,6 +6,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
 
     steps:
     - name: Checkout with submodules
@@ -74,12 +78,9 @@ jobs:
 
     - name: Delete .tar files on remote and copy repo
       run: |
-        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "rm -rf ~/tuk_sandol_team/*.tar"
+        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST \
+          "find ~/tuk_sandol_team -type f -name 'docker_image_*.tar' -delete"
         scp -P $SSH_PORT -r ./* $SSH_USER@$SSH_HOST:~/tuk_sandol_team
-      env:
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-        SSH_PORT: ${{ secrets.SSH_PORT }}
 
     - name: Run Docker Compose on remote server
       run: |
@@ -95,7 +96,40 @@ jobs:
           done &&
           sudo docker compose up -d
         "
-      env:
-        SSH_USER: ${{ secrets.SSH_USER }}
-        SSH_HOST: ${{ secrets.SSH_HOST }}
-        SSH_PORT: ${{ secrets.SSH_PORT }}
+
+  verify-and-cleanup:
+    needs: deploy
+    runs-on: ubuntu-latest
+    env:
+      SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+
+    steps:
+    - name: Upload SSH private key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Verify all Docker Compose services are running
+      run: |
+        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "
+          cd ~/tuk_sandol_team &&
+          total=\$(docker compose config --services | wc -l) &&
+          running=\$(docker compose ps --services --filter status=running | wc -l) &&
+          if [ \"\$total\" -eq \"\$running\" ]; then
+            echo '✅ All services are running.'
+          else
+            echo '❌ Some services failed to start.'
+            docker compose ps
+            exit 1
+          fi
+        "
+
+    - name: Prune unused Docker images and volumes
+      if: success()
+      run: |
+        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "
+          docker system prune -af --volumes
+        "
