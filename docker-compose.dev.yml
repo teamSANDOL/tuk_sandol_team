@@ -78,6 +78,30 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    depends_on:
+      meal-service-db:
+        condition: service_healthy
+
+  meal-service-db:
+    container_name: meal-service-db
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    env_file:
+      - .env
+    volumes:
+      - meal_service_db_data:/var/lib/postgresql/data
+    networks:
+      - sandol_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d postgres -U root" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   kakao-bot-service:
     container_name: sandol_kakao_bot_service
@@ -288,6 +312,7 @@ services:
 volumes:
   user_static: {}
   grafana_data: {}
+  meal_service_db_data: {}
 
 networks:
   sandol_network:
