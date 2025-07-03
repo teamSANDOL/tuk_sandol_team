@@ -59,6 +59,8 @@ services:
   meal-service:
     container_name: sandol_meal_service
     build: ./sandol_meal_service
+    env_file:
+      - ./sandol_meal_service/.env
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
@@ -97,11 +99,13 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d postgres -U root" ]
+      test: [ "CMD-SHELL", "pg_isready -d meal_service -U postgres" ]
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 80s
+    ports:
+      - "5423:5432"
 
   kakao-bot-service:
     container_name: sandol_kakao_bot_service
