@@ -82,6 +82,13 @@ jobs:
           "find ~/tuk_sandol_team -type f -name 'docker_image_*.tar' -delete"
         scp -P $SSH_PORT -r ./* $SSH_USER@$SSH_HOST:~/tuk_sandol_team
 
+    - name: Create required Docker volumes on remote server
+      run: |
+        ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "
+          docker volume inspect meal_service_db_data >/dev/null 2>&1 || docker volume create meal_service_db_data &&
+          docker volume inspect notice_notification_db_data >/dev/null 2>&1 || docker volume create notice_notification_db_data
+        "
+
     - name: Run Docker Compose on remote server
       run: |
         ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "
@@ -131,5 +138,5 @@ jobs:
       if: success()
       run: |
         ssh -o StrictHostKeyChecking=no -p $SSH_PORT $SSH_USER@$SSH_HOST "
-          docker system prune -af --volumes
+          docker system prune -af
         "
