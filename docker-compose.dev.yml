@@ -1,5 +1,6 @@
 services:
   gateway:
+    container_name: sandol-gateway
     build: ./sandol-gateway/gateway
     ports:
       - "8010:80"
@@ -95,7 +96,7 @@ services:
     env_file:
       - .env
     volumes:
-      - meal_service_db_data:/var/lib/postgresql/data
+      - ./sandol_meal_service/db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
     healthcheck:
@@ -304,8 +305,6 @@ services:
       - ./sandol-log-manager/config/grafana/provisioning:/etc/grafana/provisioning
     networks:
     - sandol_network
-    command:
-      - " --remove-orphans"
     restart: always
     environment:
       - GF_LOG_LEVEL=warn
@@ -316,7 +315,6 @@ services:
 volumes:
   user_static: {}
   grafana_data: {}
-  meal_service_db_data: {}
 
 networks:
   sandol_network:

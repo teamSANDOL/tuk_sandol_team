@@ -1,10 +1,9 @@
 services:
   gateway:
+    container_name: sandol-gateway
     image: sandol-gateway:${TAG:-latest}
     ports:
       - "8010:80"
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
     depends_on:
       user-service:
         condition: service_healthy
@@ -18,6 +17,8 @@ services:
         condition: service_healthy
       notice-notification:
         condition: service_healthy
+    env_file:
+      - ./.env
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
       - ./sandol-gateway/gateway/lua:/etc/nginx/lua
@@ -31,15 +32,19 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   user-service:
     image: sandol-sandol_user_service:${TAG:-latest}
     container_name: sandol_user_service
+    env_file:
+      - ./.env
     environment:
-      - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
     volumes:
-      - ./sandol_user_service:/app
       - user_static:/app/static
     networks:
       - sandol_network
@@ -55,16 +60,18 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   meal-service:
     image: sandol-sandol_meal_service:${TAG:-latest}
     container_name: sandol_meal_service
     environment:
-      - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
-    volumes:
-      - ./sandol_meal_service:/app
     env_file:
+      - ./.env
       - ./sandol_meal_service/.env
     networks:
       - sandol_network
@@ -83,6 +90,10 @@ services:
     depends_on:
       meal-service-db:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   meal-service-db:
     container_name: meal-service-db
@@ -99,21 +110,28 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d postgres -U root" ]
+      test: [ "CMD-SHELL", "pg_isready -d meal_service -U postgres" ]
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 80s
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   kakao-bot-service:
     image: sandol-sandol_kakao_bot_service:${TAG:-latest}
     container_name: sandol_kakao_bot_service
     environment:
-      - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
-    volumes:
-      - ./sandol_kakao_bot_service:/app
     env_file:
+      - ./.env
       - ./sandol_kakao_bot_service/.env
     networks:
       - sandol_network
@@ -129,13 +147,18 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   static-info-service:
     image: sandol-sandol-static-info-service:${TAG:-latest}
     container_name: sandol_static_info_service
     environment:
-      - SECRET_KEY=${SECRET_KEY}
       - PYTHONUNBUFFERED=1
+    env_file:
+      - ./.env
     volumes:
       - ./sandol-static-info-service:/app
     networks:
@@ -152,6 +175,10 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   classroom-timetable-service:
     image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
@@ -170,6 +197,10 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   notice-notification:
     image: sandol-sandol_notice_notification:${TAG:-latest}
@@ -198,7 +229,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
+          cpus: '0.8'
 
   notice-notification-db:
     container_name: sandol-notice-notification-db
@@ -207,7 +238,7 @@ services:
     env_file:
       - ./sandol_notice_notification/.env.dev
     volumes:
-      - ./sandol_notice_notification/db_data:/var/lib/postgresql/data
+      - notice_notification_db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
     healthcheck:
@@ -241,12 +272,14 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   loki:
     image: grafana/loki:latest
     container_name: loki
-    ports:
-      - "3100:3100"
     volumes:
       - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
       - ./sandol-log-manager/data:/var/lib/loki
@@ -254,6 +287,15 @@ services:
     networks:
       - sandol_network
     restart: always
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
   prometheus:
     image: prom/prometheus:${PROMETHEUS_VERSION:-v3.3.0}
@@ -264,11 +306,18 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver"
-    ports:
-      - "9090:9090"
     networks:
       - sandol_network
     restart: always
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   alloy:
     image: grafana/alloy:latest
@@ -276,39 +325,50 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
-    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
-    ports:
-      - 12345:12345
-      - 4317:4317
-      - 4318:4318
+    command: run --log.level=warn /etc/alloy/config.alloy
     depends_on:
       - loki
     networks:
       - sandol_network
     restart: always
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
-    ports:
-      - "3001:3000"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./sandol-log-manager/config/grafana/provisioning:/etc/grafana/provisioning
     networks:
       - sandol_network
-    command:
-      - " --remove-orphans"
     restart: always
     environment:
       - GF_LOG_LEVEL=warn
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
 
 volumes:
   user_static: {}
   grafana_data: {}
   meal_service_db_data: {}
+  notice_notification_db_data: {}
 
 networks:
   sandol_network:
