@@ -325,7 +325,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
-    command: run --log.level=warn /etc/alloy/config.alloy
+    command: run /etc/alloy/config.alloy
     depends_on:
       - loki
     networks:
