@@ -3,12 +3,10 @@ services:
     container_name: sandol-gateway
     build: ./sandol-gateway/gateway
     ports:
-      - "8010:80"
+      - "80:80"
     environment:
       - SECRET_KEY=${SECRET_KEY}
     depends_on:
-      user-service:
-        condition: service_healthy
       meal-service:
         condition: service_healthy
       kakao-bot-service:
@@ -26,30 +24,6 @@ services:
     command: [ "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;" ]
     networks:
       - sandol_network
-    restart: on-failure
-    logging:
-      driver: "local"
-      options:
-        max-size: "10m"
-        max-file: "7"
-
-  user-service:
-    container_name: sandol_user_service
-    build: ./sandol_user_service
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - ./sandol_user_service:/app
-      - user_static:/app/static
-    networks:
-      - sandol_network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/user/health" ]
-      interval: 60s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     restart: on-failure
     logging:
       driver: "local"
@@ -311,10 +285,59 @@ services:
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
 
+  # --- 추가: Keycloak 전용 Postgres ---
+  keycloak-db:
+    container_name: keycloak-db
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    networks:
+      - sandol_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d keycloak -U keycloak" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 20s
+    restart: always
+
+  # --- 추가: Keycloak (서브패스 /auth) ---
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:26.3.2
+    command:
+      - start-dev
+      - --http-enabled=true
+      - --http-port=8010
+      - --http-relative-path=/auth
+      - --proxy-headers
+      - xforwarded
+      - --hostname-debug=true
+      - --hostname-strict=false
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    networks:
+      - sandol_network
+    ports:
+      - "8080:8010"
 
 volumes:
   user_static: {}
   grafana_data: {}
+  # --- 추가: Keycloak DB 볼륨 ---
+  keycloak_db_data: {}
 
 networks:
   sandol_network:
