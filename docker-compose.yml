@@ -105,6 +105,8 @@ services:
   classroom-timetable-service:
     container_name: sandol_classroom_timetable_service
     build: ./sandol_classroom_timetable_service
+    env_file:
+      - ./sandol_classroom_timetable_service/.env
     networks:
       - sandol_network
     healthcheck:
