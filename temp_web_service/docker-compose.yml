@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  temp-web-service:
+    container_name: temp-web-service
+    build: .
+    ports:
+      - "8011:8011"
+    env_file:
+      - .env
+    networks:
+      - sandol_network
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+networks:
+  sandol_network:
+    external: true
