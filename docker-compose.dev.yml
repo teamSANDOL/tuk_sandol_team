@@ -324,9 +324,9 @@ services:
       --http-relative-path=/auth
       --proxy-headers=xforwarded
       --hostname-strict=true
-      --spi-theme--static-max-age=-1
-      --spi-theme--cache-themes=false
-      --spi-theme--cache-templates=false
+      --spi-theme-static-max-age=-1
+      --spi-theme-cache-themes=false
+      --spi-theme-cache-templates=false
       --health-enabled=true
     environment:
       # --- 관리자 계정 ---
