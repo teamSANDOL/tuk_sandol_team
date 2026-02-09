@@ -147,7 +147,7 @@ Content-Type: application/json
 ## 코드베이스 정합성 메모 (현재)
 
 - `sandol-gateway/gateway/lua/signature_verify.lua`는 `X-User-ID` + `X-Signature` 기반 검증을 수행하고 있어 폐기 대상.
-- 일부 gateway route는 `X-User-Sub`를 전달하고 있어 `X-User-ID` 표준으로 정리 필요.
+- gateway route는 `X-User-ID` 전달 기준으로 정리되었다.
 - 일부 서비스는 이미 `X-User-ID` 기반 로직을 사용 중.
 
 ## 전환 체크포인트
