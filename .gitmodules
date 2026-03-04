@@ -35,4 +35,4 @@ branch = main
 	url = https://github.com/teamSANDOL/sandol-log-manager.git
 [submodule "sandol-auth-relay"]
 	path = sandol-auth-relay
-	url = git@github.com:teamSANDOL/sandol-auth-relay.git
+	url = https://github.com/teamSANDOL/sandol-auth-relay.git
