@@ -317,26 +317,20 @@ services:
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:26.3.2
-    command: >
-      start
-      --http-enabled=true
-      --http-port=8080
-      --http-relative-path=/auth
-      --proxy-headers=xforwarded
-      --hostname-strict=true
-      --spi-theme-static-max-age=-1
-      --spi-theme-cache-themes=false
-      --spi-theme-cache-templates=false
-      --health-enabled=true
+    command: ["start"]
     environment:
       # --- 관리자 계정 ---
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
 
       # --- 호스트 및 경로 설정 ---
       KC_HOSTNAME: sandol.house.sio2.kr
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: "8080"
       KC_HTTP_RELATIVE_PATH: /auth
       KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME_STRICT: "true"
+      KC_HEALTH_ENABLED: "true"
 
       # --- 데이터베이스 연결 ---
       KC_DB: postgres
@@ -345,7 +339,7 @@ services:
       KC_DB_PASSWORD: keycloak
 
       # --- 디버깅용 로그 설정 ---
-      KC_LOG_CATEGORY__org.freemarker__LEVEL: DEBUG
+      KC_LOG_CATEGORY__ORG_FREEMARKER__LEVEL: DEBUG
     networks:
       - sandol_network
     healthcheck:
