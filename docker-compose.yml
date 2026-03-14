@@ -4,9 +4,9 @@ services:
     image: sandol-gateway:${TAG:-latest}
     ports:
       - "8010:80"
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
     depends_on:
-      user-service:
-        condition: service_healthy
       meal-service:
         condition: service_healthy
       kakao-bot-service:
@@ -18,67 +18,31 @@ services:
       notice-notification:
         condition: service_healthy
       auth-relay:
-        condition: service_started
-    env_file:
-      - ./.env
+        condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
-      - ./sandol-gateway/gateway/lua:/etc/nginx/lua
-      - user_static:/usr/share/nginx/static/user
-    command: [ "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;" ]
+    command: ["/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
     networks:
       - sandol_network
-    restart: on-failure
+    restart: always
     logging:
       driver: "local"
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
-
-  user-service:
-    image: sandol-sandol_user_service:${TAG:-latest}
-    container_name: sandol_user_service
-    env_file:
-      - ./.env
-    environment:
-      - PYTHONUNBUFFERED=1
-    volumes:
-      - user_static:/app/static
-    networks:
-      - sandol_network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/user/health" ]
-      interval: 60s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    restart: on-failure
-    logging:
-      driver: "local"
-      options:
-        max-size: "10m"
-        max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   meal-service:
-    image: sandol-sandol_meal_service:${TAG:-latest}
     container_name: sandol_meal_service
-    environment:
-      - PYTHONUNBUFFERED=1
+    image: sandol-sandol_meal_service:${TAG:-latest}
     env_file:
-      - ./.env
       - ./sandol_meal_service/.env
+    environment:
+      PYTHONUNBUFFERED: "1"
+      SECRET_KEY: ${SECRET_KEY}
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80/meal/health" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/meal/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -90,29 +54,23 @@ services:
         max-size: "10m"
         max-file: "7"
     depends_on:
+      keycloak:
+        condition: service_healthy
       meal-service-db:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   meal-service-db:
     container_name: meal-service-db
     image: postgres:15
     restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-meal_service}
     env_file:
-      - .env
+      - ./sandol_meal_service/.env
     volumes:
       - meal_service_db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d meal_service -U postgres" ]
+      test: ["CMD-SHELL", "pg_isready -d meal_service -U postgres"]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -122,23 +80,20 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   kakao-bot-service:
-    image: sandol-sandol_kakao_bot_service:${TAG:-latest}
     container_name: sandol_kakao_bot_service
-    environment:
-      - PYTHONUNBUFFERED=1
+    image: sandol-sandol_kakao_bot_service:${TAG:-latest}
     env_file:
-      - ./.env
       - ./sandol_kakao_bot_service/.env
+    environment:
+      PYTHONUNBUFFERED: "1"
+      SECRET_KEY: ${SECRET_KEY}
+      TOKEN_ENCRYPTION_KEY: ${KAKAO_TOKEN_ENCRYPTION_KEY}
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80/kakao-bot/health" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/kakao-bot/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -149,24 +104,17 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   static-info-service:
-    image: sandol-sandol-static-info-service:${TAG:-latest}
     container_name: sandol_static_info_service
+    image: sandol-sandol-static-info-service:${TAG:-latest}
     environment:
-      - PYTHONUNBUFFERED=1
-    env_file:
-      - ./.env
-    volumes:
-      - ./sandol-static-info-service:/app
+      PYTHONUNBUFFERED: "1"
+      SECRET_KEY: ${SECRET_KEY}
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80/static-info/health" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/static-info/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -177,18 +125,14 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   classroom-timetable-service:
-    image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
     container_name: sandol_classroom_timetable_service
+    image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "wget", "-O", "-", "--tries=1", "http://localhost:80/classroom-timetable/health" ]
+      test: ["CMD-SHELL", "wget -q --spider --tries=1 http://localhost:80/classroom-timetable/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -199,21 +143,17 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   notice-notification:
-    image: sandol-sandol_notice_notification:${TAG:-latest}
     container_name: sandol-notice-notification
+    image: sandol-sandol_notice_notification:${TAG:-latest}
     restart: always
     env_file:
-      - ./sandol_notice_notification/.env.dev
+      - ./sandol_notice_notification/.env
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000/notice-notification/health" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/notice-notification/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -228,23 +168,19 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   notice-notification-db:
     container_name: sandol-notice-notification-db
     image: postgres:15
     restart: always
     env_file:
-      - ./sandol_notice_notification/.env.dev
+      - ./sandol_notice_notification/.env
     volumes:
       - notice_notification_db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d postgres -U root" ]
+      test: ["CMD-SHELL", "pg_isready -d postgres -U root"]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -254,10 +190,6 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
 
   amqp:
     container_name: amqp
@@ -265,7 +197,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "status" ]
+      test: ["CMD-SHELL", "rabbitmq-diagnostics status"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -274,10 +206,6 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
 
   loki:
     image: grafana/loki:latest
@@ -294,10 +222,6 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   prometheus:
     image: prom/prometheus:${PROMETHEUS_VERSION:-v3.3.0}
@@ -316,10 +240,6 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
 
   alloy:
     image: grafana/alloy:latest
@@ -339,10 +259,6 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
 
   grafana:
     image: grafana/grafana:latest
@@ -354,63 +270,58 @@ services:
       - sandol_network
     restart: always
     environment:
-      - GF_LOG_LEVEL=warn
-      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      GF_LOG_LEVEL: "warn"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     logging:
       driver: "local"
       options:
         max-size: "10m"
         max-file: "7"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
 
   keycloak-db:
     container_name: keycloak-db
     image: postgres:16-alpine
     environment:
-      - POSTGRES_DB=keycloak
-      - POSTGRES_USER=keycloak
-      - POSTGRES_PASSWORD=keycloak
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d keycloak -U keycloak" ]
+      test: ["CMD-SHELL", "pg_isready -d keycloak -U ${KC_DB_USERNAME}"]
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 20s
     restart: always
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   keycloak:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:26.3.2
-    command: >
-      start
-      --http-enabled=true
-      --http-port=8080
-      --http-relative-path=/auth
-      --proxy-headers=xforwarded
-      --hostname-strict=true
-      --spi-theme-static-max-age=-1
-      --spi-theme-cache-themes=false
-      --spi-theme-cache-templates=false
-      --health-enabled=true
+    command: ["start"]
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_HOSTNAME: sandol.house.sio2.kr
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: "8080"
       KC_HTTP_RELATIVE_PATH: /auth
       KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME_STRICT: "true"
+      KC_HEALTH_ENABLED: "true"
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
-      KC_LOG_CATEGORY__org.freemarker__LEVEL: DEBUG
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_LOG_CATEGORY__ORG_FREEMARKER__LEVEL: DEBUG
     networks:
       - sandol_network
     healthcheck:
@@ -430,29 +341,36 @@ services:
     depends_on:
       keycloak-db:
         condition: service_healthy
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
   auth-relay:
     container_name: auth-relay
-    build: ./sandol-auth-relay
+    image: sandol-auth-relay:${TAG:-latest}
     env_file:
       - ./sandol-auth-relay/.env
-    ports:
-      - "8020:8000"
     networks:
       - sandol_network
     restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
     depends_on:
       keycloak:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl", "-fsS", "http://localhost:8000/health", "||", "exit", "1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
       start_period: 10s
 
 volumes:
-  user_static: {}
   grafana_data: {}
   alloy_data: {}
   meal_service_db_data: {}

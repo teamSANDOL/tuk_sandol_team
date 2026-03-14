@@ -5,22 +5,20 @@ services:
     ports:
       - "8010:80"
     environment:
-      - SECRET_KEY=${SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY}
     depends_on:
       meal-service:
-        condition: service_started
+        condition: service_healthy
       kakao-bot-service:
-        condition: service_started
+        condition: service_healthy
       static-info-service:
-        condition: service_started
+        condition: service_healthy
       classroom-timetable-service:
-        condition: service_started
+        condition: service_healthy
       auth-relay:
-        condition: service_started
+        condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
-      - ./sandol-gateway/gateway/lua:/etc/nginx/lua
-      - user_static:/usr/share/nginx/static/user
     command: [ "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;" ]
     networks:
       - sandol_network
@@ -37,14 +35,14 @@ services:
     env_file:
       - ./sandol_meal_service/.env
     environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - PYTHONUNBUFFERED=1
+      SECRET_KEY: ${SECRET_KEY}
+      PYTHONUNBUFFERED: "1"
     volumes:
       - ./sandol_meal_service:/app
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:80/meal/health", "||", "exit", "1" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/meal/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -65,12 +63,8 @@ services:
     container_name: meal-service-db
     image: postgres:15
     restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-meal_service}
     env_file:
-      - .env
+      - ./sandol_meal_service/.env
     volumes:
       - ./sandol_meal_service/db_data:/var/lib/postgresql/data
     networks:
@@ -81,22 +75,20 @@ services:
       timeout: 60s
       retries: 5
       start_period: 80s
-    ports:
-      - "5423:5432"
 
   kakao-bot-service:
     container_name: sandol_kakao_bot_service
     build: ./sandol_kakao_bot_service
     environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - PYTHONUNBUFFERED=1
-      - TOKEN_ENCRYPTION_KEY=${KAKAO_TOKEN_ENCRYPTION_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      PYTHONUNBUFFERED: "1"
+      TOKEN_ENCRYPTION_KEY: ${KAKAO_TOKEN_ENCRYPTION_KEY}
     volumes:
       - ./sandol_kakao_bot_service:/app
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:80/kakao-bot/health", "||", "exit", "1" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/kakao-bot/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -112,14 +104,14 @@ services:
     container_name: sandol_static_info_service
     build: ./sandol-static-info-service
     environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - PYTHONUNBUFFERED=1
+      SECRET_KEY: ${SECRET_KEY}
+      PYTHONUNBUFFERED: "1"
     volumes:
       - ./sandol-static-info-service:/app
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:80/static-info/health", "||", "exit", "1" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:80/static-info/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -137,7 +129,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--spider", "--tries=1", "http://localhost:80/classroom-timetable/health", "||", "exit", "1" ]
+      test: [ "CMD-SHELL", "wget -q --spider --tries=1 http://localhost:80/classroom-timetable/health || exit 1" ]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -163,7 +155,7 @@ services:
       - sandol_network
 
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:3000/notice-notification/health", "||", "exit", "1" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/notice-notification/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -180,12 +172,6 @@ services:
       options:
         max-size: "10m"
         max-file: "7"
-
-    # CPU 코어를 최대 1개만 사용하도록 제한합니다.
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
 
   notice-notification-db:
     container_name: sandol-notice-notification-db
@@ -217,7 +203,7 @@ services:
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD", "rabbitmq-diagnostics", "status" ]
+      test: [ "CMD-SHELL", "rabbitmq-diagnostics status" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -285,23 +271,23 @@ services:
       - sandol_network
     restart: always
     environment:
-      - GF_LOG_LEVEL=warn
-      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      GF_LOG_LEVEL: "warn"
+      GF_SERVER_ROOT_URL: %(protocol)s://%(domain)s/grafana
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
 
   keycloak-db:
     container_name: keycloak-db
     image: postgres:16-alpine
     environment:
-      - POSTGRES_DB=keycloak
-      - POSTGRES_USER=keycloak
-      - POSTGRES_PASSWORD=keycloak
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d keycloak -U keycloak" ]
+      test: ["CMD-SHELL", "pg_isready -d keycloak -U ${KC_DB_USERNAME}"]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -320,8 +306,8 @@ services:
     command: ["start"]
     environment:
       # --- 관리자 계정 ---
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
       # --- 호스트 및 경로 설정 ---
       KC_HOSTNAME: sandol.house.sio2.kr
@@ -335,8 +321,8 @@ services:
       # --- 데이터베이스 연결 ---
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
 
       # --- 디버깅용 로그 설정 ---
       KC_LOG_CATEGORY__ORG_FREEMARKER__LEVEL: DEBUG
@@ -371,8 +357,6 @@ services:
     build: ./sandol-auth-relay
     env_file:
       - ./sandol-auth-relay/.env
-    ports:
-      - "8020:8000"
     networks:
       - sandol_network
     restart: on-failure
@@ -383,9 +367,9 @@ services:
         max-file: "7"
     depends_on:
       keycloak:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl", "-fsS", "http://localhost:8000/health", "||", "exit", "1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -394,7 +378,6 @@ services:
 
 
 volumes:
-  user_static: {}
   grafana_data: {}
   alloy_data: {}
   # --- 추가: Keycloak DB 볼륨 ---
