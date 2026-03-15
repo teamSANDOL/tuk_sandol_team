@@ -1,2 +1,5 @@
 .env
 .secrets
+
+# MacOD
+.DS_Store
