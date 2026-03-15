@@ -124,6 +124,117 @@ Relay -> Bot 콜백 payload 예시:
 |---|---|---|
 | `X-Relay-Signature` | O | payload 정규화 JSON에 대한 HMAC-SHA256(base64url) |
 
+서명 검증 계약(공유 시크릿):
+
+- Auth-Relay와 Chatbot은 동일한 HMAC 공유 시크릿 값을 사용한다.
+- 환경 변수 이름은 서로 다를 수 있다.
+  - Relay: `RELAY_TO_CHATBOT_HMAC_SECRET`
+  - Chatbot: `RELAY_CLIENT_SECRETS`
+- Relay는 콜백 payload를 canonical JSON(UTF-8)으로 직렬화한 뒤 HMAC-SHA256을 계산한다.
+- 계산 결과는 base64url(패딩 없음)로 인코딩해 `X-Relay-Signature` 헤더에 담아 전송한다.
+- Chatbot은 동일한 방식으로 서명을 재계산하고, 상수 시간 비교(constant-time compare)로 헤더 값과 비교해야 한다.
+- 불일치 시 즉시 `401 Invalid X-Relay-Signature`를 반환하고 payload를 신뢰하지 않는다.
+- 참고: `X-Relay-Signature`는 암호화가 아니라 무결성/송신자 검증을 위한 HMAC 서명이다.
+
+왜 상수 시간 비교가 필요한가:
+
+- 일반 문자열 비교(`==`)는 불일치 지점에서 비교를 빨리 끝내는 경우가 있어, 응답 시간 차이로 서명값을 추측하는 타이밍 공격에 취약할 수 있다.
+- 상수 시간 비교는 값이 언제 틀리든 동일한 비교 경로를 사용해 시간 기반 정보 누출을 줄인다.
+- 따라서 서명 검증에서는 "비교 함수 선택"이 보안 요구사항이며, 구현 세부가 아니다.
+
+구현 원칙(중요):
+
+- 가능하면 프로젝트의 검증 함수를 재사용한다.
+  - 예시(kakao-bot): `sandol_kakao_bot_service/app/services/auth_service.py`의 `verify_relay_signature`
+- 새로 구현할 때는 직접 비교 로직을 만들지 말고, 언어 표준/검증된 모듈 함수를 사용한다.
+- 금지: `expected_sig == provided_sig` 같은 일반 문자열 비교.
+
+언어별 권장 함수:
+
+| 언어 | 권장 함수 | 비고 |
+|---|---|---|
+| Python | `hmac.compare_digest` | 현재 챗봇 서비스 예시 구현이 사용하는 방식 |
+| Node.js | `crypto.timingSafeEqual` | 버퍼 길이 확인 후 비교 |
+
+공식 참고 문헌:
+
+- Python `hmac.compare_digest`: https://docs.python.org/3/library/hmac.html#hmac.compare_digest
+- Python HMAC 검증 시 `==` 대신 `compare_digest` 권고: https://docs.python.org/3/library/hmac.html#hmac.HMAC.digest
+- Node.js `crypto.timingSafeEqual`: https://nodejs.org/api/crypto.html#cryptotimingsafeequala-b
+- 타이밍 정보 노출 약점(CWE-208): https://cwe.mitre.org/data/definitions/208.html
+
+검증 절차(권장 구현):
+
+1. 요청 헤더에서 `X-Relay-Signature`를 읽는다(없으면 즉시 401).
+2. Relay와 동일한 canonical JSON 직렬화 규칙으로 payload 바이트를 만든다.
+3. 챗봇 서버 설정의 공유 시크릿 값(`RELAY_CLIENT_SECRETS`)으로 HMAC-SHA256 digest를 계산한다.
+4. digest를 base64url(패딩 없음)로 인코딩해 기대 서명값(`expected_sig`)을 만든다.
+5. `expected_sig`와 헤더 서명값(`provided_sig`)을 상수 시간 비교로 검증한다.
+6. 비교 실패 시 즉시 401 반환 후 요청 처리를 중단한다.
+
+언어 독립 의사코드:
+
+```text
+provided_sig = header["X-Relay-Signature"]
+if provided_sig is missing:
+  return 401
+
+canonical = canonical_json(payload)   # sort_keys, compact separators, UTF-8
+digest = HMAC_SHA256(shared_secret, canonical)
+expected_sig = BASE64URL_NOPAD(digest)
+
+if CONSTANT_TIME_COMPARE(expected_sig, provided_sig) is false:
+  return 401
+
+continue to timestamp/nonce verification
+```
+
+JavaScript 예시(Node.js):
+
+```javascript
+import crypto from 'crypto';
+
+function canonicalJson(payload) {
+  const ordered = Object.keys(payload)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = payload[key];
+      return acc;
+    }, {});
+  return JSON.stringify(ordered);
+}
+
+function base64urlNoPad(buf) {
+  return buf
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
+export function verifyRelaySignature(payload, providedSig, sharedSecret) {
+  if (!providedSig) return false;
+
+  const msg = Buffer.from(canonicalJson(payload), 'utf8');
+  const mac = crypto.createHmac('sha256', sharedSecret).update(msg).digest();
+  const expectedSig = base64urlNoPad(mac);
+
+  const expectedBuf = Buffer.from(expectedSig, 'utf8');
+  const providedBuf = Buffer.from(providedSig, 'utf8');
+  if (expectedBuf.length !== providedBuf.length) return false;
+
+  return crypto.timingSafeEqual(expectedBuf, providedBuf);
+}
+```
+
+Python 예시가 필요하면(kakao-bot 구현 기준) `sandol_kakao_bot_service/app/services/auth_service.py`의 `verify_relay_signature` 구현을 참고한다.
+
+주의사항:
+
+- `expected_sig == provided_sig` 같은 일반 문자열 비교를 사용하지 않는다.
+- Relay/Chatbot의 canonical JSON 규칙이 다르면 정상 요청도 검증 실패한다.
+- base64url 패딩(`=`) 처리는 하지 않는것으로(있다면, 제거하는 것으로) 통일한다.
+
 ### 4) 봇 서버 콜백 처리 (`POST /users/callback`)
 
 - 입력: `LoginCallbackReq` + `X-Relay-Signature`
