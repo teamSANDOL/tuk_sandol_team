@@ -343,6 +343,21 @@ flowchart TD
 
 - `LoginCallbackReq` 스키마 (위 payload 예시 참고)
 
+`LoginCallbackReq` 필드:
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| `issuer` | string | O | Keycloak issuer URL |
+| `aud` | string | O | 대상 챗봇 서비스 audience |
+| `chatbot_user_id` | string | O | 플랫폼 사용자 식별자 |
+| `client_key` | string | O | Auth-Relay에 등록된 챗봇 클라이언트 키 |
+| `relay_access_token` | string | O | Relay가 전달하는 access token |
+| `offline_refresh_token` | string | O | Relay가 전달하는 refresh token |
+| `expires_in` | int | O | access token 만료까지 남은 초 |
+| `refresh_expires_in` | int | O | refresh token 만료까지 남은 초(무기한이면 0) |
+| `ts` | int | O | 콜백 생성 시각(epoch seconds) |
+| `nonce` | string | O | 1회용 재사용 방지 식별자 |
+
 성공 코드:
 
 - `200 OK`
