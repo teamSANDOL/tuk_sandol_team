@@ -11,7 +11,7 @@
 1. [용어 사전](./glossary.md)
 2. [인증 기초 가이드 (초심자용)](./auth-basics.md)
 3. [MSA 서비스간 통신 인증 절차 - 구조 이해 파트](./auth-msa-communication.md#msa-auth-understanding)
-4. [챗봇/디스코드 + Auth-Relay 인증 - 구조 이해 파트](./auth-chatbot-auth-relay.md#auth-relay-understanding)
+4. [챗봇(Auth-Relay) 인증 - 구조 이해 파트](./auth-chatbot-auth-relay.md#auth-relay-understanding)
 5. [Flutter WebView 인증(Auth-Relay 미사용)](./auth-flutter-webview.md)
 
 ### 개발 가이드 파트
@@ -19,7 +19,7 @@
 인증을 "어떻게 구현/검증할지"를 바로 적용하기 위한 문서 묶음입니다.
 
 1. [MSA 서비스간 통신 인증 절차 - 개발 가이드 파트](./auth-msa-communication.md#msa-auth-dev-guide)
-2. [챗봇/디스코드 + Auth-Relay 인증 - 개발 가이드 파트](./auth-chatbot-auth-relay.md#auth-relay-dev-guide)
+2. [챗봇(Auth-Relay) 인증 - 개발 가이드 파트](./auth-chatbot-auth-relay.md#auth-relay-dev-guide)
 3. [JWKS 검증 공통 모듈 제작 가이드라인 (도입 예정)](./jwks-common-module-guideline.md)
 4. [JWKS 도입 전 검증 체크리스트(코드리뷰/릴리즈 게이트)](./jwks-validation-checklist.md)
 
@@ -32,13 +32,13 @@
 1. [용어 사전](./glossary.md)
 2. [인증 기초 가이드 (초심자용)](./auth-basics.md)
 3. [MSA 서비스간 통신 인증 절차 - 구조 이해 파트](./auth-msa-communication.md#msa-auth-understanding)
-4. [챗봇/디스코드 + Auth-Relay 인증 - 구조 이해 파트](./auth-chatbot-auth-relay.md#auth-relay-understanding)
+4. [챗봇(Auth-Relay) 인증 - 구조 이해 파트](./auth-chatbot-auth-relay.md#auth-relay-understanding)
 5. [Flutter WebView 인증(Auth-Relay 미사용)](./auth-flutter-webview.md)
 
 ### 2) 구현/수정 작업을 바로 해야 하는 경우
 
 1. [MSA 서비스간 통신 인증 절차 - 개발 가이드 파트](./auth-msa-communication.md#msa-auth-dev-guide)
-2. [챗봇/디스코드 + Auth-Relay 인증 - 개발 가이드 파트](./auth-chatbot-auth-relay.md#auth-relay-dev-guide)
+2. [챗봇(Auth-Relay) 인증 - 개발 가이드 파트](./auth-chatbot-auth-relay.md#auth-relay-dev-guide)
 3. [JWKS 검증 공통 모듈 제작 가이드라인 (도입 예정)](./jwks-common-module-guideline.md)
 4. [JWKS 도입 전 검증 체크리스트(코드리뷰/릴리즈 게이트)](./jwks-validation-checklist.md)
 

@@ -74,7 +74,7 @@ flowchart TD
 
 실패 예시:
 
-- `aud` 검증이 빠져 `kakao-bot` 토큰으로 `meal-service` 보호 API 접근 성공
+- `aud` 검증이 빠져 `bot-a` 토큰으로 `meal-service` 보호 API 접근 성공
 
 ## C. JWKS 운영 안정성
 

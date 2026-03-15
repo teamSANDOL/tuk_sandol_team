@@ -1,8 +1,8 @@
-# 챗봇/디스코드 Auth-Relay 인증 및 offline_access 저장
+# 챗봇(Auth-Relay) 인증 및 offline_access 저장
 
 ## 목적
 
-카카오톡 챗봇/디스코드 봇 서버가 Auth-Relay를 통해 사용자 인증을 완료하고, [offline_access](./glossary.md#offline_access) 기반 갱신 체계를 안정적으로 운영하기 위한 상세 규칙을 정의한다.
+여러 챗봇 서버(예: discord-bot, telegram-bot 등)가 Auth-Relay를 통해 사용자 인증을 완료하고, [offline_access](./glossary.md#offline_access) 기반 갱신 체계를 안정적으로 운영하기 위한 상세 규칙을 정의한다.
 
 관련 용어: [Authorization Code Flow](./glossary.md#authorization-code-flow), [PKCE](./glossary.md#pkce), [Refresh Token](./glossary.md#refresh-token), [sub](./glossary.md#sub), [X-User-ID](./glossary.md#x-user-id)
 
@@ -25,11 +25,16 @@
 5. 봇 서버가 서명/timestamp/nonce를 검증하고 사용자 매핑 저장
 6. 봇 서버는 이후 MSA 호출 시 `X-User-ID` 기반 사용자 컨텍스트로 호출
 
+용어 규약:
+
+- `챗봇 서버`: 플랫폼별 챗봇 백엔드(discord-bot/telegram-bot 등)
+- `chatbot_user_id`: 플랫폼 내부 사용자 식별자
+
 ```mermaid
 sequenceDiagram
     autonumber
     participant User as 사용자
-    participant Bot as 챗봇/디스코드 서버
+    participant Bot as 챗봇 서버
     participant Relay as Auth-Relay
     participant KC as Keycloak
     participant MSA as Domain MSA
@@ -58,9 +63,9 @@ sequenceDiagram
 
 ```json
 {
-  "chatbot_user_id": "kakao-user-123",
-  "callback_url": "https://sandol.example.com/kakao-bot/users/callback",
-  "client_key": "sandol-kakao-bot",
+  "chatbot_user_id": "chatbot-user-123",
+  "callback_url": "https://sandol.example.com/chatbot-service/users/callback",
+  "client_key": "sandol-chatbot-service",
   "redirect_after": "https://sandol.example.com/login/success"
 }
 ```
@@ -78,7 +83,7 @@ sequenceDiagram
 
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
-| `chatbot_user_id` | string | O | 챗봇 내부 사용자 식별자 |
+| `chatbot_user_id` | string | O | 플랫폼 내부 사용자 식별자 |
 | `callback_url` | URL | O | Relay가 토큰을 POST할 봇 서버 콜백 URL |
 | `client_key` | string | O | Auth-Relay에 등록된 클라이언트 키 |
 | `redirect_after` | URL | X | 로그인 완료 후 브라우저 최종 이동 URL |
@@ -100,9 +105,9 @@ Relay -> Bot 콜백 payload 예시:
 ```json
 {
   "issuer": "https://sandol.example.com/auth/realms/Sandori",
-  "aud": "sandol-kakao-bot",
-  "chatbot_user_id": "kakao-user-123",
-  "client_key": "sandol-kakao-bot",
+  "aud": "sandol-chatbot-service",
+  "chatbot_user_id": "chatbot-user-123",
+  "client_key": "sandol-chatbot-service",
   "relay_access_token": "<access_token>",
   "offline_refresh_token": "<refresh_token>",
   "expires_in": 300,
@@ -127,7 +132,7 @@ Relay -> Bot 콜백 payload 예시:
   3) nonce 재사용 검증
   4) 토큰 필드 존재 검증
   5) access token에서 `sub` 추출
-  6) `kakao_id/discord_id`와 `sub` 매핑 저장
+  6) `chatbot_user_id`와 `sub` 매핑 저장
 
 ```mermaid
 flowchart TD
@@ -140,7 +145,7 @@ flowchart TD
     D -- 예 --> F{토큰 필드 존재?}
     F -- 아니오 --> E4[500 payload missing tokens]
     F -- 예 --> G[access token에서 sub 추출]
-    G --> H[kakao/discord id와 sub 매핑 저장]
+    G --> H[chatbot_user_id와 sub 매핑 저장]
     H --> OK[200 OK]
 ```
 
@@ -274,7 +279,7 @@ stateDiagram-v2
 
 - Auth-Relay 엔드포인트: `sandol-auth-relay/app/routers/auth.py`
 - Auth-Relay 스키마: `sandol-auth-relay/app/schemas/auth.py`
-- 챗봇 콜백 엔드포인트: `sandol_kakao_bot_service/app/routers/user.py`
-- 챗봇 콜백 스키마/검증 로직: `sandol_kakao_bot_service/app/schemas/auth.py`, `sandol_kakao_bot_service/app/services/auth_service.py`
+- 챗봇 서버 콜백 엔드포인트 예시(kakao-bot): `sandol_kakao_bot_service/app/routers/user.py`
+- 챗봇 서버 콜백 스키마/검증 로직 예시(kakao-bot): `sandol_kakao_bot_service/app/schemas/auth.py`, `sandol_kakao_bot_service/app/services/auth_service.py`
 
 인증 구조 요약을 다시 보려면 [인증 구조 이해 파트](#auth-relay-understanding)로 이동한다.
