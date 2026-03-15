@@ -42,6 +42,7 @@ sequenceDiagram
     Bot->>Relay: POST /issue_login_link
     Relay-->>Bot: login_link 반환
     Bot-->>User: login_link 전달
+    User->>Relay: GET /login/{lit}
     Relay-->>User: 302 Redirect to Keycloak Login
     User->>KC: 로그인 페이지 접근 및 인증 정보 입력
     KC-->>Relay: GET /oidc/callback?code&state
@@ -389,7 +390,7 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     [*] --> Active: 로그인/콜백 완료
-    Active --> Refreshing: access token 만료 임박 또는 401
+    Active --> Refreshing: access token 만료 임박 | 401
     Refreshing --> Active: refresh 성공
     Refreshing --> ReauthRequired: invalid_grant
     ReauthRequired --> [*]: 재로그인 링크 발급/완료
