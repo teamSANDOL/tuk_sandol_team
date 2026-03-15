@@ -46,11 +46,12 @@
 
 - MSA 간 사용자 컨텍스트 헤더는 `X-User-ID`를 사용한다 (Keycloak 사용자 식별자 기반).
 - Auth-Relay 내부 인증 절차에서는 Keycloak `sub` 클레임을 사용할 수 있다.
-- 현재 MSA 인증은 Gateway 경계의 서명 검증 + `X-User-ID` 전달 규약을 기준으로 운영한다.
+- 현재 MSA 인증은 Gateway 라우팅 + `X-User-ID` 전달 규약을 기준으로 운영한다.
 - Keycloak Access Token의 MSA별 JWKS 직접 검증은 현재 미적용이며 도입 예정 항목으로 관리한다.
 - 신규 언어/프레임워크 서비스의 JWKS 공통 모듈 적용은 도입 시점부터 필수로 전환한다.
 
 ## 현재 상태 메모
 
 - gateway route 헤더는 `X-User-ID` 기준으로 정리되어 있다.
+- Gateway 경계 인증 검증은 현재 미적용 상태다.
 - 본 문서의 JWKS 관련 규칙은 "도입 목표"이며, 현행 운영 규칙과 구분해 읽어야 한다.
