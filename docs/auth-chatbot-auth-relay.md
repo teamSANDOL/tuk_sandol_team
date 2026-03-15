@@ -252,9 +252,9 @@ flowchart TD
     B -- 아니오 --> E1[401 Invalid Signature]
     B -- 예 --> C{timestamp 허용 범위?}
     C -- 아니오 --> E2[401 Timestamp Out Of Range]
-    C -- 예 --> D{nonce 재사용 아님?}
-    D -- 아니오 --> E3[400 reused_nonce]
-    D -- 예 --> F{토큰 필드 존재?}
+    C -- 예 --> D{nonce 재사용?}
+    D -- 예 --> E3[400 reused_nonce]
+    D -- 아니오 --> F{토큰 필드 존재?}
     F -- 아니오 --> E4[500 payload missing tokens]
     F -- 예 --> G[access token에서 sub 추출]
     G --> H[chatbot_user_id와 sub 매핑 저장]
