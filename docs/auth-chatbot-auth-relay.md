@@ -56,7 +56,7 @@ sequenceDiagram
 
 ### 1) 로그인 링크 발급
 
-- 호출 주체: 챗봇/디스코드 서버
+- 호출 주체: 챗봇 서버
 - 대상 API: Auth-Relay `POST /issue_login_link`
 - 목적: 사용자가 열 수 있는 1회성 로그인 시작 URL(LIT) 발급
 
