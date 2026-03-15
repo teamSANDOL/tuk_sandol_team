@@ -41,10 +41,11 @@ sequenceDiagram
 
     Bot->>Relay: POST /issue_login_link
     Relay-->>Bot: login_link 반환
-    User->>Relay: GET /login/{lit}
-    Relay->>KC: Authorization Code + PKCE 시작
+    Bot-->>User: login_link 전달
+    Relay-->>User: 302 Redirect to Keycloak Login
+    User->>KC: 로그인 페이지 접근 및 인증 정보 입력
     KC-->>Relay: GET /oidc/callback?code&state
-    Relay->>KC: code -> token 교환 (offline_access)
+    Relay->>KC: code + code_verifier로 token 교환 (offline_access)
     KC-->>Relay: access_token + refresh_token
     Relay->>Bot: 콜백 POST + X-Relay-Signature
     Bot->>Bot: 서명/timestamp/nonce 검증, sub 매핑 저장
