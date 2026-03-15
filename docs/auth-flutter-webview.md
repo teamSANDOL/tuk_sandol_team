@@ -4,6 +4,8 @@
 
 Flutter 앱이 Auth-Relay 없이 앱 내부 WebView로 직접 OIDC 인증을 수행할 때의 표준 절차와 보안 요구사항을 정의한다.
 
+> 참고: 이 문서는 대체 인증 시나리오 가이드이며, 현재 MSA 간 표준 헤더 체계(`X-User-ID` 중심 운영)와 별개로 읽어야 한다.
+
 관련 용어: [OIDC](./glossary.md#oidc-openid-connect), [PKCE](./glossary.md#pkce), [offline_access](./glossary.md#offline_access)
 
 ## 권장 전제
@@ -20,6 +22,25 @@ Flutter 앱이 Auth-Relay 없이 앱 내부 WebView로 직접 OIDC 인증을 수
 5. 앱 백엔드 또는 앱 안전 구역에서 code -> token 교환
 6. Access/Refresh Token 저장(플랫폼 secure storage)
 7. API 호출 시 `Authorization` 헤더 부착
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as Flutter App
+    participant WV as WebView
+    participant KC as Keycloak
+    participant API as MSA API
+
+    App->>App: PKCE/state/nonce 생성
+    App->>WV: 인증 URL 열기
+    WV->>KC: /auth?response_type=code&code_challenge=S256
+    KC-->>WV: redirect_uri?code&state
+    WV-->>App: code/state 전달
+    App->>App: state/redirect URI 검증
+    App->>KC: code + code_verifier로 token 교환
+    KC-->>App: access_token + refresh_token
+    App->>API: Authorization: Bearer <access_token>
+```
 
 ## API 요청/응답 상세 (Flutter 직접 처리 시)
 
@@ -115,6 +136,20 @@ grant_type=refresh_token
 
 - 새 `refresh_token`이 응답에 오면 기존 값을 즉시 교체
 - `invalid_grant` 발생 시 로컬 토큰 삭제 후 재로그인 시작
+
+```mermaid
+flowchart TD
+    A[Access Token 만료 임박/401] --> B[refresh_token으로 재발급 요청]
+    B --> C{응답 성공?}
+    C -- 예 --> D[access_token 갱신]
+    D --> E{새 refresh_token 포함?}
+    E -- 예 --> F[refresh_token 교체 저장]
+    E -- 아니오 --> G[기존 refresh_token 유지]
+    F --> H[API 재호출]
+    G --> H
+    C -- 아니오: invalid_grant --> I[로컬 토큰 삭제]
+    I --> J[재로그인 시작]
+```
 
 ## 필수 보안 요구사항
 

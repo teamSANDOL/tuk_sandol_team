@@ -1,8 +1,10 @@
-# JWKS 검증 공통 모듈 제작 가이드라인
+# JWKS 검증 공통 모듈 제작 가이드라인 (도입 예정)
 
 ## 목적
 
-언어/프레임워크 최초 사용 개발자도 동일한 보안 기준으로 Access Token을 검증할 수 있도록 공통 모듈 계약을 정의한다.
+언어/프레임워크 최초 사용 개발자도 동일한 보안 기준으로 Access Token을 검증할 수 있도록, JWKS 도입 시 적용할 공통 모듈 계약을 정의한다.
+
+> 상태: 이 문서는 **현재 운영 규칙이 아니라 도입 예정 가이드**다.
 
 관련 용어: [JWKS](./glossary.md#jwks-json-web-key-set), [kid](./glossary.md#kid), [Fail Closed](./glossary.md#fail-closed)
 
@@ -25,6 +27,12 @@ verifyAccessToken(token, options) -> VerifiedPrincipal | VerificationError
 - `options`: 이 서비스가 허용하는 issuer/audience/alg 같은 정책
 - 반환값이 `VerifiedPrincipal`이면 "검증 완료된 사용자 컨텍스트"로 간주
 - 에러면 즉시 401/403으로 처리하고 비즈니스 로직에 진입하지 않음
+
+적용 규약:
+
+- 보호 엔드포인트는 `Authorization`과 `X-User-ID`를 모두 요구해야 한다.
+- 검증 모듈은 JWT `sub`와 `X-User-ID`의 정확 일치를 필수 검증해야 한다.
+- Gateway 사전 검증 여부와 무관하게, 최종 인증 판정은 각 MSA에서 수행한다.
 
 예시(개념):
 
@@ -74,6 +82,28 @@ output VerifiedPrincipal:
 4. 서명 검증
 5. 클레임(`iss`, `aud`, `exp`, `nbf`, `iat`) 검증
 6. 프로젝트 정합성(`sub == X-User-ID`) 검증
+
+```mermaid
+flowchart TD
+    A[verifyAccessToken 호출] --> B{토큰 파싱 성공?}
+    B -- 아니오 --> E1[TOKEN_MALFORMED]
+    B -- 예 --> C{alg allowlist 통과?}
+    C -- 아니오 --> E2[TOKEN_SIGNATURE_INVALID]
+    C -- 예 --> D[kid로 JWKS 키 선택]
+    D --> K{kid 존재?}
+    K -- 아니오 --> R[JWKS 강제 refresh 1회]
+    R --> K2{refresh 후 kid 존재?}
+    K2 -- 아니오 --> E3[TOKEN_KID_NOT_FOUND]
+    K2 -- 예 --> S
+    K -- 예 --> S[서명 검증]
+    S --> V{서명 유효?}
+    V -- 아니오 --> E4[TOKEN_SIGNATURE_INVALID]
+    V -- 예 --> CL{iss/aud/exp/nbf/iat 유효?}
+    CL -- 아니오 --> E5[Issuer/Audience/Expired 오류]
+    CL -- 예 --> M{sub == X-User-ID?}
+    M -- 아니오 --> E6[401 Unauthorized]
+    M -- 예 --> OK[VerifiedPrincipal 반환]
+```
 
 ## 캐시/키 로테이션 정책
 
