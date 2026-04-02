@@ -68,7 +68,7 @@ sequenceDiagram
   "chatbot_user_id": "chatbot-user-123",
   "callback_url": "https://sandol.example.com/chatbot-service/users/callback",
   "client_key": "sandol-chatbot-service",
-  "redirect_after": "https://sandol.example.com/login/success"
+  "redirect_after": "/login/success"
 }
 ```
 
@@ -86,9 +86,14 @@ sequenceDiagram
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
 | `chatbot_user_id` | string | O | 플랫폼 내부 사용자 식별자 |
-| `callback_url` | URL | O | Relay가 토큰을 POST할 봇 서버 콜백 URL |
+| `callback_url` | URL | O | Relay가 토큰을 POST할 봇 서버 콜백 URL. `client_key`별 `callback_url_allowlist`와 절대 URL exact match여야 한다. |
 | `client_key` | string | O | Auth-Relay에 등록된 클라이언트 키 |
-| `redirect_after` | URL | X | 로그인 완료 후 브라우저 최종 이동 URL |
+| `redirect_after` | string | X | 로그인 완료 후 브라우저 최종 이동 경로. 안전한 상대경로만 허용되며 `redirect_after_allowlist` prefix 정책을 따른다. |
+
+정책 요약:
+
+- `callback_url`은 Relay가 토큰을 전달할 서버간 콜백 목적지이며, 절대 URL exact match allowlist로 검증한다.
+- `redirect_after`는 사용자 브라우저 최종 이동 경로이며, 외부 URL이 아닌 상대경로 allowlist로 검증한다.
 
 ### 2) 사용자 로그인 시작
 
@@ -244,8 +249,9 @@ Python 예시가 필요하면(kakao-bot 구현 기준) `sandol_kakao_bot_service
   2) timestamp 검증
   3) nonce 재사용 검증
   4) 토큰 필드 존재 검증
-  5) access token에서 `sub` 추출
-  6) `chatbot_user_id`와 `sub` 매핑 저장
+  5) callback payload의 `issuer/aud/client_key` 검증
+  6) access token의 `exp/iss`와 client binding 검증 후 `sub` 추출
+  7) `chatbot_user_id`와 `sub` 매핑 저장
 
 ```mermaid
 flowchart TD
@@ -257,9 +263,13 @@ flowchart TD
     D -- 예 --> E3[400 reused_nonce]
     D -- 아니오 --> F{토큰 필드 존재?}
     F -- 아니오 --> E4[500 payload missing tokens]
-    F -- 예 --> G[access token에서 sub 추출]
-    G --> H[chatbot_user_id와 sub 매핑 저장]
-    H --> OK[200 OK]
+    F -- 예 --> G{issuer/aud/client_key 일치?}
+    G -- 아니오 --> E5[401 invalid callback claims]
+    G -- 예 --> H{access token exp/iss/client binding 유효?}
+    H -- 아니오 --> E6[401 invalid access token claims]
+    H -- 예 --> I[access token에서 sub 추출]
+    I --> J[chatbot_user_id와 sub 매핑 저장]
+    J --> OK[200 OK]
 ```
 
 성공 응답 예시:
@@ -349,7 +359,7 @@ flowchart TD
 | 필드 | 타입 | 필수 | 설명 |
 |---|---|---|---|
 | `issuer` | string | O | Keycloak issuer URL |
-| `aud` | string | O | 대상 챗봇 서비스 audience |
+| `aud` | string | O | Relay callback payload의 대상 챗봇 서비스 audience |
 | `chatbot_user_id` | string | O | 플랫폼 사용자 식별자 |
 | `client_key` | string | O | Auth-Relay에 등록된 챗봇 클라이언트 키 |
 | `relay_access_token` | string | O | Relay가 전달하는 access token |
@@ -369,6 +379,12 @@ flowchart TD
 - `401 Invalid X-Relay-Signature header`
 - `401 Timestamp is out of acceptable range`
 - `400 reused_nonce`
+- `401 invalid_callback_issuer`
+- `401 invalid_callback_audience`
+- `401 invalid_callback_client_key`
+- `401 invalid_access_token_audience`
+- `401 invalid_access_token_issuer`
+- `401 expired_access_token`
 - `500 Login callback payload is missing required tokens...`
 
 ## 운영 정책
@@ -378,13 +394,21 @@ flowchart TD
 - `X-Relay-Signature` HMAC 검증 필수
 - timestamp 허용 오차 초과 시 거부
 - nonce 재사용 시 거부 ([Replay Attack](./glossary.md#replay-attack))
+- callback payload의 `issuer/aud/client_key`가 현재 챗봇 설정과 일치해야 한다.
+- access token의 client binding은 `azp`를 우선 사용하고, `azp`가 없을 때만 `aud`를 fallback으로 사용한다.
 - 위 3가지 조건을 하나라도 만족하지 못하면 콜백을 수락하지 않고 인증 실패로 처리한다.
+
+### Relay allowlist 정책
+
+- `callback_url_allowlist`: Relay가 토큰을 POST할 목적지 검증용 absolute URL exact match 정책
+- `redirect_after_allowlist`: 사용자 브라우저 최종 이동용 safe relative path prefix 정책
+- `redirect_after`가 허용되지 않으면 Relay는 최종 목적지를 `/`로 fallback한다.
 
 ### 토큰 저장/갱신 정책
 
 - Access/Refresh Token 모두 암호화 저장
 - 만료 시각은 UTC 기준 저장
-- Refresh 실패(`invalid_grant`) 시 사용자 재로그인 유도
+- Refresh 실패(`invalid_grant`) 시 저장된 access/refresh token과 만료시각을 정리한 뒤 사용자 재로그인 유도
 - 새 refresh token이 발급되면 즉시 교체 저장
 
 ```mermaid
