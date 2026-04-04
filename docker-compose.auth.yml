@@ -27,15 +27,15 @@ services:
     container_name: keycloak-db
     image: postgres:16-alpine
     environment:
-      - POSTGRES_DB=keycloak
-      - POSTGRES_USER=keycloak
-      - POSTGRES_PASSWORD=keycloak
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
     networks:
       - sandol_network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d keycloak -U keycloak" ]
+      test: ["CMD-SHELL", "pg_isready -d keycloak -U ${KC_DB_USERNAME}"]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -54,8 +54,8 @@ services:
     command: ["start"]
     environment:
       # --- 관리자 계정 ---
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
       # --- 호스트 및 경로 설정 ---
       KC_HOSTNAME: sandol.house.sio2.kr
@@ -69,8 +69,8 @@ services:
       # --- 데이터베이스 연결 ---
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
 
       # --- 디버깅용 로그 설정 ---
       KC_LOG_CATEGORY__ORG_FREEMARKER__LEVEL: DEBUG
