@@ -47,6 +47,21 @@
 
 </details>
 
+## 루트 공통 도메인 env 확인
+
+- [ ] 루트 `.env`에 `SERVICE_DOMAIN`이 설정되어 있음
+- [ ] Keycloak 서비스의 `KC_HOSTNAME`이 `${SERVICE_DOMAIN}`으로 연결되어 있음을 인지함
+- [ ] 같은 도메인 값을 다른 서비스에서도 재사용할 수 있도록 공통 이름으로 관리 중임을 인지함
+
+<details>
+<summary>설정 방법 보기</summary>
+
+- 현재 compose 파일들은 Keycloak 컨테이너의 `KC_HOSTNAME`에 루트 `.env`의 `SERVICE_DOMAIN`을 주입합니다.
+- 변수명을 `KC_HOSTNAME`으로 두지 않은 이유는 Keycloak 전용 설정으로 묶지 않고, 다른 서비스들도 같은 서비스 도메인을 재사용할 수 있게 하기 위해서입니다.
+- 따라서 도메인 변경 시 Keycloak만 따로 보지 말고, gateway 경로 및 각 서비스의 외부 URL도 함께 점검하는 편이 안전합니다.
+
+</details>
+
 ## 포트 노출 확인
 
 - [ ] gateway 외부 포트 확인

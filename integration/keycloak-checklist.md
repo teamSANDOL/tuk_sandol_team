@@ -3,6 +3,7 @@
 ## Realm 기본 설정
 
 - [ ] realm 이름이 `Sandori`로 되어 있음
+- [ ] 루트 `.env`의 `SERVICE_DOMAIN` 값이 실제 Keycloak hostname과 일치함
 - [ ] 외부 접근 주소가 `KC_SERVER_URL`과 일치함
 - [ ] reverse proxy 경로가 `/auth`로 맞춰져 있음
 
@@ -11,6 +12,8 @@
 
 - Keycloak admin console에 로그인합니다.
 - realm 선택 화면에서 실제 사용하는 realm 이름이 `Sandori`인지 확인합니다.
+- 루트 compose에서는 `SERVICE_DOMAIN` 값이 Keycloak `KC_HOSTNAME`으로 주입됩니다.
+- 변수명을 `KC_HOSTNAME`으로 두지 않은 이유는 동일한 도메인 값을 다른 서비스에서도 재사용할 수 있도록 공통 이름으로 관리하기 위해서입니다.
 - hostname, external URL, reverse proxy 경로가 현재 운영 도메인과 `/auth` 기준으로 맞는지 확인합니다.
 
 </details>

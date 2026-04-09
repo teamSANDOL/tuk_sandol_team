@@ -46,13 +46,22 @@
    cp ./<submodule>/.env.example ./<submodule>/.env
    ```
 
-5. 전체 서비스를 실행합니다.
+5. 루트 `.env.example`도 `.env`로 복사하고 공통 값을 채웁니다.
+
+   ```bash
+   cp ./.env.example ./.env
+   ```
+
+   - `SERVICE_DOMAIN`은 Keycloak 컨테이너의 `KC_HOSTNAME`으로 주입되는 공통 도메인 값입니다.
+   - 변수명을 `KC_HOSTNAME`으로 두지 않은 이유는 Keycloak 전용 설정으로 한정하지 않고, 같은 도메인 값을 다른 서비스 설정에서도 함께 재사용할 수 있도록 하기 위함입니다.
+
+6. 전체 서비스를 실행합니다.
 
    ```bash
    docker compose up --build -d
    ```
 
-> ⚠️ `.env` 복사 단계는 서브모듈마다 반복해야 하며, 환경 설정은 서비스별로 확인 바랍니다.
+> ⚠️ `.env` 복사 단계는 서브모듈마다 반복해야 하며, 루트 `.env`도 함께 관리해야 합니다. 환경 설정은 서비스별로 확인 바랍니다.
 
 
 ### AUTHORS

@@ -310,7 +310,7 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HOSTNAME: sandol.house.sio2.kr
+      KC_HOSTNAME: ${SERVICE_DOMAIN:-sandori.kr}
       KC_HTTP_ENABLED: "true"
       KC_HTTP_PORT: "8080"
       KC_HTTP_RELATIVE_PATH: /auth
