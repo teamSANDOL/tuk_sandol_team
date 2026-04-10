@@ -12,8 +12,8 @@
 - 운영 통합 실행은 보통 루트 `docker-compose.yml`을 기준으로 봅니다.
 - 개발 중 코드 마운트와 build가 필요하면 `docker-compose.dev.yml`을 씁니다.
 - Keycloak/auth-relay만 따로 띄워 확인할 때만 `docker-compose.auth.yml`을 봅니다.
-- 이 문서는 compose 파일 선택과 구조 점검용입니다. env 값 채우기는 `integration/env-checklist.md`에서 관리합니다.
-- 운영 데이터 디렉터리 생성 및 초기 파일 이관은 `integration/production-data-setup.md`를 함께 봅니다.
+- 이 문서는 compose 파일 선택과 구조 점검용입니다. env 값 채우기는 `./env-checklist.md`에서 관리합니다.
+- 운영 데이터 디렉터리 생성 및 초기 파일 이관은 `./production-data-setup.md`를 함께 봅니다.
 
 </details>
 
@@ -199,7 +199,7 @@
 <details>
 <summary>확인 방법 보기</summary>
 
-- env 값 채우기는 `integration/env-checklist.md`에서 끝냅니다.
+- env 값 채우기는 `./env-checklist.md`에서 끝냅니다.
 - compose 구조 점검은 이 문서에서 끝냅니다.
 - 둘을 섞지 않고 따로 확인해야 어디서 문제가 나는지 빨리 찾을 수 있습니다.
 
