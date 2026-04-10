@@ -228,7 +228,7 @@ services:
     image: grafana/loki:latest
     container_name: loki
     volumes:
-      - ./config/loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
       - ./sandol-log-manager/data:/var/lib/loki
     command: -config.file=/etc/loki/local-config.yaml
     networks:
@@ -265,7 +265,7 @@ services:
     container_name: alloy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./config/alloy/config.alloy:/etc/alloy/config.alloy
+      - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
       - alloy_data:/var/lib/alloy/data
     command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
