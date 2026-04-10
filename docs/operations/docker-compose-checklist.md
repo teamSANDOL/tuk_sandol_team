@@ -185,6 +185,9 @@
 - 운영 초기에 서비스만 먼저 올리고, 모니터링은 나중에 붙일 수도 있습니다.
 - grafana는 subpath 기준 설정이 들어 있으니 reverse proxy와 맞는지 확인합니다.
 - 로그 적재까지 같이 할지, 최소 기능만 먼저 올릴지 compose 단계에서 결정합니다.
+- 루트 compose 기준 모니터링 설정은 루트 레포의 `config/monitoring/`, `config/rabbitmq/`, `config/alloy/`, `config/loki/`를 우선 기준으로 봅니다. `sandol-log-manager`, `sandol_amqp` 서브모듈 안의 예시/독립 설정과 섞어서 수정하지 않습니다.
+- 특히 Prometheus scrape target 변경은 `sandol-log-manager/config/prometheus/prometheus.yaml`이 아니라 루트 `config/monitoring/prometheus.yaml`에서 관리합니다.
+- Alloy 라벨/로그 파이프라인과 Loki 보존 정책도 루트 `config/alloy/`, `config/loki/`에서 함께 관리합니다.
 
 </details>
 
