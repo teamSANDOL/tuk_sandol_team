@@ -13,6 +13,7 @@
 - 개발 중 코드 마운트와 build가 필요하면 `docker-compose.dev.yml`을 씁니다.
 - Keycloak/auth-relay만 따로 띄워 확인할 때만 `docker-compose.auth.yml`을 봅니다.
 - 이 문서는 compose 파일 선택과 구조 점검용입니다. env 값 채우기는 `integration/env-checklist.md`에서 관리합니다.
+- 운영 데이터 디렉터리 생성 및 초기 파일 이관은 `integration/production-data-setup.md`를 함께 봅니다.
 
 </details>
 
@@ -81,17 +82,32 @@
 ## volume / 데이터 영속성 확인
 
 - [ ] meal DB volume 확인
+- [ ] meal-service 파일 마운트 점검 (`student_cafeteria.json`, `meal_types.json`)
 - [ ] notice DB volume 확인
 - [ ] keycloak DB / keycloak data volume 확인
 - [ ] grafana / alloy / loki data volume 확인
 - [ ] dev compose에서 bind mount가 의도대로 걸리는지 확인
+- [ ] auth-relay `clients.json`와 static-info `school_info.json` bind mount 여부 확인
 
 <details>
 <summary>설정 방법 보기</summary>
 
 - 운영 compose는 named volume 위주라 재기동 후 데이터 보존 여부를 확인합니다.
+- 운영에서 bind mount하는 운영 데이터 파일은 repo 내부가 아니라 `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}` 아래에서 관리하는 것을 기준으로 봅니다.
 - dev compose는 bind mount를 많이 쓰므로 로컬 파일 변경이 컨테이너에 바로 반영되는 구조입니다.
 - Keycloak과 각 DB 관련 volume은 특히 삭제하지 않도록 구분해 둡니다.
+
+> 권장 운영 경로 예시
+> - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/auth-relay/clients.json`
+> - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/meal_types.json`
+> - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/student_cafeteria.json`
+> - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/school_info.json`
+> - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/classroom/lecture_array.json`
+> - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/classroom/buildings.csv`
+
+> `meal-service`의 식사 타입 파일은 기본적으로 `/app/app/config/meal_types.json`을 읽으며,
+> 운영에서는 `meal_types.json`만 관리 대상으로 보고, `test_meal_types.json`은 mount 대상에 포함하지 않습니다.
+> 다만 현재 코드 경로는 초기 로딩 시점에만 이 파일을 참조하므로 동작 반영은 재기동/재생성 후 확인해야 합니다.
 
 </details>
 

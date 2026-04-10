@@ -39,6 +39,8 @@ services:
       PYTHONUNBUFFERED: "1"
     volumes:
       - ./sandol_meal_service:/app
+      - ./sandol_meal_service/app/config/student_cafeteria.json:/app/app/config/student_cafeteria.json:ro
+      - ./sandol_meal_service/app/config/meal_types.json:/app/app/config/meal_types.json:ro
     networks:
       - sandol_network
     healthcheck:
@@ -108,6 +110,7 @@ services:
       PYTHONUNBUFFERED: "1"
     volumes:
       - ./sandol-static-info-service:/app
+      - ./sandol-static-info-service/app/config/school_info.json:/app/app/config/school_info.json:ro
     networks:
       - sandol_network
     healthcheck:
@@ -126,6 +129,9 @@ services:
   classroom-timetable-service:
     container_name: sandol_classroom_timetable_service
     build: ./sandol_classroom_timetable_service
+    volumes:
+      - ./sandol_classroom_timetable_service/data/lecture_array.json:/app/data/lecture_array.json:ro
+      - ./sandol_classroom_timetable_service/data/buildings.csv:/app/data/buildings.csv:ro
     networks:
       - sandol_network
     healthcheck:
@@ -357,6 +363,8 @@ services:
     build: ./sandol-auth-relay
     env_file:
       - ./sandol-auth-relay/.env
+    volumes:
+      - ./sandol-auth-relay/app/config/clients.json:/app/app/config/clients.json:ro
     networks:
       - sandol_network
     restart: on-failure

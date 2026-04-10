@@ -105,6 +105,8 @@ services:
     build: ./sandol-auth-relay
     env_file:
       - ./sandol-auth-relay/.env
+    volumes:
+      - ./sandol-auth-relay/app/config/clients.json:/app/app/config/clients.json:ro
     ports:
       - "8020:8000"
     networks:

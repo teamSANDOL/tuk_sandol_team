@@ -39,6 +39,10 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
       SECRET_KEY: ${SECRET_KEY}
+      MEAL_TYPES_FILE_NAME: ${MEAL_TYPES_FILE_NAME:-meal_types.json}
+    volumes:
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/student_cafeteria.json:/app/app/config/student_cafeteria.json:ro
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/meal_types.json:/app/app/config/meal_types.json:ro
     networks:
       - sandol_network
     healthcheck:
@@ -111,6 +115,8 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
       SECRET_KEY: ${SECRET_KEY}
+    volumes:
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/school_info.json:/app/app/config/school_info.json:ro
     networks:
       - sandol_network
     healthcheck:
@@ -129,6 +135,9 @@ services:
   classroom-timetable-service:
     container_name: sandol_classroom_timetable_service
     image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
+    volumes:
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/classroom/lecture_array.json:/app/data/lecture_array.json:ro
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/classroom/buildings.csv:/app/data/buildings.csv:ro
     networks:
       - sandol_network
     healthcheck:
@@ -352,6 +361,8 @@ services:
     image: sandol-auth-relay:${TAG:-latest}
     env_file:
       - ./sandol-auth-relay/.env
+    volumes:
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/auth-relay/clients.json:/app/app/config/clients.json:ro
     networks:
       - sandol_network
     restart: on-failure
