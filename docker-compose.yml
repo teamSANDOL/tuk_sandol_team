@@ -203,10 +203,18 @@ services:
   amqp:
     container_name: amqp
     image: rabbitmq:3-management
+    expose:
+      - "15692"
+    volumes:
+      - ./config/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     networks:
       - sandol_network
     healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics status"]
+      test:
+        [
+          "CMD-SHELL",
+          "rabbitmq-diagnostics status && rabbitmq-plugins list -E -m | grep -qx rabbitmq_prometheus && rabbitmq-diagnostics listeners | grep -q 15692"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -220,7 +228,7 @@ services:
     image: grafana/loki:latest
     container_name: loki
     volumes:
-      - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
+      - ./config/loki/loki-config.yaml:/etc/loki/local-config.yaml
       - ./sandol-log-manager/data:/var/lib/loki
     command: -config.file=/etc/loki/local-config.yaml
     networks:
@@ -236,11 +244,13 @@ services:
     image: prom/prometheus:${PROMETHEUS_VERSION:-v3.3.0}
     container_name: prometheus
     volumes:
-      - ./sandol-log-manager/config/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
       - /var/run/docker.sock:/var/run/docker.sock
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver"
+      - "--storage.tsdb.retention.time=15d"
+      - "--storage.tsdb.retention.size=2GB"
     networks:
       - sandol_network
     restart: always
@@ -255,7 +265,7 @@ services:
     container_name: alloy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
+      - ./config/alloy/config.alloy:/etc/alloy/config.alloy
       - alloy_data:/var/lib/alloy/data
     command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
@@ -375,7 +385,7 @@ services:
       keycloak:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/relay/health || exit 1"]
       interval: 60s
       timeout: 5s
       retries: 5
