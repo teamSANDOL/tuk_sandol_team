@@ -1,13 +1,13 @@
 # JWKS 도입 전 검증 체크리스트 (코드리뷰/릴리즈 게이트)
 
-이 문서는 `docs/jwks-common-module-guideline.md` 요구사항을 JWKS 도입 서비스에 적용할 때, PR 리뷰와 릴리즈 게이트에서 사용하는 실행 체크리스트다.
+이 문서는 `./jwks-common-module-guideline.md` 요구사항을 JWKS 도입 서비스에 적용할 때, PR 리뷰와 릴리즈 게이트에서 사용하는 실행 체크리스트다.
 
 > 상태: 현재 운영 공통 체크리스트가 아니라, JWKS 전환 대상 서비스에만 적용한다.
 
 관련 문서:
 
-- 공통 모듈 기준: `docs/jwks-common-module-guideline.md`
-- MSA 통신 인증 기준: `docs/auth-msa-communication.md`
+- 공통 모듈 기준: `./jwks-common-module-guideline.md`
+- MSA 통신 인증 기준: `./auth-msa-communication.md`
 - 용어: `docs/glossary.md`
 
 ## 사용 방법
