@@ -1,57 +1,29 @@
-# 인증 문서 인덱스
+# 문서 인덱스
 
-이 디렉터리는 산돌이 프로젝트의 인증 규칙을 현재 코드베이스와 목표 아키텍처 기준으로 재정의한 문서 모음입니다.
+이 디렉터리는 루트 저장소에서 직접 관리하는 문서를 주제별로 정리한 공간입니다.
 
 ## 문서 구성
 
-### 인증 구조 이해 파트
+### 1. 온보딩
 
-인증이 "왜 이렇게 동작하는지"와 시스템 경계를 이해하기 위한 문서 묶음입니다.
+- [온보딩 인덱스](./onboarding/README.md)
+- [서비스 통합 가이드](./onboarding/service-integration-guide.md)
 
-1. [용어 사전](./glossary.md)
-2. [인증 기초 가이드 (초심자용)](./auth-basics.md)
-3. [MSA 서비스간 통신 인증 절차 - 구조 이해 파트](./auth-msa-communication.md#msa-auth-understanding)
-4. [챗봇(Auth-Relay) 인증 - 구조 이해 파트](./auth-chatbot-auth-relay.md#auth-relay-understanding)
-5. [Flutter WebView 인증(Auth-Relay 미사용)](./auth-flutter-webview.md)
+### 2. 운영
 
-### 개발 가이드 파트
+- [운영 문서 인덱스](./operations/README.md)
+- [Docker Compose 체크리스트](./operations/docker-compose-checklist.md)
+- [환경 변수 체크리스트](./operations/env-checklist.md)
+- [Keycloak 체크리스트](./operations/keycloak-checklist.md)
+- [운영 데이터 디렉터리 준비 가이드](./operations/production-data-setup.md)
 
-인증을 "어떻게 구현/검증할지"를 바로 적용하기 위한 문서 묶음입니다.
+### 3. 인증
 
-1. [MSA 서비스간 통신 인증 절차 - 개발 가이드 파트](./auth-msa-communication.md#msa-auth-dev-guide)
-2. [챗봇(Auth-Relay) 인증 - 개발 가이드 파트](./auth-chatbot-auth-relay.md#auth-relay-dev-guide)
-3. [JWKS 검증 공통 모듈 제작 가이드라인 (도입 예정)](./jwks-common-module-guideline.md)
-4. [JWKS 도입 전 검증 체크리스트(코드리뷰/릴리즈 게이트)](./jwks-validation-checklist.md)
+- [인증 문서 인덱스](./auth/README.md)
 
-## 권장 읽기 순서
+## 읽는 순서
 
-현재 운영 기준: MSA 간 `Authorization` 헤더/JWKS 직접 검증은 미도입이며, `X-User-ID` 중심으로 운영한다.
-
-### 1) 구조를 먼저 이해하고 싶은 경우
-
-1. [용어 사전](./glossary.md)
-2. [인증 기초 가이드 (초심자용)](./auth-basics.md)
-3. [MSA 서비스간 통신 인증 절차 - 구조 이해 파트](./auth-msa-communication.md#msa-auth-understanding)
-4. [챗봇(Auth-Relay) 인증 - 구조 이해 파트](./auth-chatbot-auth-relay.md#auth-relay-understanding)
-5. [Flutter WebView 인증(Auth-Relay 미사용)](./auth-flutter-webview.md)
-
-### 2) 구현/수정 작업을 바로 해야 하는 경우
-
-1. [MSA 서비스간 통신 인증 절차 - 개발 가이드 파트](./auth-msa-communication.md#msa-auth-dev-guide)
-2. [챗봇(Auth-Relay) 인증 - 개발 가이드 파트](./auth-chatbot-auth-relay.md#auth-relay-dev-guide)
-3. [JWKS 검증 공통 모듈 제작 가이드라인 (도입 예정)](./jwks-common-module-guideline.md)
-4. [JWKS 도입 전 검증 체크리스트(코드리뷰/릴리즈 게이트)](./jwks-validation-checklist.md)
-
-## 공통 원칙
-
-- MSA 간 사용자 컨텍스트 헤더는 `X-User-ID`를 사용한다 (Keycloak 사용자 식별자 기반).
-- Auth-Relay 내부 인증 절차에서는 Keycloak `sub` 클레임을 사용할 수 있다.
-- 현재 MSA 인증은 Gateway 라우팅 + `X-User-ID` 전달 규약을 기준으로 운영한다.
-- Keycloak Access Token의 MSA별 JWKS 직접 검증은 현재 미적용이며 도입 예정 항목으로 관리한다.
-- 신규 언어/프레임워크 서비스의 JWKS 공통 모듈 적용은 도입 시점부터 필수로 전환한다.
-
-## 현재 상태 메모
-
-- gateway route 헤더는 `X-User-ID` 기준으로 정리되어 있다.
-- Gateway 경계 인증 검증은 현재 미적용 상태다.
-- 본 문서의 JWKS 관련 규칙은 "도입 목표"이며, 현행 운영 규칙과 구분해 읽어야 한다.
+- 처음 저장소를 파악할 때: 루트 `README.md` → 각 서비스 `README.md`
+- 새 서비스를 통합할 때: [온보딩 인덱스](./onboarding/README.md)
+- 배포/운영 준비를 할 때: [운영 문서 인덱스](./operations/README.md)
+- 인증 구조를 이해하거나 수정할 때: [인증 문서 인덱스](./auth/README.md)
