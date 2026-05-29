@@ -1,35 +1,51 @@
 [submodule "sandol-gateway"]
-path = sandol-gateway
-branch = main
-url = https://github.com/teamSANDOL/sandol-gateway.git
+    path = sandol-gateway
+    branch = main
+    url = git@github.com:teamSANDOL/sandol-gateway.git
+
 [submodule "sandol_user_service"]
-path = sandol_user_service
-branch = main
-url = https://github.com/teamSANDOL/sandol_user_service.git
+    path = sandol_user_service
+    branch = main
+    url = git@github.com:teamSANDOL/sandol_user_service.git
+
 [submodule "sandol_meal_service"]
-path = sandol_meal_service
-url = https://github.com/teamSANDOL/sandol_meal_service.git
-branch = main
+    path = sandol_meal_service
+    branch = main
+    url = git@github.com:teamSANDOL/sandol_meal_service.git
+
 [submodule "sandol_kakao_bot_service"]
-path = sandol_kakao_bot_service
-url = https://github.com/teamSANDOL/sandol_kakao_bot_service
-branch = main
+    path = sandol_kakao_bot_service
+    branch = main
+    url = git@github.com:teamSANDOL/sandol_kakao_bot_service.git
+
 [submodule "sandol-static-info-service"]
-path = sandol-static-info-service
-url = https://github.com/teamSANDOL/sandol-static-info-service
-branch = main
+    path = sandol-static-info-service
+    branch = main
+    url = git@github.com:teamSANDOL/sandol-static-info-service.git
+
 [submodule "sandol_notice_notification"]
-path = sandol_notice_notification
-url = https://github.com/teamSANDOL/sandol_notice_notification.git
-branch = main
+    path = sandol_notice_notification
+    branch = main
+    url = git@github.com:teamSANDOL/sandol_notice_notification.git
+
 [submodule "sandol_amqp"]
-path = sandol_amqp
-url = https://github.com/teamSANDOL/sandol_amqp.git
-branch = main
+    path = sandol_amqp
+    branch = main
+    url = git@github.com:teamSANDOL/sandol_amqp.git
+
 [submodule "sandol_classroom_timetable_service"]
-path = sandol_classroom_timetable_service
-url = https://github.com/teamSANDOL/sandol_classroom_timetable.git
-branch = main
+    path = sandol_classroom_timetable_service
+    branch = main
+    url = git@github.com:teamSANDOL/sandol_classroom_timetable.git
+
 [submodule "sandol-log-manager"]
-	path = sandol-log-manager
-	url = https://github.com/teamSANDOL/sandol-log-manager.git
+    path = sandol-log-manager
+    url = git@github.com:teamSANDOL/sandol-log-manager.git
+
+[submodule "sandol-auth-relay"]
+    path = sandol-auth-relay
+    url = git@github.com:teamSANDOL/sandol-auth-relay.git
+[submodule "sandol_meal_web"]
+	path = sandol_meal_web
+	url = git@github.com:teamSANDOL/sandol_meal_web.git
+	branch = main

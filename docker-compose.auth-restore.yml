@@ -1,0 +1,45 @@
+services:
+  keycloak-db:
+    container_name: keycloak-db-restore
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d keycloak -U ${KC_DB_USERNAME}"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 20s
+
+  keycloak:
+    container_name: keycloak-restore
+    image: quay.io/keycloak/keycloak:26.3.2
+    command:
+      [
+        "import",
+        "--dir",
+        "/tmp/keycloak-import",
+        "--override",
+        "true"
+      ]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    restart: "no"
+    healthcheck:
+      disable: true
+
+volumes:
+  keycloak_db_data:
+    name: ${COMPOSE_PROJECT_NAME:-sandol_team}_keycloak_db_data

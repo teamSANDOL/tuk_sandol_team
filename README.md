@@ -1,58 +1,53 @@
 # TUK_산돌이
+
 <p align="center"><img src="https://github.com/teamSANDOL/kpu_sandol_team/raw/main/img/logo_profile3.png?raw=true" width="300" height="300"></p>
 
-# 산돌이
-- 산돌이는 학생들에게 편의 기능을 제공하기 위해 2021년 산돌팀을 구성한 이후 현재 누적 6200명의 학생 및 학교 관계자가 이용하는 카카오톡 챗봇 서비스입니다.
-- 산돌이는 kakao-i 오픈빌더를 통해 제작되었으며, AWS Lambda를 이용한 서버리스 아키텍쳐를 활용하고 있습니다.
+산돌이는 한국공학대학교 학생과 학교 구성원이 사용하는 카카오톡 챗봇 서비스입니다.
+이 저장소는 여러 서비스 저장소를 Git submodule로 묶어 운영하는 통합 레포이며, 현재 기준으로 Docker Compose 기반 MSA 운영 구조를 사용합니다.
 
-## Getting Start
-- 아래 주소를 통해 산돌이를 시작하실 수 있습니다.
-> [바로가기](https://pf.kakao.com/_pRxlZxb)
-1. 바로가기 링크 접속
-2. 우측 상단 플러스 친구 등록하기
-3. 챗봇 채팅하기
+## 빠른 시작
 
-
-## TUK_SANDOL_TEAM
-- [초기 산돌팀 레포지토리 바로가기](https://github.com/teamSANDOL/kpu_sandol_team)
-
-## 개발 참여 방법
-다음과 같이 작성하면 됩니다:
-
----
-
-## 개발 참여 방법
-1. 레포지토리를 클론한 후 최신 코드를 가져옵니다.
+1. 저장소와 서브모듈을 준비합니다.
 
    ```bash
    git pull
-   ```
-
-2. 서브모듈을 초기화하고 업데이트합니다.
-
-   ```bash
    git submodule update --init --recursive
    ```
 
-3. (선택) 모든 서브모듈을 `main` 브랜치로 전환하고 최신 커밋을 가져옵니다.
+2. 루트 `.env.example`을 `.env`로 복사합니다.
 
    ```bash
-   git submodule foreach 'git checkout main && git pull origin main'
+   cp ./.env.example ./.env
    ```
 
-4. 각 서브모듈 디렉토리에 `.env.example` 파일이 존재하는 경우, `.env` 파일로 복사합니다.
+3. 운영/배포 전이면 먼저 운영 문서를 확인합니다.
 
-   ```bash
-   cp ./<submodule>/.env.example ./<submodule>/.env
-   ```
+   - [운영 문서 인덱스](./docs/operations/README.md)
+   - [환경 변수 체크리스트](./docs/operations/env-checklist.md)
+   - [운영 데이터 디렉터리 준비 가이드](./docs/operations/production-data-setup.md)
 
-5. 전체 서비스를 실행합니다.
+4. 필요한 서비스별 `.env`를 준비하고, 전체 서비스를 실행합니다.
 
    ```bash
    docker compose up --build -d
    ```
 
-> ⚠️ `.env` 복사 단계는 서브모듈마다 반복해야 하며, 환경 설정은 서비스별로 확인 바랍니다.
+## 문서 안내
 
+- [문서 인덱스](./docs/README.md)
+- [온보딩 문서](./docs/onboarding/README.md)
+- [운영 문서](./docs/operations/README.md)
+- [인증 문서](./docs/auth/README.md)
 
-### AUTHORS
+## 서비스별 문서
+
+각 서브모듈의 상세 개발/실행 방법은 해당 서비스의 `README.md`를 기준으로 봅니다.
+
+- [sandol_kakao_bot_service/README.md](./sandol_kakao_bot_service/README.md)
+- [sandol_meal_service/README.md](./sandol_meal_service/README.md)
+- [sandol-auth-relay/README.md](./sandol-auth-relay/README.md)
+- [sandol-static-info-service/README.md](./sandol-static-info-service/README.md)
+- [sandol_classroom_timetable_service/README.md](./sandol_classroom_timetable_service/README.md)
+- [sandol_notice_notification/README.md](./sandol_notice_notification/README.md)
+- [sandol-gateway/README.md](./sandol-gateway/README.md)
+- [sandol_user_service/README.md](./sandol_user_service/README.md)

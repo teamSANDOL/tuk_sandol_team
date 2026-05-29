@@ -1,2 +1,7 @@
 .env
 .secrets
+keycloak-export/
+keycloak-export.tar.gz
+
+# MacOD
+.DS_Store

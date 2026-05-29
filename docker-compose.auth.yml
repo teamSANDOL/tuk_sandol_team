@@ -1,0 +1,142 @@
+services:
+  gateway:
+    container_name: sandol-gateway
+    build: ./sandol-gateway/gateway
+    ports:
+      - "8010:80"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      auth-relay:
+        condition: service_started
+    volumes:
+      - ./sandol-gateway/gateway:/etc/nginx/conf.d
+      - ./sandol-gateway/gateway/lua:/etc/nginx/lua
+      - user_static:/usr/share/nginx/static/user
+    command: [ "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;" ]
+    networks:
+      - sandol_network
+    restart: always
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
+  keycloak-db:
+    container_name: keycloak-db
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${KC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
+    volumes:
+      - keycloak_db_data:/var/lib/postgresql/data
+    networks:
+      - sandol_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d keycloak -U ${KC_DB_USERNAME}"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 20s
+    restart: always
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
+  # --- Keycloak 인증 서버 ---
+  keycloak:
+    container_name: keycloak
+    image: quay.io/keycloak/keycloak:26.3.2
+    command: ["start"]
+    environment:
+      # --- 관리자 계정 ---
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+
+      # --- 호스트 및 경로 설정 ---
+      KC_HOSTNAME: ${SERVICE_DOMAIN:-sandori.kr}
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: "8080"
+      KC_HTTP_RELATIVE_PATH: /auth
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME_STRICT: "true"
+      KC_HEALTH_ENABLED: "true"
+
+      # --- 데이터베이스 연결 ---
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+
+      # --- 디버깅용 로그 설정 ---
+      KC_LOG_CATEGORY__ORG_FREEMARKER__LEVEL: DEBUG
+    networks:
+      - sandol_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && head -n 1 <&3 | grep -q 'HTTP/1.1 200'"
+        ]
+      interval: 1m30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: always
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./sandol_user_service/web/keycloak-theme:/opt/keycloak/themes:ro
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
+  # --- Auth Relay 서비스 ---
+  auth-relay:
+    container_name: auth-relay
+    build: ./sandol-auth-relay
+    env_file:
+      - ./sandol-auth-relay/.env
+    volumes:
+      - ./sandol-auth-relay/app/config/clients.json:/app/app/config/clients.json:ro
+    ports:
+      - "8020:8000"
+    networks:
+      - sandol_network
+    restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/relay/health || exit 1"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+
+volumes:
+  user_static: {}
+  grafana_data: {}
+  alloy_data: {}
+  # --- 추가: Keycloak DB 볼륨 ---
+  keycloak_db_data: {}
+  keycloak_data: {}
+
+networks:
+  sandol_network:
+    driver: bridge
