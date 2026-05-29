@@ -33,3 +33,7 @@ branch = main
 [submodule "sandol-log-manager"]
 	path = sandol-log-manager
 	url = https://github.com/teamSANDOL/sandol-log-manager.git
+[submodule "sandol_meal_web"]
+	path = sandol_meal_web
+	url = git@github.com:teamSANDOL/sandol_meal_web.git
+	branch = main
