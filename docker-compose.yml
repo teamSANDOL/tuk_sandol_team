@@ -192,6 +192,8 @@ services:
     container_name: sandol-notice-notification
     image: sandol-sandol_notice_notification:${TAG:-latest}
     restart: always
+    cpus: "3.0"
+    mem_limit: 1536m
     env_file:
       - ./sandol_notice_notification/.env
     networks:
