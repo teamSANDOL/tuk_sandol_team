@@ -82,6 +82,7 @@
 ## volume / 데이터 영속성 확인
 
 - [ ] meal DB volume 확인
+- [ ] kakao-bot SQLite DB bind mount 확인
 - [ ] meal-service 파일 마운트 점검 (`student_cafeteria.json`, `meal_types.json`)
 - [ ] notice DB volume 확인
 - [ ] keycloak DB / keycloak data volume 확인
@@ -99,6 +100,7 @@
 
 > 권장 운영 경로 예시
 > - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/auth-relay/clients.json`
+> - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/kakao-bot/kakao_bot_service.db`
 > - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/meal_types.json`
 > - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/student_cafeteria.json`
 > - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/school_info.json`

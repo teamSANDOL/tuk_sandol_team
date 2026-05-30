@@ -127,6 +127,8 @@ services:
       PYTHONUNBUFFERED: "1"
       SECRET_KEY: ${SECRET_KEY}
       TOKEN_ENCRYPTION_KEY: ${KAKAO_TOKEN_ENCRYPTION_KEY}
+    volumes:
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/kakao-bot/kakao_bot_service.db:/app/kakao_bot_service.db
     networks:
       - sandol_network
     healthcheck:

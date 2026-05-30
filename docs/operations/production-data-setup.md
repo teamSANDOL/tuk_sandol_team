@@ -28,6 +28,7 @@ SANDOL_DATA_DIR=/home/ubuntu/data/sandol
 
 ```bash
 mkdir -p /home/ubuntu/data/sandol/auth-relay
+mkdir -p /home/ubuntu/data/sandol/kakao-bot
 mkdir -p /home/ubuntu/data/sandol/meal
 mkdir -p /home/ubuntu/data/sandol/static-info
 mkdir -p /home/ubuntu/data/sandol/classroom
@@ -38,6 +39,7 @@ mkdir -p /home/ubuntu/data/sandol/classroom
 ```bash
 mkdir -p \
   /home/ubuntu/data/sandol/auth-relay \
+  /home/ubuntu/data/sandol/kakao-bot \
   /home/ubuntu/data/sandol/meal \
   /home/ubuntu/data/sandol/static-info \
   /home/ubuntu/data/sandol/classroom
@@ -59,6 +61,16 @@ chmod -R u+rwX,go-rwx /home/ubuntu/data/sandol
 ```bash
 cp ./sandol-auth-relay/app/config/clients.json \
   /home/ubuntu/data/sandol/auth-relay/clients.json
+```
+
+### kakao-bot
+
+운영에서는 SQLite DB 파일을 bind mount 합니다.
+
+```bash
+touch /home/ubuntu/data/sandol/kakao-bot/kakao_bot_service.db
+chmod 600 /home/ubuntu/data/sandol/kakao-bot/kakao_bot_service.db
+chown ubuntu:ubuntu /home/ubuntu/data/sandol/kakao-bot/kakao_bot_service.db
 ```
 
 ### meal
@@ -94,6 +106,8 @@ cp ./sandol_classroom_timetable_service/data/buildings.csv \
 /home/ubuntu/data/sandol/
 ├── auth-relay/
 │   └── clients.json
+├── kakao-bot/
+│   └── kakao_bot_service.db
 ├── meal/
 │   ├── meal_types.json
 │   └── student_cafeteria.json
@@ -127,6 +141,7 @@ docker compose -f docker-compose.yml config
 출력에서 아래와 비슷한 source 경로가 보이면 정상입니다.
 
 - `/home/ubuntu/data/sandol/auth-relay/clients.json`
+- `/home/ubuntu/data/sandol/kakao-bot/kakao_bot_service.db`
 - `/home/ubuntu/data/sandol/meal/meal_types.json`
 - `/home/ubuntu/data/sandol/static-info/school_info.json`
 - `/home/ubuntu/data/sandol/classroom/lecture_array.json`
