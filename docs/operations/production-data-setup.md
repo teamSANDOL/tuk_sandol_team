@@ -29,6 +29,7 @@ SANDOL_DATA_DIR=/home/ubuntu/data/sandol
 ```bash
 mkdir -p /home/ubuntu/data/sandol/auth-relay
 mkdir -p /home/ubuntu/data/sandol/kakao-bot
+mkdir -p /home/ubuntu/data/sandol/log-manager/loki
 mkdir -p /home/ubuntu/data/sandol/meal
 mkdir -p /home/ubuntu/data/sandol/static-info
 mkdir -p /home/ubuntu/data/sandol/classroom
@@ -40,6 +41,7 @@ mkdir -p /home/ubuntu/data/sandol/classroom
 mkdir -p \
   /home/ubuntu/data/sandol/auth-relay \
   /home/ubuntu/data/sandol/kakao-bot \
+  /home/ubuntu/data/sandol/log-manager/loki \
   /home/ubuntu/data/sandol/meal \
   /home/ubuntu/data/sandol/static-info \
   /home/ubuntu/data/sandol/classroom
@@ -51,6 +53,24 @@ mkdir -p \
 chown -R ubuntu:ubuntu /home/ubuntu/data
 chmod -R u+rwX,go-rwx /home/ubuntu/data/sandol
 ```
+
+### Loki 로그 저장소 권한 주의
+
+Loki bind mount를 `${SANDOL_DATA_DIR}/log-manager/loki:/var/lib/loki` 형태로 쓰는 경우,
+호스트 소유자가 `root` 또는 `ubuntu`인 것만으로는 충분하지 않을 수 있습니다.
+공식 Loki 컨테이너는 기본적으로 `UID 10001`로 실행될 수 있으므로,
+`/var/lib/loki`에 매핑된 호스트 디렉터리를 이 UID가 쓸 수 있어야 합니다.
+
+예시:
+
+```bash
+mkdir -p /home/ubuntu/data/sandol/log-manager/loki
+chown -R 10001:10001 /home/ubuntu/data/sandol/log-manager/loki
+chmod -R 755 /home/ubuntu/data/sandol/log-manager
+```
+
+`mkdir /var/lib/loki/chunks: permission denied` 오류가 보이면,
+대부분 이 디렉터리 권한 또는 소유자 설정 문제로 봅니다.
 
 ## 3. 초기 파일 이관
 
@@ -108,6 +128,8 @@ cp ./sandol_classroom_timetable_service/data/buildings.csv \
 │   └── clients.json
 ├── kakao-bot/
 │   └── kakao_bot_service.db
+├── log-manager/
+│   └── loki/
 ├── meal/
 │   ├── meal_types.json
 │   └── student_cafeteria.json
@@ -142,6 +164,7 @@ docker compose -f docker-compose.yml config
 
 - `/home/ubuntu/data/sandol/auth-relay/clients.json`
 - `/home/ubuntu/data/sandol/kakao-bot/kakao_bot_service.db`
+- `/home/ubuntu/data/sandol/log-manager/loki`
 - `/home/ubuntu/data/sandol/meal/meal_types.json`
 - `/home/ubuntu/data/sandol/static-info/school_info.json`
 - `/home/ubuntu/data/sandol/classroom/lecture_array.json`
@@ -168,4 +191,6 @@ docker compose -f docker-compose.yml up -d --force-recreate meal-service static-
 - 따라서 운영 환경에서 `MEAL_TYPES_FILE_NAME=test_meal_types.json`처럼 설정하지 않도록 주의합니다.
 - 이 데이터 파일들은 대부분 hot reload를 보장하지 않습니다. 운영 반영은 재기동/재생성 기준으로 보는 것이 안전합니다.
 - `clients.json`에는 민감한 값이 들어갈 수 있으므로 파일 권한을 엄격하게 유지합니다.
+- Loki 저장 디렉터리를 bind mount하는 경우, 컨테이너 실행 UID(예: `10001`)가
+  실제로 쓰기 가능한지 확인해야 합니다.
 - 운영 파일 수정은 repo 내부가 아니라 `/home/ubuntu/data/sandol` 아래에서 수행해야 합니다.

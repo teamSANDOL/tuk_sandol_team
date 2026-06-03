@@ -266,7 +266,7 @@ services:
     container_name: loki
     volumes:
       - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
-      - ./sandol-log-manager/data:/var/lib/loki
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/log-manager/loki:/var/lib/loki
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - sandol_network
