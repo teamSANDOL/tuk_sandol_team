@@ -30,6 +30,73 @@
 - dev compose는 `build: ./서비스경로`를 사용하므로 각 경로가 실제 존재하는지 확인합니다.
 - 운영 서버에서 사전 빌드 이미지를 쓸지, 서버에서 직접 build할지 먼저 정합니다.
 
+### dev compose로 빌드하고 운영 compose로 실행할 때
+
+- `docker-compose.dev.yml`은 주로 `build:`를 사용하고, 루트 `docker-compose.yml`은 주로 `image:`를 사용합니다.
+- 따라서 dev compose로 이미지를 빌드한 뒤 운영 compose로 실행하려면, 운영 compose가 기대하는 `image:` 태그로 다시 맞춰야 합니다.
+- 운영 compose가 기대하는 이미지 이름은 추측하지 말고 루트 `docker-compose.yml`의 `image:` 값을 기준으로 확인합니다.
+
+예를 들어 `kakao-bot-service`는 아래 순서로 처리합니다.
+
+```bash
+docker compose -f docker-compose.dev.yml build kakao-bot-service
+docker tag sandol_team-kakao-bot-service:latest sandol-sandol_kakao_bot_service:latest
+docker compose up -d kakao-bot-service
+```
+
+이 예시에서:
+
+- dev build 결과 이미지: `sandol_team-kakao-bot-service:latest`
+- 운영 compose가 기대하는 이미지: `sandol-sandol_kakao_bot_service:${TAG:-latest}`
+
+즉 `TAG`를 따로 주지 않는 기본 운영 실행에서는 `latest` 기준으로 태그를 맞춘 뒤 `docker compose up -d`를 실행합니다.
+
+실제 빌드 결과 이미지 이름이 헷갈리면 아래 명령으로 먼저 확인합니다.
+
+```bash
+docker compose -f docker-compose.dev.yml images
+docker compose config | grep -A5 'kakao-bot-service'
+```
+
+다른 서비스도 같은 방식으로, dev build 결과 이미지를 루트 `docker-compose.yml`의 `image:` 이름으로 맞춘 뒤 운영 compose로 실행합니다.
+
+### 전체 컨테이너를 특정 TAG 기준으로 맞춰서 실행할 때
+
+- 운영 compose는 각 서비스를 `image: ...:${TAG:-latest}` 형태로 참조합니다.
+- 따라서 전체 서비스를 특정 태그로 맞춰 실행하려면, dev compose로 각 이미지를 빌드한 뒤 운영 compose가 기대하는 동일한 태그로 다시 태깅해야 합니다.
+- 이때 핵심은 **운영 compose가 기대하는 모든 `image:` 이름과 태그를 먼저 확정한 뒤**, dev build 결과를 그 이름으로 맞추는 것입니다.
+
+예를 들어 전체 서비스를 `v2026-06-04` 태그로 맞추려면 아래 순서로 진행합니다.
+
+```bash
+docker compose -f docker-compose.dev.yml build
+
+docker tag sandol_team-kakao-bot-service:latest sandol-sandol_kakao_bot_service:v2026-06-04
+docker tag sandol_team-meal-service:latest sandol-sandol_meal_service:v2026-06-04
+docker tag sandol_team-meal-web:latest sandol-sandol_meal_web:v2026-06-04
+docker tag sandol_team-static-info-service:latest sandol-sandol-static-info-service:v2026-06-04
+docker tag sandol_team-classroom-timetable-service:latest sandol-sandol_classroom_timetable_service:v2026-06-04
+docker tag sandol_team-notice-notification:latest sandol-sandol_notice_notification:v2026-06-04
+docker tag sandol_team-auth-relay:latest sandol-auth-relay:v2026-06-04
+
+TAG=v2026-06-04 docker compose up -d
+```
+
+이 절차에서는:
+
+- dev compose build 결과는 보통 `${COMPOSE_PROJECT_NAME}-서비스명:latest` 형태로 생성되고
+- 운영 compose 실행 시에는 `TAG=v2026-06-04`를 넘겨서 `docker-compose.yml`의 `image: ...:${TAG:-latest}`와 정확히 맞춥니다.
+
+실제 빌드 결과 이미지 목록이 예상과 다르면 먼저 아래 명령으로 확인합니다.
+
+```bash
+docker compose -f docker-compose.dev.yml images
+docker compose config | grep '^    image:'
+```
+
+특히 `COMPOSE_PROJECT_NAME`가 `sandol_team`이 아니면 dev build 결과 이미지 prefix도 달라질 수 있으므로,
+태그 작업 전에는 항상 실제 생성된 이미지 이름을 먼저 확인하는 편이 안전합니다.
+
 </details>
 
 ## 서비스 포함 범위 확인
