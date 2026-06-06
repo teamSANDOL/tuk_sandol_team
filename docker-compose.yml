@@ -1,3 +1,4 @@
+# First-party services run prebuilt images tagged with ${TAG:-latest}.
 services:
   gateway:
     container_name: sandol-gateway

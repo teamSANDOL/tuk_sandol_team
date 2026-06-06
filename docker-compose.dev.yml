@@ -1,6 +1,9 @@
+# First-party services build and tag images with ${TAG:-latest}
+# so docker-compose.yml can run the same image names afterward.
 services:
   gateway:
     container_name: sandol-gateway
+    image: sandol-gateway:${TAG:-latest}
     build: ./sandol-gateway/gateway
     ports:
       - "8010:80"
@@ -33,6 +36,7 @@ services:
 
   meal-service:
     container_name: sandol_meal_service
+    image: sandol-sandol_meal_service:${TAG:-latest}
     build: ./sandol_meal_service
     env_file:
       - ./sandol_meal_service/.env
@@ -65,6 +69,7 @@ services:
 
   meal-web:
     container_name: sandol_meal_web
+    image: sandol-sandol_meal_web:${TAG:-latest}
     build: ./sandol_meal_web
     env_file:
       - path: ./sandol_meal_web/.env
@@ -115,6 +120,7 @@ services:
 
   kakao-bot-service:
     container_name: sandol_kakao_bot_service
+    image: sandol-sandol_kakao_bot_service:${TAG:-latest}
     build: ./sandol_kakao_bot_service
     environment:
       SECRET_KEY: ${SECRET_KEY}
@@ -139,6 +145,7 @@ services:
 
   static-info-service:
     container_name: sandol_static_info_service
+    image: sandol-sandol-static-info-service:${TAG:-latest}
     build: ./sandol-static-info-service
     environment:
       SECRET_KEY: ${SECRET_KEY}
@@ -163,6 +170,7 @@ services:
 
   classroom-timetable-service:
     container_name: sandol_classroom_timetable_service
+    image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
     build: ./sandol_classroom_timetable_service
     volumes:
       - ./sandol_classroom_timetable_service/data/lecture_array.json:/app/data/lecture_array.json:ro
@@ -184,6 +192,7 @@ services:
 
   notice-notification:
     container_name: sandol-notice-notification
+    image: sandol-sandol_notice_notification:${TAG:-latest}
     build:
       context: ./sandol_notice_notification
       dockerfile: Dockerfile
@@ -405,6 +414,7 @@ services:
   # --- Auth Relay 서비스 ---
   auth-relay:
     container_name: auth-relay
+    image: sandol-auth-relay:${TAG:-latest}
     build: ./sandol-auth-relay
     env_file:
       - ./sandol-auth-relay/.env
