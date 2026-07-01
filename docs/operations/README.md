@@ -8,6 +8,7 @@
 2. [Docker Compose 체크리스트](./docker-compose-checklist.md)
 3. [Keycloak 체크리스트](./keycloak-checklist.md)
 4. [운영 데이터 디렉터리 준비 가이드](./production-data-setup.md)
+5. [Hotfix 배포 절차](./hotfix-deploy.md)
 
 ## 권장 순서
 
@@ -15,6 +16,7 @@
 2. `production-data-setup.md`
 3. `docker-compose-checklist.md`
 4. `keycloak-checklist.md`
+5. `hotfix-deploy.md`
 
 ## 운영 보조 스크립트
 
