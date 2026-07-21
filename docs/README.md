@@ -21,9 +21,15 @@
 
 - [인증 문서 인덱스](./auth/README.md)
 
+### 4. 사용자 설명서
+
+- [산돌이 카카오봇 사장님 기능 설명서](./manuals/kakao-bot-owner-guide.md)
+- [산돌이 사장님 이용 가이드 (배포용 웹페이지)](./manuals/kakao-bot-owner-guide.html) — 화면 예시 포함, 브라우저에서 열어 인쇄(PDF 저장) 가능
+
 ## 읽는 순서
 
 - 처음 저장소를 파악할 때: 루트 `README.md` → 각 서비스 `README.md`
 - 새 서비스를 통합할 때: [온보딩 인덱스](./onboarding/README.md)
 - 배포/운영 준비를 할 때: [운영 문서 인덱스](./operations/README.md)
 - 인증 구조를 이해하거나 수정할 때: [인증 문서 인덱스](./auth/README.md)
+- 사장님(매니저)에게 사용법을 안내할 때: [산돌이 카카오봇 사장님 기능 설명서](./manuals/kakao-bot-owner-guide.md)
