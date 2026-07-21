@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>산돌이 사장님 이용 가이드</title>
+<meta name="description" content="산돌이 카카오톡 채널에서 식당 사장님이 로그인·매니저 신청·메뉴 등록을 하는 방법을 안내합니다.">
+<meta property="og:title" content="산돌이 사장님 이용 가이드">
+<meta property="og:description" content="로그인부터 메뉴 등록까지, 카카오톡에서 우리 식당 식단을 직접 올리는 방법.">
+<link rel="icon" type="image/png" href="/assets/sandol-logo.png">
+<link rel="apple-touch-icon" href="/assets/sandol-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  @font-face {
+    font-family: 'Jalnan2';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.2/JalnanOTF00.woff') format('woff'),
+         url('https://cdn.jsdelivr.net/gh/fontbee/font@main/gccompany/JalnanOTF00.woff') format('woff');
+    font-weight: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --bg: #FAF9F6;
+    --surface: #FFFFFF;
+    --ink: #283149;
+    --body: #3F4A54;
+    --muted: #5D6B76;
+    --line: #EFEDE6;
+    --brand: #3E96B8;
+    --brand-deep: #2E7591;
+    --brand-soft: #E3F1F6;
+    --kakao: #FEE500;
+    --kakao-ink: #191600;
+    --warn-bg: #FFF6D6;
+    --warn-line: #E8D48A;
+    --shadow: 0 10px 30px rgba(40, 49, 73, 0.10);
+    --shadow-lg: 0 24px 50px rgba(40, 49, 73, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--body);
+    font-family: "Pretendard", "Pretendard Variable", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+  img { max-width: 100%; }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { color: var(--brand-deep); }
+  .jalnan { font-family: 'Jalnan2', 'Pretendard', sans-serif; font-weight: 400; }
+
+  @keyframes sd-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+  @keyframes sd-drift { 0% { transform: translateX(0); } 100% { transform: translateX(36px); } }
+
+  .wrap { max-width: 1160px; margin: 0 auto; }
+  .pad { padding-left: 48px; padding-right: 48px; }
+
+  /* ---------- nav ---------- */
+  nav.bar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px;
+    background: rgba(250, 249, 246, 0.92);
+    backdrop-filter: saturate(140%) blur(8px);
+    border-bottom: 1px solid #ECEAE3;
+  }
+  nav.bar .brand { display: flex; align-items: center; gap: 12px; }
+  nav.bar .brand img { width: 40px; height: 40px; border-radius: 11px; display: block; }
+  nav.bar .brand .name { font-family: 'Jalnan2', sans-serif; font-size: 22px; color: var(--ink); }
+  nav.bar .brand .tag {
+    font-size: 12px; font-weight: 700; color: var(--brand-deep);
+    background: var(--brand-soft); border-radius: 999px; padding: 3px 10px;
+  }
+  nav.bar .links { display: flex; align-items: center; gap: 28px; font-weight: 600; font-size: 15px; color: #3F4A54; }
+  nav.bar .links a { color: #3F4A54; }
+  nav.bar .links a.cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--kakao); color: var(--kakao-ink);
+    padding: 9px 16px; border-radius: 999px;
+    font-family: 'Jalnan2', sans-serif;
+  }
+
+  /* ---------- hero ---------- */
+  header.hero {
+    position: relative; overflow: hidden; text-align: center;
+    background: linear-gradient(180deg, #D4F1F9 0%, #95E0F4 100%);
+    padding: 64px 48px 84px;
+  }
+  header.hero .cloud { position: absolute; background: #fff; border-radius: 999px; }
+  header.hero .c1 { top: 48px; left: 8%; width: 120px; height: 44px; opacity: .7; animation: sd-drift 9s ease-in-out infinite alternate; }
+  header.hero .c2 { top: 110px; right: 12%; width: 80px; height: 32px; opacity: .6; animation: sd-drift 11s ease-in-out infinite alternate-reverse; }
+  header.hero .c3 { bottom: 40px; left: 16%; width: 64px; height: 26px; opacity: .55; animation: sd-drift 13s ease-in-out infinite alternate; }
+  header.hero .badge {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255, 255, 255, 0.72); color: var(--brand-deep);
+    font-weight: 700; font-size: 14px;
+    padding: 7px 16px; border-radius: 999px; margin-bottom: 22px;
+  }
+  header.hero .mascot {
+    position: relative;
+    width: 168px; height: 168px; border-radius: 40px;
+    display: block; margin: 0 auto;
+    box-shadow: var(--shadow-lg);
+    animation: sd-float 6s ease-in-out infinite;
+  }
+  header.hero h1 {
+    position: relative;
+    font-family: 'Pretendard', sans-serif; font-weight: 800;
+    font-size: clamp(32px, 6vw, 52px); line-height: 1.22;
+    color: var(--ink); margin: 26px 0 14px; letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  header.hero h1 span { color: var(--brand-deep); }
+  header.hero .lede {
+    position: relative;
+    font-size: clamp(16px, 2.4vw, 20px); color: #33505C;
+    max-width: 620px; margin: 0 auto 30px; line-height: 1.6;
+  }
+  /* flow chips */
+  .flow { position: relative; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
+  .flow a {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(40, 49, 73, 0.08);
+    border-radius: 999px; padding: 9px 16px;
+    color: var(--ink); font-weight: 700; font-size: 15px;
+  }
+  .flow a:hover { background: #fff; }
+  .flow .n {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--brand); color: #fff; font-size: 12px; font-weight: 800;
+  }
+  .flow .arrow { color: var(--brand-deep); font-weight: 800; }
+
+  /* ---------- sections ---------- */
+  section { padding: 80px 48px; }
+  section.alt { background: linear-gradient(180deg, #F3FAFD 0%, #E9F5FA 100%); }
+  .sec-head { text-align: center; margin-bottom: 48px; }
+  .eyebrow { font-family: 'Jalnan2', sans-serif; color: var(--brand); font-size: 15px; letter-spacing: 0.06em; }
+  .sec-head h2 {
+    font-family: 'Pretendard', sans-serif; font-weight: 800; letter-spacing: -0.02em;
+    font-size: clamp(26px, 4vw, 40px); color: var(--ink); margin: 8px 0 12px;
+  }
+  .sec-head p { color: var(--muted); font-size: 16px; margin: 0 auto; max-width: 640px; }
+
+  .duo {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+    gap: 48px; align-items: start; max-width: 1000px; margin: 0 auto;
+  }
+
+  /* step list */
+  ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+  ol.steps > li {
+    counter-increment: step; position: relative; padding: 0 0 24px 52px;
+  }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: -2px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--kakao); color: var(--kakao-ink);
+    border-radius: 50%; font-family: 'Jalnan2', sans-serif; font-size: 15px;
+  }
+  ol.steps > li:not(:last-child)::after {
+    content: ""; position: absolute; left: 15.5px; top: 36px; bottom: 6px;
+    width: 1px; background: rgba(40, 49, 73, 0.14);
+  }
+  ol.steps > li .lead { color: var(--ink); font-weight: 600; }
+  ol.steps b.say {
+    background: var(--kakao); color: var(--kakao-ink);
+    border-radius: 6px; padding: 1px 8px; font-weight: 800; white-space: nowrap;
+  }
+  ol.steps .sub { display: block; color: var(--muted); font-size: 14.5px; margin-top: 4px; font-weight: 400; }
+
+  /* callouts */
+  .callout { border-radius: 16px; padding: 16px 20px; margin-top: 24px; font-size: 15px; color: var(--ink); }
+  .callout b { font-weight: 800; }
+  .callout.tip { background: var(--brand-soft); border: 1px solid var(--brand); }
+  .callout.warn { background: var(--warn-bg); border: 1px solid var(--warn-line); }
+
+  /* mock column */
+  .mock-label {
+    font-family: 'Jalnan2', sans-serif; font-size: 13px; color: var(--brand-deep);
+    margin: 0 0 8px 4px;
+  }
+  .mock-label + .phone, .mock-label + .web { margin-bottom: 4px; }
+  .stack > * + .mock-label { margin-top: 24px; }
+
+  /* kakao phone mockup */
+  .phone {
+    background: var(--navy, #283149);
+    background: #283149;
+    border-radius: 26px; padding: 10px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .phone-inner { background: #B2C7D9; border-radius: 18px; overflow: hidden; color: #1F2A33; }
+  .phone-bar {
+    background: #A3BACE; padding: 10px 14px;
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 800; font-size: 14px; color: #26343F;
+  }
+  .phone-bar img { width: 26px; height: 26px; border-radius: 8px; }
+  .phone-bar .back { font-weight: 400; opacity: .55; }
+  .chat { padding: 14px 12px 18px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; line-height: 1.5; }
+  .row { display: flex; gap: 8px; }
+  .row.right { justify-content: flex-end; }
+  .avatar { flex: none; width: 30px; height: 30px; border-radius: 9px; display: block; }
+  .col { max-width: 78%; }
+  .who { font-size: 11.5px; color: #4A5A66; margin: 0 0 4px 2px; }
+  .bubble { background: #fff; border-radius: 4px 14px 14px 14px; padding: 8px 12px; width: fit-content; max-width: 100%; }
+  .row.right .bubble { background: var(--kakao); color: var(--kakao-ink); border-radius: 14px 4px 14px 14px; font-weight: 700; }
+  .stamp { font-size: 10.5px; color: #5A6B77; margin-top: 4px; }
+  .row.right .stamp { text-align: right; }
+  .kcard { background: #fff; border-radius: 4px 14px 14px 14px; padding: 12px; max-width: 100%; }
+  .kcard .kc-title { font-weight: 800; margin-bottom: 4px; color: #26343F; }
+  .kcard .kc-desc { color: #45535E; }
+  .kbtn { margin-top: 10px; background: #F3F4F6; border: 1px solid #E2E5E9; border-radius: 8px; text-align: center; padding: 8px 10px; font-weight: 700; color: #26343F; }
+  .kbtn + .kbtn { margin-top: 6px; }
+  .kcard .menu-lines { margin: 2px 0 0; color: #45535E; }
+  .kcard .kc-meta { font-size: 11px; color: #7A8894; margin-top: 4px; }
+  .kcard hr { border: none; border-top: 1px solid #EEF0F2; margin: 10px 0; }
+
+  /* web mockups */
+  .web { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); font-size: 13px; color: #1F2A33; }
+  .web-bar { background: #F1F3F5; padding: 8px 12px; font-size: 11.5px; color: #6B7680; display: flex; gap: 6px; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #D3D8DC; }
+  .web-body { padding: 20px; }
+  .web h4 { margin: 0 0 12px; font-size: 15px; font-weight: 800; color: #26343F; }
+  .field { border: 1px solid #D8DDE2; border-radius: 8px; padding: 9px 12px; color: #9AA5AE; margin-bottom: 8px; }
+  .btn { border-radius: 8px; text-align: center; padding: 10px; font-weight: 800; }
+  .btn.kko { background: var(--kakao); color: var(--kakao-ink); }
+  .or { text-align: center; color: #9AA5AE; font-size: 11.5px; margin: 12px 0; }
+  .web.dark { background: #121212; color: #EDEDED; }
+  .web.dark .web-bar { background: #1E1E1E; color: #8B8B8B; }
+  .web.dark h4 { color: #fff; }
+  .check { display: flex; gap: 8px; margin: 6px 0; color: #C9C9C9; }
+  .check::before { content: "✓"; color: var(--kakao); font-weight: 800; }
+  .login-ok { padding: 26px 20px; text-align: center; }
+  .login-ok .ok { width: 46px; height: 46px; border-radius: 50%; background: #E4F5EC; color: #2F9E6A; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; line-height: 1; margin: 0 auto 12px; }
+  .login-ok .t { font-weight: 800; font-size: 15px; color: #1F2A33; margin-bottom: 4px; }
+  .login-ok .d { color: #55636E; font-size: 12.5px; line-height: 1.5; }
+  .login-ok .say { display: inline-block; background: var(--kakao); color: var(--kakao-ink); border-radius: 5px; padding: 0 6px; font-weight: 800; }
+
+  /* FAQ */
+  .faq { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  details.qa { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 24px; }
+  details.qa > summary { font-family: 'Jalnan2', sans-serif; font-size: 17px; color: var(--ink); cursor: pointer; list-style: none; }
+  details.qa > summary::-webkit-details-marker { display: none; }
+  details.qa > summary::before { content: "Q. "; color: var(--brand); }
+  details.qa[open] > summary { margin-bottom: 12px; }
+  details.qa .a { color: var(--muted); line-height: 1.7; margin: 0; }
+
+  /* CTA band */
+  .cta-band { text-align: center; background: linear-gradient(180deg, #95E0F4 0%, #7FD3EC 100%); }
+  .cta-band h2 { font-family: 'Pretendard', sans-serif; font-weight: 800; font-size: clamp(26px, 4vw, 40px); color: var(--ink); margin: 0 0 14px; letter-spacing: -0.02em; }
+  .cta-band p { color: #2A4552; font-size: 17px; margin: 0 0 28px; }
+  .cta-band .btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .cta-band .btns a { display: inline-flex; align-items: center; gap: 8px; font-family: 'Jalnan2', sans-serif; font-size: 17px; padding: 15px 28px; border-radius: 999px; }
+  .cta-band .btns a.kko { background: var(--kakao); color: var(--kakao-ink); box-shadow: 0 10px 24px rgba(254, 229, 0, .4); }
+  .cta-band .btns a.ghost { background: var(--navy, #283149); background: #283149; color: #fff; }
+
+  /* footer */
+  footer.site {
+    background: #283149; color: #8E9BAC;
+    padding: 44px 48px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+  }
+  footer.site .fb { display: flex; align-items: center; gap: 12px; }
+  footer.site .fb img { width: 38px; height: 38px; border-radius: 10px; }
+  footer.site .fb .fn { font-family: 'Jalnan2', sans-serif; font-size: 19px; color: #fff; }
+  footer.site .fb .fs { font-size: 13px; }
+  footer.site .fl a { color: #95E0F4; font-size: 14px; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 860px) {
+    .duo { grid-template-columns: 1fr; gap: 32px; }
+  }
+  @media (max-width: 760px) {
+    .pad, nav.bar, header.hero, section, footer.site { padding-left: 22px; padding-right: 22px; }
+    nav.bar .links a:not(.cta) { display: none; }
+    nav.bar .brand .tag { display: none; }
+    header.hero { padding-top: 48px; padding-bottom: 60px; }
+    header.hero .mascot { width: 132px; height: 132px; border-radius: 32px; }
+    section { padding-top: 56px; padding-bottom: 56px; }
+    .sec-head { margin-bottom: 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mascot, .cloud { animation: none !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="bar">
+  <a class="brand" href="/">
+    <img src="/assets/sandol-logo.png" alt="산돌이">
+    <span class="name">산돌이</span>
+    <span class="tag">사장님 가이드</span>
+  </a>
+  <div class="links">
+    <a href="#login">로그인</a>
+    <a href="#manager">매니저 신청</a>
+    <a href="#menu">메뉴 등록</a>
+    <a class="cta" href="#">💬 채널 추가</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <span class="badge">🐾 사장님을 위한 이용 가이드</span>
+  <img class="mascot" src="/assets/sandol-logo.png" alt="산돌이 마스코트">
+  <h1>우리 식당 식단,<br><span>산돌이</span>로 직접 올려요</h1>
+  <p class="lede">산돌이 카카오톡 채널에서 우리 식당의 식단을 직접 등록하고 관리하는 방법을 안내합니다. 모든 기능은 채팅방에 <strong>말을 걸듯 입력</strong>하면 시작돼요.</p>
+  <div class="flow" aria-label="이용 순서">
+    <a href="#login"><span class="n">1</span> 로그인</a>
+    <span class="arrow">→</span>
+    <a href="#manager"><span class="n">2</span> 매니저 신청</a>
+    <span class="arrow">→</span>
+    <a href="#menu"><span class="n">3</span> 메뉴 등록</a>
+  </div>
+</header>
+
+<!-- ============ STEP 1. 로그인 ============ -->
+<section id="login">
+  <div class="sec-head">
+    <div class="eyebrow">STEP 1</div>
+    <h2>로그인</h2>
+    <p>식당 관리 기능을 사용하려면 먼저 산돌이에 내 계정을 연결해야 합니다. 최초 1회만 하면 됩니다.</p>
+  </div>
+  <div class="duo">
+    <div>
+      <ol class="steps">
+        <li><span class="lead">산돌이 카카오톡 채널 채팅방에 들어갑니다.</span></li>
+        <li><span class="lead">채팅방에 <b class="say">로그인</b> 이라고 입력합니다.</span></li>
+        <li><span class="lead"><strong>로그인 하러 가기</strong> 버튼을 누릅니다.</span>
+          <span class="sub">버튼(로그인 링크)은 10분(600초) 후 만료됩니다. 만료되면 다시 "로그인"을 입력해 주세요.</span></li>
+        <li><span class="lead">열리는 사이트에서 <strong>카카오로 로그인하기</strong>를 누릅니다.</span>
+          <span class="sub">아이디·비밀번호로 회원가입할 수도 있지만, 카카오 로그인이 가장 간편해서 추천드립니다.</span></li>
+        <li><span class="lead">카카오 동의 화면에서 <strong>전체 선택하기</strong> → <strong>동의하고 계속하기</strong>를 누릅니다.</span></li>
+        <li><span class="lead"><strong>"로그인이 완료되었습니다"</strong> 페이지가 나오면 로그인 완료!</span>
+          <span class="sub">창을 닫고 카카오톡으로 돌아가 하시려던 작업을 계속하시면 됩니다. 로그인이 잘 됐는지 확인하고 싶다면 채팅방에 "계정정보"를 입력해 보세요.</span></li>
+      </ol>
+      <div class="callout tip">
+        <b>세션이 만료됐다는 안내가 나온다면?</b><br>
+        시간이 지나면 로그인이 풀릴 수 있습니다. 채팅방에 다시 <strong>"로그인"</strong>을 입력하고 같은 과정을 반복하면 됩니다.
+      </div>
+    </div>
+    <div class="stack">
+      <p class="mock-label">카카오톡 채팅 화면</p>
+      <div class="phone" role="img" aria-label="채팅방에 로그인을 입력하면 로그인 하러 가기 버튼이 담긴 카드가 도착하는 화면">
+        <div class="phone-inner">
+          <div class="phone-bar"><span class="back">‹</span><img src="/assets/sandol-logo.png" alt=""> 산돌이</div>
+          <div class="chat">
+            <div class="row right"><div class="col"><div class="bubble">로그인</div><div class="stamp">오전 12:39</div></div></div>
+            <div class="row">
+              <img class="avatar" src="/assets/sandol-logo.png" alt="">
+              <div class="col">
+                <p class="who">산돌이</p>
+                <div class="kcard">
+                  <div class="kc-title">로그인 링크</div>
+                  <div class="kc-desc">아래 버튼을 눌러 로그인 페이지로 이동하세요. 로그인 링크는 600초 후 만료됩니다.</div>
+                  <div class="kbtn">로그인 하러 가기</div>
+                </div>
+                <div class="stamp">오전 12:39</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="mock-label">로그인 페이지</p>
+      <div class="web" role="img" aria-label="산돌이 로그인 페이지. 카카오로 로그인하기 버튼을 누릅니다">
+        <div class="web-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span> sandori.kr</div>
+        <div class="web-body">
+          <h4>계정에 로그인</h4>
+          <div class="field">아이디 또는 이메일</div>
+          <div class="field">비밀번호</div>
+          <div class="or">또는 다음을 사용하여 로그인</div>
+          <div class="btn kko">카카오로 로그인하기 ← 추천!</div>
+        </div>
+      </div>
+
+      <p class="mock-label">카카오 동의 화면</p>
+      <div class="web dark" role="img" aria-label="카카오 동의 화면. 전체 선택 후 동의하고 계속하기를 누릅니다">
+        <div class="web-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span> kauth.kakao.com</div>
+        <div class="web-body">
+          <h4>카카오계정으로 간편가입</h4>
+          <div class="check">(필수) 서비스 이용약관</div>
+          <div class="check">(필수) 만 14세 이상입니다.</div>
+          <div class="btn kko" style="margin-top:10px;">동의하고 계속하기</div>
+        </div>
+      </div>
+
+      <p class="mock-label">이 화면이 나오면 성공!</p>
+      <div class="web" role="img" aria-label="로그인이 완료되었습니다 페이지. 이 화면이 보이면 로그인 성공입니다">
+        <div class="web-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span> sandori.kr/login-complete</div>
+        <div class="login-ok">
+          <div class="ok">✓</div>
+          <div class="t">로그인이 완료되었습니다</div>
+          <div class="d">카카오톡으로 돌아가 하시려던 작업을 계속하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STEP 2. 매니저 신청 ============ -->
+<section id="manager" class="alt">
+  <div class="sec-head">
+    <div class="eyebrow">STEP 2</div>
+    <h2>매니저 신청</h2>
+    <p>메뉴 등록 등 식당 관리 기능은 해당 식당의 매니저로 승인된 분만 사용할 수 있습니다. 로그인 후 한 번만 신청하면 됩니다.</p>
+  </div>
+  <div class="duo">
+    <div>
+      <ol class="steps">
+        <li><span class="lead">산돌이 카카오톡 채널 채팅방에 들어갑니다.</span></li>
+        <li><span class="lead">채팅방에 <b class="say">매니저 신청</b> 이라고 입력합니다.</span></li>
+        <li><span class="lead">매니저로 등록하려는 <strong>식당 이름</strong>을 입력합니다.</span>
+          <span class="sub">예: 산돌식당</span></li>
+        <li><span class="lead">접수 안내와 함께 <strong>신청 번호</strong>가 도착합니다.</span></li>
+        <li><span class="lead">산돌이 운영자에게 <strong>신청 번호를 알려주세요.</strong></span>
+          <span class="sub">운영자가 승인하면 그때부터 식당 관리 기능을 사용할 수 있습니다.</span></li>
+      </ol>
+      <div class="callout tip">
+        <b>승인은 즉시 되지 않아요.</b><br>
+        신청 번호를 운영자에게 전달해야 승인 절차가 진행됩니다. 신청 번호를 잊었다면 접수 메시지를 다시 확인해 주세요.
+      </div>
+    </div>
+    <div class="stack">
+      <p class="mock-label">카카오톡 채팅 화면</p>
+      <div class="phone" role="img" aria-label="매니저 신청을 입력하고 식당 이름을 답하면 신청 번호가 발급되는 화면">
+        <div class="phone-inner">
+          <div class="phone-bar"><span class="back">‹</span><img src="/assets/sandol-logo.png" alt=""> 산돌이</div>
+          <div class="chat">
+            <div class="row right"><div class="col"><div class="bubble">매니저 신청</div><div class="stamp">오전 11:59</div></div></div>
+            <div class="row">
+              <img class="avatar" src="/assets/sandol-logo.png" alt="">
+              <div class="col">
+                <p class="who">산돌이</p>
+                <div class="bubble">매니저로 등록하기 원하시는 식당 이름이 무엇인가요?</div>
+                <div class="stamp">오전 11:59</div>
+              </div>
+            </div>
+            <div class="row right"><div class="col"><div class="bubble">산돌식당</div><div class="stamp">오전 11:59</div></div></div>
+            <div class="row">
+              <img class="avatar" src="/assets/sandol-logo.png" alt="">
+              <div class="col">
+                <p class="who">산돌이</p>
+                <div class="bubble">산돌식당 manager 등록 신청이 접수되었습니다. 신청 번호는 <strong>#1</strong>입니다.</div>
+                <div class="stamp">오전 11:59</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STEP 3. 메뉴 등록 ============ -->
+<section id="menu">
+  <div class="sec-head">
+    <div class="eyebrow">STEP 3</div>
+    <h2>메뉴 등록</h2>
+    <p>매니저 승인이 끝났다면, 이제 채팅으로 매일의 식단을 등록할 수 있습니다.</p>
+  </div>
+  <div class="duo">
+    <div>
+      <ol class="steps">
+        <li><span class="lead">산돌이 카카오톡 채널 채팅방에 들어갑니다.</span></li>
+        <li><span class="lead">채팅방에 <b class="say">메뉴등록</b> 이라고 입력합니다.</span></li>
+        <li><span class="lead">등록하려는 <strong>식단 종류</strong>(중식/석식)를 선택합니다.</span></li>
+        <li><span class="lead">메뉴를 입력합니다.</span>
+          <span class="sub">띄어쓰기나 쉼표로 메뉴가 구분됩니다. 예: <em>밥, 김치, 오징어</em> 또는 <em>밥 김치 오징어</em>. 둘을 섞어 쓰면 쉼표 기준으로 구분됩니다.</span></li>
+        <li><span class="lead"><strong>식단 미리보기</strong>로 등록될 모습을 확인합니다.</span>
+          <span class="sub">다른 종류(석식 등)의 메뉴를 이어서 추가할 수도 있습니다.</span></li>
+        <li><span class="lead">더 추가할 메뉴가 없다면 <b class="say">확정</b> 버튼을 누릅니다.</span></li>
+      </ol>
+      <div class="callout warn">
+        <b>⚠ 확정을 누르지 않으면 등록되지 않습니다!</b><br>
+        미리보기까지 했더라도 <strong>확정</strong> 버튼을 눌러야 학생들에게 식단이 공개됩니다. 마지막에 꼭 확정을 눌러 주세요.
+      </div>
+    </div>
+    <div class="stack">
+      <p class="mock-label">카카오톡 채팅 화면</p>
+      <div class="phone" role="img" aria-label="메뉴등록을 입력하고 중식을 선택한 뒤 메뉴를 입력하면 미리보기가 나오고, 확정을 눌러 마무리하는 화면">
+        <div class="phone-inner">
+          <div class="phone-bar"><span class="back">‹</span><img src="/assets/sandol-logo.png" alt=""> 산돌이</div>
+          <div class="chat">
+            <div class="row right"><div class="col"><div class="bubble">메뉴등록</div><div class="stamp">오후 1:24</div></div></div>
+            <div class="row">
+              <img class="avatar" src="/assets/sandol-logo.png" alt="">
+              <div class="col">
+                <p class="who">산돌이</p>
+                <div class="kcard">
+                  <div class="kc-desc">어떤 학식을 등록하시겠습니까? 추가하실 식단 종류를 선택해주세요.</div>
+                  <div class="kbtn">중식</div>
+                  <div class="kbtn">석식</div>
+                </div>
+                <div class="stamp">오후 1:24</div>
+              </div>
+            </div>
+            <div class="row right"><div class="col"><div class="bubble">중식</div><div class="stamp">오후 1:24</div></div></div>
+            <div class="row">
+              <img class="avatar" src="/assets/sandol-logo.png" alt="">
+              <div class="col">
+                <p class="who">산돌이</p>
+                <div class="bubble">등록하실 중식 메뉴를 입력해주세요.<br>입력 예시<br>: 밥, 김치<br>: 밥 김치</div>
+                <div class="stamp">오후 1:24</div>
+              </div>
+            </div>
+            <div class="row right"><div class="col"><div class="bubble">밥, 김치, 오징어</div><div class="stamp">오후 1:24</div></div></div>
+            <div class="row">
+              <img class="avatar" src="/assets/sandol-logo.png" alt="">
+              <div class="col">
+                <p class="who">산돌이</p>
+                <div class="bubble">식단 미리보기</div>
+                <div class="kcard" style="margin-top:6px;">
+                  <div class="kc-title">산돌식당(점심)</div>
+                  <div class="menu-lines">밥<br>김치<br>오징어</div>
+                  <div class="kc-meta">3월 14일 토요일 4시 업데이트</div>
+                  <hr>
+                  <div class="kc-title">산돌식당(저녁)</div>
+                  <div class="menu-lines">식단 정보가 없습니다.</div>
+                </div>
+                <div class="stamp">오후 1:24</div>
+              </div>
+            </div>
+            <div class="row right"><div class="col"><div class="bubble">확정 ✓</div><div class="stamp">오후 1:24</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq" class="alt">
+  <div class="sec-head">
+    <div class="eyebrow">FAQ</div>
+    <h2>자주 묻는 질문</h2>
+  </div>
+  <div class="faq">
+    <details class="qa" open>
+      <summary>로그인을 눌렀는데, 끝났는지 어떻게 알 수 있나요?</summary>
+      <p class="a"><strong>"로그인이 완료되었습니다"</strong> 화면이 보이면 성공입니다. 창을 닫고 카카오톡으로 돌아가시면 됩니다. 로그인이 잘 됐는지 다시 확인하고 싶다면 채팅방에 <strong>"계정정보"</strong>를 입력해 보세요.</p>
+    </details>
+    <details class="qa">
+      <summary>메뉴를 입력하고 미리보기까지 봤는데 학생들에게 안 보인대요.</summary>
+      <p class="a">마지막에 <strong>확정</strong> 버튼을 눌렀는지 확인해 주세요. 확정을 누르지 않으면 임시 저장 상태로 남아 실제로 등록되지 않습니다.</p>
+    </details>
+    <details class="qa">
+      <summary>"로그인 후 다시 시도해주세요"라는 메시지가 나와요.</summary>
+      <p class="a">로그인 세션이 만료된 상태입니다. 채팅방에 <strong>"로그인"</strong>을 입력해 다시 로그인한 뒤 이용해 주세요.</p>
+    </details>
+    <details class="qa">
+      <summary>매니저 신청을 했는데 아직 기능을 못 써요.</summary>
+      <p class="a">운영자 승인이 필요합니다. 접수 시 받은 <strong>신청 번호</strong>를 산돌이 운영자에게 전달했는지 확인해 주세요.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta-band">
+  <h2>이제 우리 식당 식단을 올려볼까요? 🐾</h2>
+  <p>카카오톡에서 산돌이 채널을 추가하고 "로그인"부터 시작해 보세요.</p>
+  <div class="btns">
+    <a class="kko" href="#">💬 카카오톡 채널 추가하기</a>
+    <a class="ghost" href="/">🏠 산돌이 홈으로</a>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="fb">
+    <img src="/assets/sandol-logo.png" alt="산돌이">
+    <div>
+      <div class="fn">산돌이</div>
+      <div class="fs">한국공학대학교 학생 챗봇 · 사장님 이용 가이드</div>
+    </div>
+  </div>
+  <div class="fl"><a href="https://github.com/teamSANDOL">GitHub</a></div>
+</footer>
+
+</body>
+</html>
