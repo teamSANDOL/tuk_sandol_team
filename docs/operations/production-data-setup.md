@@ -110,8 +110,9 @@ cp ./sandol-static-info-service/app/config/school_info.json \
 
 ### classroom
 
-시간표 데이터(`lecture_array.json`, `buildings.csv`)는 서브모듈에서 git으로 관리되며 이미지에 포함됩니다.
-`SANDOL_DATA_DIR` 아래에 복사할 필요 없이 서브모듈 포인터 갱신 후 배포하면 반영됩니다.
+시간표 데이터(`lecture_array.json`, `buildings.csv`)는 서브모듈에서 git으로 관리되며,
+compose가 `./sandol_classroom_timetable_service/data`를 직접 mount합니다.
+`SANDOL_DATA_DIR` 아래에 복사할 필요 없이 [hotfix 배포 절차](./hotfix-deploy.md)의 시간표 데이터 항목대로 반영합니다.
 
 ## 4. 권장 최종 파일 구조
 

@@ -172,7 +172,7 @@ docker compose config | grep '^    image:'
 > - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/student_cafeteria.json`
 > - `${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/school_info.json`
 >
-> 예외: `classroom-timetable-service`의 시간표 데이터는 git 관리 대상이라 이미지에 포함되며 mount하지 않습니다.
+> 예외: `classroom-timetable-service`의 시간표 데이터는 git 관리 대상이라 repo 경로(`./sandol_classroom_timetable_service/data`)를 mount합니다.
 
 > `meal-service`의 식사 타입 파일은 기본적으로 `/app/app/config/meal_types.json`을 읽으며,
 > 운영에서는 `meal_types.json`만 관리 대상으로 보고, `test_meal_types.json`은 mount 대상에 포함하지 않습니다.

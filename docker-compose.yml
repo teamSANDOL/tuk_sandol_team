@@ -171,7 +171,9 @@ services:
   classroom-timetable-service:
     container_name: sandol_classroom_timetable_service
     image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
-    # 시간표 데이터(data/)는 서브모듈에서 git 관리되어 이미지에 포함됨. 별도 mount 불필요.
+    volumes:
+      # 시간표 데이터는 서브모듈에서 git 관리. git pull + submodule update 후 재생성하면 반영됨 (이미지 재빌드 불필요)
+      - ./sandol_classroom_timetable_service/data:/app/data:ro
     networks:
       - sandol_network
     healthcheck:

@@ -30,6 +30,16 @@ Keycloak 테마는 `docker-compose.yml`에서 다음 경로로 bind mount됩니�
 따라서 테마 파일만 바뀐 경우에는 Keycloak 이미지를 다시 빌드할 필요가 없고,
 컨테이너 재생성으로 변경된 파일을 다시 읽게 하면 됩니다.
 
+## 시간표 데이터 hotfix
+
+`sandol_classroom_timetable_service/data`(시간표 JSON, 건물 CSV)는 bind mount되므로 이미지 재빌드 없이 재생성만으로 반영됩니다.
+
+```bash
+git pull
+git submodule update --init --recursive sandol_classroom_timetable_service
+docker compose up -d --force-recreate classroom-timetable-service
+```
+
 ## 특정 서비스 hotfix
 
 서비스 코드가 submodule에 반영된 뒤 운영 서버에서 다음 패턴을 사용합니다.
