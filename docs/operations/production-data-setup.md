@@ -32,7 +32,6 @@ mkdir -p /home/ubuntu/data/sandol/kakao-bot
 mkdir -p /home/ubuntu/data/sandol/log-manager/loki
 mkdir -p /home/ubuntu/data/sandol/meal
 mkdir -p /home/ubuntu/data/sandol/static-info
-mkdir -p /home/ubuntu/data/sandol/classroom
 ```
 
 한 번에 만들고 싶으면:
@@ -43,8 +42,7 @@ mkdir -p \
   /home/ubuntu/data/sandol/kakao-bot \
   /home/ubuntu/data/sandol/log-manager/loki \
   /home/ubuntu/data/sandol/meal \
-  /home/ubuntu/data/sandol/static-info \
-  /home/ubuntu/data/sandol/classroom
+  /home/ubuntu/data/sandol/static-info
 ```
 
 권한을 `ubuntu` 기준으로 정리하려면:
@@ -112,13 +110,8 @@ cp ./sandol-static-info-service/app/config/school_info.json \
 
 ### classroom
 
-```bash
-cp ./sandol_classroom_timetable_service/data/lecture_array.json \
-  /home/ubuntu/data/sandol/classroom/lecture_array.json
-
-cp ./sandol_classroom_timetable_service/data/buildings.csv \
-  /home/ubuntu/data/sandol/classroom/buildings.csv
-```
+시간표 데이터(`lecture_array.json`, `buildings.csv`)는 서브모듈에서 git으로 관리되며 이미지에 포함됩니다.
+`SANDOL_DATA_DIR` 아래에 복사할 필요 없이 서브모듈 포인터 갱신 후 배포하면 반영됩니다.
 
 ## 4. 권장 최종 파일 구조
 
@@ -133,11 +126,8 @@ cp ./sandol_classroom_timetable_service/data/buildings.csv \
 ├── meal/
 │   ├── meal_types.json
 │   └── student_cafeteria.json
-├── static-info/
-│   └── school_info.json
-└── classroom/
-    ├── lecture_array.json
-    └── buildings.csv
+└── static-info/
+    └── school_info.json
 ```
 
 ## 5. 운영 반영 전 확인
@@ -167,7 +157,6 @@ docker compose -f docker-compose.yml config
 - `/home/ubuntu/data/sandol/log-manager/loki`
 - `/home/ubuntu/data/sandol/meal/meal_types.json`
 - `/home/ubuntu/data/sandol/static-info/school_info.json`
-- `/home/ubuntu/data/sandol/classroom/lecture_array.json`
 
 ## 6. 실제 반영 절차
 

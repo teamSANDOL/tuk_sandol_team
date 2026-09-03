@@ -171,9 +171,7 @@ services:
   classroom-timetable-service:
     container_name: sandol_classroom_timetable_service
     image: sandol-sandol_classroom_timetable_service:${TAG:-latest}
-    volumes:
-      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/classroom/lecture_array.json:/app/data/lecture_array.json:ro
-      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/classroom/buildings.csv:/app/data/buildings.csv:ro
+    # 시간표 데이터(data/)는 서브모듈에서 git 관리되어 이미지에 포함됨. 별도 mount 불필요.
     networks:
       - sandol_network
     healthcheck:
