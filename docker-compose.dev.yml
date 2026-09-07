@@ -1,5 +1,14 @@
 # First-party services build and tag images with ${TAG:-latest}
 # so docker-compose.yml can run the same image names afterward.
+
+# DB 마다 exporter 를 하나씩 띄운다. 이미지와 공통 설정만 여기 모은다.
+# 계정은 scripts/create-pg-exporter-role.sh 로 먼저 만들어야 한다.
+x-postgres-exporter: &postgres-exporter
+  image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0
+  networks:
+    - sandol_network
+  restart: always
+
 services:
   gateway:
     container_name: sandol-gateway
@@ -300,6 +309,30 @@ services:
     networks:
       - sandol_network
     restart: always
+
+  postgres-exporter-meal:
+    <<: *postgres-exporter
+    container_name: postgres-exporter-meal
+    environment:
+      DATA_SOURCE_NAME: "postgresql://sandol_exporter:${PG_EXPORTER_PASSWORD}@meal-service-db:5432/meal_service?sslmode=disable"
+    depends_on:
+      - meal-service-db
+
+  postgres-exporter-keycloak:
+    <<: *postgres-exporter
+    container_name: postgres-exporter-keycloak
+    environment:
+      DATA_SOURCE_NAME: "postgresql://sandol_exporter:${PG_EXPORTER_PASSWORD}@keycloak-db:5432/keycloak?sslmode=disable"
+    depends_on:
+      - keycloak-db
+
+  postgres-exporter-notice:
+    <<: *postgres-exporter
+    container_name: postgres-exporter-notice
+    environment:
+      DATA_SOURCE_NAME: "postgresql://sandol_exporter:${PG_EXPORTER_PASSWORD}@sandol-notice-notification-db:5432/notice?sslmode=disable"
+    depends_on:
+      - notice-notification-db
 
   alloy:
     image: grafana/alloy:latest
