@@ -39,11 +39,11 @@ if [ -z "$PASSWORD" ]; then
   cat >&2 <<'EOF'
 PG_EXPORTER_PASSWORD 가 .env 에 없다. 아래 순서로 채운다.
 
-  1. 값을 만든다
-       openssl rand -hex 24
+  1. 생성기에서 값을 만든다
+       python3 scripts/generate_secrets.py
 
-  2. .env 에 추가한다. 위 출력값을 그대로 붙여 넣는다
-       PG_EXPORTER_PASSWORD=<1번 출력값>
+  2. 출력 중 PG_EXPORTER_PASSWORD 행을 .env 에 추가한다
+       PG_EXPORTER_PASSWORD=<생성기 출력값>
 
   3. 이 스크립트를 다시 실행한다
 
