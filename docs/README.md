@@ -26,6 +26,10 @@
 - [산돌이 카카오봇 사장님 기능 설명서](./manuals/kakao-bot-owner-guide.md)
 - [산돌이 사장님 이용 가이드 (배포용 웹페이지)](./manuals/kakao-bot-owner-guide.html) — 화면 예시 포함, 브라우저에서 열어 인쇄(PDF 저장) 가능
 
+### 5. 기능 명세 및 유지보수
+
+- [식당 유형(`establishment_type`) 유지보수 기준](./specs/establishment-type-maintenance.md)
+
 ## 읽는 순서
 
 - 처음 저장소를 파악할 때: 루트 `README.md` → 각 서비스 `README.md`
