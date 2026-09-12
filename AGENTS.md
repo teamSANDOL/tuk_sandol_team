@@ -1,5 +1,9 @@
 # AGENTS.md - 산돌이 프로젝트 (tuk_sandol_team)
 
+## 하위 에이전트 난이도 라우팅
+
+하위 에이전트를 생성하기 전에 작업 난이도를 분류합니다. LOW / MEDIUM / HIGH로 나눠 각 난이도 전용 하위 에이전트에 배정합니다(Codex: Luna / Terra / Sol, Claude Code: scout / builder / architect). 세부 기준과 에이전트 설정은 Codex는 [.codex/README.md](.codex/README.md), Claude Code는 [CLAUDE.md](CLAUDE.md)와 `.claude/agents/`를 참조합니다.
+
 ## 프로젝트 개요
 
 **산돌이**는 한국공학대학교 학생 및 관계자 6,200+ 명이 사용하는 **카카오톡 챗봇 서비스**입니다.
