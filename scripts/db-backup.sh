@@ -26,14 +26,33 @@ env_of() {
     sed -n "s/^[[:space:]]*$key[[:space:]]*=[[:space:]]*//p" "$file" | tail -1 | tr -d '"'\''\r'
 }
 
-dump_pg meal_service meal-service-db \
-    "$(env_of /env/meal.env POSTGRES_DB)" \
-    "$(env_of /env/meal.env POSTGRES_USER)" \
-    "$(env_of /env/meal.env POSTGRES_PASSWORD)"
-dump_pg notice notice-notification-db \
-    "$(env_of /env/notice.env POSTGRES_DB)" \
-    "$(env_of /env/notice.env POSTGRES_USER)" \
-    "$(env_of /env/notice.env POSTGRES_PASSWORD)"
+# POSTGRES_DB/USER/PASSWORD가 .env에 없으면 DATABASE_URL(scheme://user:pass@host:port/db?query)에서 뽑아낸다.
+# ponytail: DATABASE_URL의 퍼센트 인코딩된 비밀번호는 디코딩하지 않는다.
+# 그래도 값이 비면 어떤 파일에 무엇이 빠졌는지 알리고 즉시 종료한다(fail-closed).
+resolve_pg_conn() {
+    file="$1"
+    RDB="$(env_of "$file" POSTGRES_DB)"
+    RUSER="$(env_of "$file" POSTGRES_USER)"
+    RPASS="$(env_of "$file" POSTGRES_PASSWORD)"
+    if [ -z "$RDB" ] || [ -z "$RUSER" ] || [ -z "$RPASS" ]; then
+        url="$(env_of "$file" DATABASE_URL)"
+        if [ -n "$url" ]; then
+            rest="$(echo "$url" | sed -r 's#^[A-Za-z0-9+]+://##')"
+            [ -n "$RUSER" ] || RUSER="$(echo "$rest" | sed 's#:.*##')"
+            [ -n "$RPASS" ] || RPASS="$(echo "$rest" | sed 's#^[^:]*:##; s#@.*##')"
+            [ -n "$RDB" ] || RDB="$(echo "$rest" | sed 's#^.*/##; s#?.*##')"
+        fi
+    fi
+    if [ -z "$RDB" ] || [ -z "$RUSER" ] || [ -z "$RPASS" ]; then
+        echo "[db-backup] 오류: $file 에서 DB 접속 정보를 찾을 수 없습니다. POSTGRES_DB/POSTGRES_USER/POSTGRES_PASSWORD 를 각각 채우거나, DATABASE_URL(scheme://user:pass@host:port/db) 하나를 채워야 합니다." >&2
+        exit 1
+    fi
+}
+
+resolve_pg_conn /env/meal.env
+dump_pg meal_service meal-service-db "$RDB" "$RUSER" "$RPASS"
+resolve_pg_conn /env/notice.env
+dump_pg notice notice-notification-db "$RDB" "$RUSER" "$RPASS"
 dump_pg keycloak keycloak-db \
     keycloak "${KC_DB_USERNAME:?KC_DB_USERNAME 필요}" "${KC_DB_PASSWORD:?KC_DB_PASSWORD 필요}"
 
