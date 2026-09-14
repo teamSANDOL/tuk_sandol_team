@@ -71,6 +71,8 @@ services:
         max-size: "10m"
         max-file: "7"
     depends_on:
+      db-backup:
+        condition: service_completed_successfully
       keycloak:
         condition: service_healthy
       meal-service-db:
@@ -128,6 +130,9 @@ services:
       start_period: 80s
 
   kakao-bot-service:
+    depends_on:
+      db-backup:
+        condition: service_completed_successfully
     container_name: sandol_kakao_bot_service
     image: sandol-sandol_kakao_bot_service:${TAG:-latest}
     build: ./sandol_kakao_bot_service
@@ -221,6 +226,8 @@ services:
       start_period: 20s
 
     depends_on:
+      db-backup:
+        condition: service_completed_successfully
       amqp:
         condition: service_healthy
       notice-notification-db:
@@ -439,6 +446,8 @@ services:
       - keycloak_data:/opt/keycloak/data
       - ./sandol_user_service/web/keycloak-theme:/opt/keycloak/themes:ro
     depends_on:
+      db-backup:
+        condition: service_completed_successfully
       keycloak-db:
         condition: service_healthy
     logging:
@@ -475,6 +484,40 @@ services:
       start_period: 10s
 
 
+
+  # 마이그레이션 전 DB 스냅샷. one-shot으로 매 up마다 재실행되며, 실패하면
+  # 마이그레이션을 돌리는 서비스들이 기동되지 않는다(fail-closed).
+  # 이미지는 pull 없이 재사용하려고 keycloak-db와 동일한 postgres:16-alpine을 쓴다.
+  # pg_dump 16은 postgres 15 서버도 덤프한다.
+  db-backup:
+    container_name: sandol-db-backup
+    image: postgres:16-alpine
+    restart: "no"
+    entrypoint: ["sh", "/db-backup.sh"]
+    environment:
+      BACKUP_KEEP: ${BACKUP_KEEP:-10}
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+    volumes:
+      - ./scripts/db-backup.sh:/db-backup.sh:ro
+      - ./sandol_meal_service/.env:/env/meal.env:ro
+      - ./sandol_notice_notification/.env:/env/notice.env:ro
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/kakao-bot/kakao_bot_service.db:/sqlite/kakao_bot_service.db:ro
+      - ${SANDOL_BACKUP_DIR:-${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/backups}:/backup
+    networks:
+      - sandol_network
+    depends_on:
+      meal-service-db:
+        condition: service_healthy
+      notice-notification-db:
+        condition: service_healthy
+      keycloak-db:
+        condition: service_healthy
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
 
 volumes:
   grafana_data: {}

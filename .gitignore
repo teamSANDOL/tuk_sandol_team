@@ -5,3 +5,6 @@ keycloak-export.tar.gz
 
 # MacOD
 .DS_Store
+
+.claude/worktrees/
+.claude/settings.local.json
