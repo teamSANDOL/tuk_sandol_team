@@ -247,6 +247,7 @@ docker compose config | grep '^    image:'
 - [ ] `logging.driver=local` 정책 유지 여부 확인
 - [ ] loki / prometheus / alloy / grafana를 같이 올릴지 결정함
 - [ ] grafana subpath(`/grafana`) 관련 설정 확인
+- [ ] 호스트 Docker 스토리지 드라이버가 `overlay2` 인지 확인함 (`docker info --format '{{.Driver}}'`)
 
 <details>
 <summary>설정 방법 보기</summary>
@@ -256,6 +257,11 @@ docker compose config | grep '^    image:'
 - 로그 적재까지 같이 할지, 최소 기능만 먼저 올릴지 compose 단계에서 결정합니다.
 - 루트 compose 기준 모니터링 설정은 루트 레포의 `config/monitoring/`, `config/rabbitmq/`를 우선 기준으로 봅니다. `sandol-log-manager`, `sandol_amqp` 서브모듈 안의 예시/독립 설정과 섞어서 수정하지 않습니다.
 - 특히 Prometheus scrape target 변경은 `sandol-log-manager/config/prometheus/prometheus.yaml`이 아니라 루트 `config/monitoring/prometheus.yaml`에서 관리합니다.
+- Docker 29부터 스토리지 드라이버 기본값이 containerd 스냅샷터(`overlayfs`)입니다. 이 경우 cAdvisor가 컨테이너를 식별하지 못해 Grafana "컨테이너 자원" 보드가 전부 빕니다. alloy에 cgroup 마운트를 넣어도 마찬가지입니다.
+- `/etc/docker/daemon.json`에 `{"features": {"containerd-snapshotter": false}}`를 넣고 도커를 재시작하면 `overlay2`로 돌아갑니다.
+- 전환하면 기존 이미지가 새 저장소에서 보이지 않습니다. `sandol-*` 이미지는 레지스트리에 없으므로 `docker save` / `docker load`로 옮기거나 다시 빌드해야 합니다.
+- named volume은 `/var/lib/docker/volumes`에 별도로 있어 영향받지 않는 구조입니다. 다만 실측으로 확인하지는 않았으므로 DB 볼륨은 덤프를 떠두고 진행합니다.
+- 두 저장소가 디스크에 공존하므로, 설정을 되돌리고 재시작하면 이전 이미지가 그대로 다시 보입니다.
 
 </details>
 
