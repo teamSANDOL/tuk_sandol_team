@@ -304,8 +304,8 @@ services:
     image: prom/prometheus:${PROMETHEUS_VERSION:-v3.3.0}
     container_name: prometheus
     volumes:
-      - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver"
@@ -346,11 +346,11 @@ services:
     container_name: alloy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
+      - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - alloy_data:/var/lib/alloy/data
       - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /:/rootfs:ro
+      - /proc:/rootfs/proc:ro
+      - /var/lib/docker:/rootfs/var/lib/docker:ro
     command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     ports:
       - 12345:12345
@@ -522,6 +522,7 @@ services:
 volumes:
   grafana_data: {}
   alloy_data: {}
+  prometheus_data: {}
   # --- 추가: Keycloak DB 볼륨 ---
   keycloak_db_data: {}
   keycloak_data: {}
