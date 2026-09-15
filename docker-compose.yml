@@ -1,17 +1,4 @@
 # First-party services run prebuilt images tagged with ${TAG:-latest}.
-# DB 마다 exporter 를 하나씩 띄운다. 이미지와 공통 설정만 여기 모은다.
-# 계정은 scripts/create-pg-exporter-role.sh 로 먼저 만들어야 한다.
-x-postgres-exporter: &postgres-exporter
-  image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0
-  networks:
-    - sandol_network
-  restart: always
-  logging:
-    driver: "local"
-    options:
-      max-size: "10m"
-      max-file: "7"
-
 services:
   gateway:
     container_name: sandol-gateway
@@ -302,8 +289,8 @@ services:
     image: prom/prometheus:${PROMETHEUS_VERSION:-v3.3.0}
     container_name: prometheus
     volumes:
-      - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
+      - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - /var/run/docker.sock:/var/run/docker.sock
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver"
@@ -318,40 +305,13 @@ services:
         max-size: "10m"
         max-file: "7"
 
-  postgres-exporter-meal:
-    <<: *postgres-exporter
-    container_name: postgres-exporter-meal
-    environment:
-      DATA_SOURCE_NAME: "postgresql://sandol_exporter:${PG_EXPORTER_PASSWORD}@meal-service-db:5432/meal_service?sslmode=disable"
-    depends_on:
-      - meal-service-db
-
-  postgres-exporter-keycloak:
-    <<: *postgres-exporter
-    container_name: postgres-exporter-keycloak
-    environment:
-      DATA_SOURCE_NAME: "postgresql://sandol_exporter:${PG_EXPORTER_PASSWORD}@keycloak-db:5432/keycloak?sslmode=disable"
-    depends_on:
-      - keycloak-db
-
-  postgres-exporter-notice:
-    <<: *postgres-exporter
-    container_name: postgres-exporter-notice
-    environment:
-      DATA_SOURCE_NAME: "postgresql://sandol_exporter:${PG_EXPORTER_PASSWORD}@sandol-notice-notification-db:5432/notice?sslmode=disable"
-    depends_on:
-      - notice-notification-db
-
   alloy:
     image: grafana/alloy:latest
     container_name: alloy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy
       - alloy_data:/var/lib/alloy/data
-      - /sys:/sys:ro
-      - /proc:/rootfs/proc:ro
-      - /var/lib/docker:/rootfs/var/lib/docker:ro
     command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
       - loki
@@ -515,7 +475,6 @@ services:
 volumes:
   grafana_data: {}
   alloy_data: {}
-  prometheus_data: {}
   meal_service_db_data: {}
   notice_notification_db_data: {}
   keycloak_db_data: {}
