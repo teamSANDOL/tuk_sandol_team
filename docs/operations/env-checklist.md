@@ -11,7 +11,6 @@
 - [ ] `KC_DB_PASSWORD`
 - [ ] `KEYCLOAK_ADMIN_USERNAME`
 - [ ] `KEYCLOAK_ADMIN_PASSWORD`
-- [ ] `PG_EXPORTER_PASSWORD`
 
 <details>
 <summary>설정 방법 보기</summary>
@@ -25,7 +24,6 @@
 - `KC_DB_PASSWORD`: 생성 스크립트 출력값을 사용합니다.
 - `KEYCLOAK_ADMIN_USERNAME`: 보통 `admin` 그대로 사용합니다.
 - `KEYCLOAK_ADMIN_PASSWORD`: 생성 스크립트 출력값을 사용합니다.
-- `PG_EXPORTER_PASSWORD`: 생성 스크립트(`python3 scripts/generate_secrets.py`) 출력값을 사용합니다. 출력 중 해당 행을 `.env`에 적은 뒤 `./scripts/create-pg-exporter-role.sh`를 실행하면 세 DB에 계정이 생깁니다. 값이 비어 있으면 스크립트가 이 순서를 다시 안내하고 종료합니다. 스크립트는 `.env`를 읽기만 하고 직접 고치지 않습니다. 여러 번 실행해도 결과가 같습니다.
 
 </details>
 
