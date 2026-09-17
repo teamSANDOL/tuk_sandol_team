@@ -16,7 +16,7 @@ MSA(Microservice Architecture) 기반으로 구성되어 Docker Compose로 통�
 | `sandol_kakao_bot_service` | FastAPI + SQLite | 카카오톡 챗봇 메인 서버 |
 | `sandol_meal_service` | FastAPI + PostgreSQL | 학식 메뉴 API |
 | `sandol-auth-relay` | FastAPI | Keycloak 인증 중계 서버 |
-| `sandol-gateway` | OpenResty (Nginx + Lua) | API Gateway, 서명 인증 |
+| `sandol-gateway` | OpenResty (Nginx) | API Gateway (요청 라우팅) |
 | `sandol_notice_notification` | NestJS + PostgreSQL + RabbitMQ | 공지사항 알림 서버 |
 | `sandol_classroom_timetable_service` | Express.js | 강의실 시간표 API |
 | `sandol_user_service` | Keycloak | 사용자 인증/권한 중앙 관리 |
@@ -188,6 +188,8 @@ Kakao Bot Service가 Auth Relay에 요청:
 | `X-User-ID` | O | 사용자 식별자 (MSA 간 통신용) |
 | `X-Relay-Signature` | Relay→Bot만 | HMAC 서명 |
 
+> **`X-User-ID` 신뢰 경계**: 게이트웨이는 이 헤더를 업스트림으로 전달한다. 헤더 값 자체는 인증 근거가 아니므로, 업스트림 서비스는 `Authorization` Bearer 토큰을 JWKS로 검증하고 그 `sub` 클레임과 `X-User-ID`의 일치를 확인해야 한다.
+
 > **참고**: Auth-Relay 등 인증 절차 내부에서는 Keycloak `sub` 클레임을 사용할 수 있으나, 일반 MSA 간 통신에서는 `X-User-ID`를 사용합니다.
 
 ---
@@ -283,7 +285,7 @@ STATE_TTL_SECONDS=600
 1. **카카오톡 응답은 반드시 200**: 에러도 `KakaoError`로 200 반환
 2. **토큰 평문 로깅 금지**: 암호화 후 저장, 로그에 노출 금지
 3. **타입 안전성**: `type: ignore`, `as any` 등 타입 무시 금지
-4. **서명 검증 필수**: Relay 콜백은 HMAC + timestamp + nonce 검증
+4. **서명 검증 필수**: Relay 콜백은 HMAC + timestamp + nonce 검증 (게이트웨이가 아니라 챗봇 서버의 애플리케이션 레이어에서 수행된다)
 5. **Offline Token 관리**: 20~25일 내 최소 1회 refresh 필요 (Idle Timeout)
 
 ---
