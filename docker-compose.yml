@@ -43,9 +43,12 @@ services:
       PYTHONUNBUFFERED: "1"
       SECRET_KEY: ${SECRET_KEY}
       MEAL_TYPES_FILE_NAME: ${MEAL_TYPES_FILE_NAME:-meal_types.json}
+      MEAL_UPLOAD_ARCHIVE_DIR: /app/data/uploads
+      MEAL_EXCEL_AUTO_SYNC_ENABLED: "false"
     volumes:
       - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/student_cafeteria.json:/app/app/config/student_cafeteria.json:ro
       - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/meal_types.json:/app/app/config/meal_types.json:ro
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/uploads:/app/data/uploads
     networks:
       - sandol_network
     healthcheck:
