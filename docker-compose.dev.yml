@@ -52,10 +52,13 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY}
       PYTHONUNBUFFERED: "1"
+      MEAL_UPLOAD_ARCHIVE_DIR: /app/data/uploads
+      MEAL_EXCEL_AUTO_SYNC_ENABLED: "false"
     volumes:
       - ./sandol_meal_service:/app
       - ./sandol_meal_service/app/config/student_cafeteria.json:/app/app/config/student_cafeteria.json:ro
       - ./sandol_meal_service/app/config/meal_types.json:/app/app/config/meal_types.json:ro
+      - meal_service_upload_archive_dev:/app/data/uploads
     networks:
       - sandol_network
     healthcheck:
@@ -521,6 +524,7 @@ services:
 
 volumes:
   grafana_data: {}
+  meal_service_upload_archive_dev: {}
   alloy_data: {}
   prometheus_data: {}
   # --- 추가: Keycloak DB 볼륨 ---
