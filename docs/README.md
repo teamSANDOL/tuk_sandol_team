@@ -16,6 +16,7 @@
 - [환경 변수 체크리스트](./operations/env-checklist.md)
 - [Keycloak 체크리스트](./operations/keycloak-checklist.md)
 - [운영 데이터 디렉터리 준비 가이드](./operations/production-data-setup.md)
+- [Nginx Proxy Manager 전환 런북](./operations/nginx-proxy-manager-cutover.md)
 
 ### 3. 인증
 
