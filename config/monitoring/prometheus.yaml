@@ -2,6 +2,30 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
+  # 브로커 전체 지표. alarms 와 channel 계열은 이 경로에만 있다.
   - job_name: "rabbitmq"
     static_configs:
       - targets: ["amqp:15692"]
+
+  # 큐별 지표. rabbitmq_detailed_ 접두사가 붙어서 위 job 과 이름이 겹치지 않는다.
+  - job_name: "rabbitmq-queues"
+    metrics_path: /metrics/detailed
+    params:
+      family:
+        - queue_coarse_metrics
+        - queue_metrics
+    static_configs:
+      - targets: ["amqp:15692"]
+
+  # exporter 가 DB 마다 하나씩 있다. db 라벨로 구분한다.
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter-meal:9187"]
+        labels:
+          db: "meal_service"
+      - targets: ["postgres-exporter-keycloak:9187"]
+        labels:
+          db: "keycloak"
+      - targets: ["postgres-exporter-notice:9187"]
+        labels:
+          db: "notice"
