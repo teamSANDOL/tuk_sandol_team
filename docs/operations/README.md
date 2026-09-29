@@ -10,6 +10,7 @@
 4. [운영 데이터 디렉터리 준비 가이드](./production-data-setup.md)
 5. [Hotfix 배포 절차](./hotfix-deploy.md)
 6. [DB 백업 운영 가이드](./db-backup.md)
+7. [Nginx Proxy Manager 전환 런북](./nginx-proxy-manager-cutover.md)
 
 ## 권장 순서
 
