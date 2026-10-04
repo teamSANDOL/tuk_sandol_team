@@ -294,6 +294,7 @@ services:
   loki:
     image: grafana/loki:latest
     container_name: loki
+    mem_limit: 384m
     volumes:
       - ./sandol-log-manager/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
       - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/log-manager/loki:/var/lib/loki
@@ -310,6 +311,7 @@ services:
   prometheus:
     image: prom/prometheus:${PROMETHEUS_VERSION:-v3.3.0}
     container_name: prometheus
+    mem_limit: 384m
     volumes:
       - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
@@ -354,6 +356,7 @@ services:
   alloy:
     image: grafana/alloy:latest
     container_name: alloy
+    mem_limit: 512m
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./sandol-log-manager/config/alloy/config.alloy:/etc/alloy/config.alloy:ro
@@ -376,6 +379,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
+    mem_limit: 640m
     volumes:
       - grafana_data:/var/lib/grafana
       - ./sandol-log-manager/config/grafana/provisioning:/etc/grafana/provisioning
