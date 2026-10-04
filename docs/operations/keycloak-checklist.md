@@ -18,6 +18,12 @@
 
 </details>
 
+## 프록시 신뢰 주소
+
+- [ ] `keycloak_edge` 서브넷(`172.31.255.248/29`)과 Keycloak `KC_PROXY_TRUSTED_ADDRESSES`가 같은 값이며, 바꿀 때 함께 수정함
+- [ ] `keycloak_edge`에는 gateway와 keycloak만 붙이고, 다른 컨테이너를 붙이면 그 컨테이너가 XFF를 위조할 수 있음
+- [ ] 게이트웨이는 `keycloak-edge` 별칭(`keycloak.conf`의 `$up`)으로 접속해 Keycloak이 전용 대역 IP를 보게 함
+
 ## 관리자 계정
 
 - [ ] `KEYCLOAK_ADMIN_USERNAME` 설정됨
