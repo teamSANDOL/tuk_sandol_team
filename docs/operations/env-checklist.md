@@ -3,6 +3,7 @@
 ## 루트 `.env`
 
 - [ ] `SECRET_KEY`
+- [ ] `GATEWAY_TRUSTED_PROXIES`
 - [ ] `COMPOSE_PROJECT_NAME`
 - [ ] `SERVICE_DOMAIN`
 - [ ] `SANDOL_DATA_DIR`
@@ -17,6 +18,7 @@
 <summary>설정 방법 보기</summary>
 
 - `SECRET_KEY`: `python3 scripts/generate_secrets.py`로 생성한 값을 사용합니다.
+- `GATEWAY_TRUSTED_PROXIES`: 게이트웨이 앞단 프록시 IP 목록(쉼표 구분)입니다. 기본값 `172.30.1.101,172.30.1.110,172.30.1.31`(NPM, cloudflared CT110, CT131). 빈 값이나 형식 오류는 게이트웨이 기동이 실패하며, 수정 후 `docker compose restart gateway`로 반영합니다.
 - `COMPOSE_PROJECT_NAME`: 기본값 `sandol_team`을 그대로 써도 됩니다.
 - `SERVICE_DOMAIN`: Keycloak의 외부 hostname으로 사용할 서비스 공통 도메인입니다. compose가 이 값을 Keycloak `KC_HOSTNAME`으로 주입하며, 변수명을 일반화한 이유는 다른 서비스에서도 같은 도메인 값을 함께 재사용할 수 있게 하기 위해서입니다.
 - `SANDOL_DATA_DIR`: 운영용 bind mount 데이터 루트입니다. Ubuntu 서버 기준 `/home/ubuntu/data/sandol` 사용을 권장합니다. `~/data/...` 형태는 Compose에서 경로 확장이 불안정할 수 있어 쓰지 않고, 절대경로를 사용합니다.

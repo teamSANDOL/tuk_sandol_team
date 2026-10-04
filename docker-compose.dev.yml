@@ -18,6 +18,7 @@ services:
       - "8010:80"
     environment:
       SECRET_KEY: ${SECRET_KEY}
+      GATEWAY_TRUSTED_PROXIES:  # 값 없이 이름만: .env 값 전달, 미설정이면 스크립트 기본값
     depends_on:
       meal-service:
         condition: service_healthy
@@ -33,7 +34,7 @@ services:
         condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
-    command: [ "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;" ]
+    command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
     networks:
       - sandol_network
     restart: always
