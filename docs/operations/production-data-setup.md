@@ -32,6 +32,9 @@ mkdir -p /home/ubuntu/data/sandol/kakao-bot
 mkdir -p /home/ubuntu/data/sandol/log-manager/loki
 mkdir -p /home/ubuntu/data/sandol/meal
 mkdir -p /home/ubuntu/data/sandol/static-info
+mkdir -p /home/ubuntu/data/sandol/static-info/data
+mkdir -p /home/ubuntu/data/sandol/meal/archive
+mkdir -p /home/ubuntu/data/sandol/meal/uploads
 ```
 
 한 번에 만들고 싶으면:
@@ -41,8 +44,9 @@ mkdir -p \
   /home/ubuntu/data/sandol/auth-relay \
   /home/ubuntu/data/sandol/kakao-bot \
   /home/ubuntu/data/sandol/log-manager/loki \
-  /home/ubuntu/data/sandol/meal \
-  /home/ubuntu/data/sandol/static-info
+  /home/ubuntu/data/sandol/meal/archive \
+  /home/ubuntu/data/sandol/meal/uploads \
+  /home/ubuntu/data/sandol/static-info/data
 ```
 
 권한을 `ubuntu` 기준으로 정리하려면:
@@ -125,9 +129,12 @@ compose가 `./sandol_classroom_timetable_service/data`를 직접 mount합니다.
 ├── log-manager/
 │   └── loki/
 ├── meal/
+│   ├── archive/
 │   ├── meal_types.json
-│   └── student_cafeteria.json
+│   ├── student_cafeteria.json
+│   └── uploads/
 └── static-info/
+    ├── data/
     └── school_info.json
 ```
 

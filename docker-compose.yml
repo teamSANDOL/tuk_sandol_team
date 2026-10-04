@@ -62,6 +62,8 @@ services:
       - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/student_cafeteria.json:/app/app/config/student_cafeteria.json:ro
       - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/meal_types.json:/app/app/config/meal_types.json:ro
       - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/uploads:/app/data/uploads
+      # 크롤러가 내려받은 엑셀 아카이브(컨테이너 재생성 시 유실 방지)
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/meal/archive:/app/tmp/archive
     networks:
       - sandol_network
     healthcheck:
@@ -174,6 +176,8 @@ services:
       SECRET_KEY: ${SECRET_KEY}
     volumes:
       - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/school_info.json:/app/app/config/school_info.json:ro
+      # 셔틀 시간표 JSON 등 런타임 생성 데이터 (DATA_DIR 기본값 /app/data)
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/data:/app/data
     networks:
       - sandol_network
     healthcheck:
