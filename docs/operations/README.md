@@ -11,6 +11,7 @@
 5. [Hotfix 배포 절차](./hotfix-deploy.md)
 6. [DB 백업 운영 가이드](./db-backup.md)
 7. [Nginx Proxy Manager 전환 런북](./nginx-proxy-manager-cutover.md)
+8. [Apple 로그인 연동 가이드](./apple-login-setup.md)
 
 ## 권장 순서
 
