@@ -440,6 +440,8 @@ services:
       KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
       KC_DB_USERNAME: ${KC_DB_USERNAME}
       KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      # 앱의 Apple identity token → Keycloak 토큰 교환(external → internal)은 legacy token exchange(v1)만 지원
+      KC_FEATURES: token-exchange,admin-fine-grained-authz:v1
       KC_LOG_CATEGORY__ORG_FREEMARKER__LEVEL: DEBUG
     networks:
       sandol_network: {}
@@ -460,6 +462,8 @@ services:
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./sandol_user_service/web/keycloak-theme:/opt/keycloak/themes:ro
+      # Apple 로그인 확장 jar (sandol_user_service PR #6). Keycloak 버전을 올릴 때 jar 호환 버전도 확인
+      - ./sandol_user_service/keycloak/providers:/opt/keycloak/providers:ro
     depends_on:
       db-backup:
         condition: service_completed_successfully
