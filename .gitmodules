@@ -49,3 +49,7 @@
 	path = sandol_meal_web
 	url = git@github.com:teamSANDOL/sandol_meal_web.git
 	branch = main
+[submodule "sandol_studyroom_service"]
+	path = sandol_studyroom_service
+	url = https://github.com/teamSANDOL/sandol_studyroom_service.git
+	branch = main
