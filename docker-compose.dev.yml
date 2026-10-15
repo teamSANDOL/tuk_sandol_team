@@ -170,8 +170,8 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       PYTHONUNBUFFERED: "1"
     volumes:
+      # 소스 bind에 조직도·data/가 포함된다. 조직도 편집(원자 교체)을 위해 파일 단위 :ro bind는 두지 않는다.
       - ./sandol-static-info-service:/app
-      - ./sandol-static-info-service/app/config/school_info.json:/app/app/config/school_info.json:ro
     networks:
       - sandol_network
     healthcheck:

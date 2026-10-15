@@ -173,13 +173,23 @@ services:
   static-info-service:
     container_name: sandol_static_info_service
     image: sandol-sandol-static-info-service:${TAG:-latest}
+    env_file:
+      # 관리자 화면 값(ADMIN_PANEL_ENABLED, KC_CLIENT_ID, KC_CLIENT_SECRET, ADMIN_SESSION_KEY)
+      - ./sandol-static-info-service/.env
     environment:
       PYTHONUNBUFFERED: "1"
       SECRET_KEY: ${SECRET_KEY}
+      DATA_DIR: /app/static-info/data
+      SCHOOL_INFO_PATH: /app/static-info/school_info.json
+      # 토큰 iss는 공개 주소, JWKS·토큰 교환은 내부망으로
+      KC_SERVER_URL: https://${SERVICE_DOMAIN:-sandori.kr}/auth/
+      KC_JWKS_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/certs
+      KC_TOKEN_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/token
+      STATIC_INFO_PUBLIC_BASE_URL: https://${SERVICE_DOMAIN:-sandori.kr}/static-info
     volumes:
-      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/school_info.json:/app/app/config/school_info.json:ro
-      # 셔틀 시간표 JSON 등 런타임 생성 데이터 (DATA_DIR 기본값 /app/data)
-      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info/data:/app/data
+      # 디렉터리 rw: school_info.json(조직도, 관리자 편집 시 원자 교체)과
+      # data/(셔틀 시간표 JSON·PDF, TUK World DB·이미지). 호스트 경로는 기존과 같다.
+      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/static-info:/app/static-info
     networks:
       - sandol_network
     healthcheck:
