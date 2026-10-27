@@ -36,6 +36,8 @@ services:
         condition: service_healthy
       auth-relay:
         condition: service_healthy
+      studyroom-service:
+        condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
     command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
@@ -534,6 +536,75 @@ services:
         max-size: "10m"
         max-file: "7"
 
+  studyroom-service:
+    container_name: sandol_studyroom_service
+    image: sandol-sandol_studyroom_service:${TAG:-latest}
+    env_file:
+      - ./sandol_studyroom_service/.env
+    networks:
+      - sandol_network
+    healthcheck:
+      # 이미지에 curl 이 없어 python 으로 확인한다.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/studyroom/health', timeout=3)"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+    depends_on:
+      studyroom-db:
+        condition: service_healthy
+      studyroom-redis:
+        condition: service_healthy
+
+  studyroom-db:
+    container_name: studyroom-db
+    image: postgres:15
+    restart: always
+    env_file:
+      - ./sandol_studyroom_service/.env
+    environment:
+      TZ: Asia/Seoul
+    volumes:
+      - studyroom_db_data:/var/lib/postgresql/data
+    networks:
+      - sandol_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
+  studyroom-redis:
+    container_name: studyroom-redis
+    image: redis:7.4-alpine
+    # 현황 cache 만 담으므로 디스크에 남기지 않는다.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    restart: always
+    networks:
+      - sandol_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "local"
+      options:
+        max-size: "10m"
+        max-file: "7"
+
 volumes:
   grafana_data: {}
   alloy_data: {}
@@ -542,6 +613,7 @@ volumes:
   notice_notification_db_data: {}
   keycloak_db_data: {}
   keycloak_data: {}
+  studyroom_db_data: {}
 
 networks:
   sandol_network:
