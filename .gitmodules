@@ -51,5 +51,5 @@
 	branch = main
 [submodule "sandol_studyroom_service"]
 	path = sandol_studyroom_service
-	url = https://github.com/teamSANDOL/sandol_studyroom_service.git
+	url = git@github.com:teamSANDOL/sandol_studyroom_service.git
 	branch = main
