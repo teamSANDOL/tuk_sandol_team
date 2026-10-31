@@ -273,6 +273,7 @@ services:
   amqp:
     container_name: amqp
     image: rabbitmq:3-management
+    restart: always
     expose:
       - "15692"
     volumes:
