@@ -218,6 +218,7 @@ services:
       context: ./sandol_notice_notification
       dockerfile: Dockerfile
     restart: always
+    init: true
 
     env_file:
       - ./sandol_notice_notification/.env.dev
