@@ -13,11 +13,11 @@ Keycloak(realm `Sandori`)에 "Apple로 로그인"을 붙이는 운영 절차입�
 
 | 구성 요소 | 위치 |
 |---|---|
-| Apple IdP 확장 | `sandol_user_service/keycloak/providers/apple-identity-provider-1.16.0.jar` (klausbetz/apple-identity-provider-keycloak, Apache-2.0, LICENSE 동봉) |
-| 마운트·기능 플래그 | 루트 `docker-compose.yml`의 `keycloak` 서비스: `/opt/keycloak/providers` 마운트, `KC_FEATURES: token-exchange,admin-fine-grained-authz:v1` |
+| Apple IdP 확장 | `sandol_user_service/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar` (Keycloak 26.8.1용 팀 fork, Apache-2.0, LICENSE 동봉) |
+| 마운트·기능 플래그 | 루트 `docker-compose.yml`의 `keycloak` 서비스: 위 JAR을 `/opt/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar`에 읽기 전용으로 마운트, `KC_FEATURES: token-exchange,admin-fine-grained-authz:v1` |
 | 로그인 버튼 | `sandol_user_service/web/keycloak-theme/sandori/login/` (`login.ftl`, `sandori-login.css`, `resources/img/apple-logo-white.svg`) |
 
-확장 jar는 Keycloak 버전에 묶입니다. Keycloak 26.3.0~26.4.x는 1.15.0~1.16.0, 26.5.0 이상은 1.17.0 이상을 씁니다. Keycloak을 올릴 때 jar도 같이 바꿉니다.
+Keycloak 26.8.1용 JAR은 [sandol_user_service PR #8](https://github.com/teamSANDOL/sandol_user_service/pull/8)에 포함되어 있습니다. 배포 전에 서브모듈을 상위 저장소에 기록된 커밋으로 갱신하고 위 경로에 JAR이 있는지 확인합니다.
 
 ## 1. Apple Developer 설정
 

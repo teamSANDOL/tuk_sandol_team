@@ -426,7 +426,7 @@ services:
 
   keycloak:
     container_name: keycloak
-    image: quay.io/keycloak/keycloak:26.3.2
+    image: quay.io/keycloak/keycloak:26.8.1
     command: ["start"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
@@ -467,7 +467,12 @@ services:
       - keycloak_data:/opt/keycloak/data
       - ./sandol_user_service/web/keycloak-theme:/opt/keycloak/themes:ro
       # Apple 로그인 확장 jar (sandol_user_service PR #6). Keycloak 버전을 올릴 때 jar 호환 버전도 확인
-      - ./sandol_user_service/keycloak/providers:/opt/keycloak/providers:ro
+      - type: bind
+        source: ./sandol_user_service/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar
+        target: /opt/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       db-backup:
         condition: service_completed_successfully
