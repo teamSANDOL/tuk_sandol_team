@@ -168,9 +168,26 @@ services:
     container_name: sandol_static_info_service
     image: sandol-sandol-static-info-service:${TAG:-latest}
     build: ./sandol-static-info-service
+    # KC_CLIENT_ID·KC_CLIENT_SECRET은 이 파일에 둔다. environment 값이 env_file보다 우선한다
+    env_file:
+      - path: ./sandol-static-info-service/.env
+        required: false
     environment:
       SECRET_KEY: ${SECRET_KEY}
       PYTHONUNBUFFERED: "1"
+      # 공휴일 API(한국천문연구원 특일 정보) 서비스키. 비어 있으면 정적 공휴일 파일만 사용
+      HOLIDAY_API_KEY: ${HOLIDAY_API_KEY:-}
+      # Keycloak 공개 주소(토큰 issuer 검증용)와 컨테이너→keycloak 직결 내부 주소(JWKS·토큰 교환용)
+      KC_SERVER_URL: https://${SERVICE_DOMAIN:-sandori.kr}/auth/
+      KC_JWKS_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/certs
+      KC_TOKEN_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/token
+      PUBLIC_BASE_URL: https://${SERVICE_DOMAIN:-sandori.kr}
+      STATIC_INFO_PUBLIC_BASE_URL: https://${SERVICE_DOMAIN:-sandori.kr}/static-info
+      # 관리자 화면 활성화. 세션 키가 비어 있으면 fail-closed로 관리자 화면이 마운트되지 않음
+      ADMIN_PANEL_ENABLED: "True"
+      ADMIN_SESSION_KEY: ${STATIC_INFO_ADMIN_SESSION_KEY:-}
+      # 비면 azp/aud 검사 안 함. 값을 넣으면 static-info 관리자 클라이언트 ID를 반드시 포함해야 함(빠지면 관리자 로그인 401)
+      KC_ALLOWED_CLIENTS: ${STATIC_INFO_KC_ALLOWED_CLIENTS:-}
     volumes:
       - ./sandol-static-info-service:/app
       - ./sandol-static-info-service/app/config/school_info.json:/app/app/config/school_info.json:ro
@@ -450,7 +467,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && head -n 1 <&3 | grep -q 'HTTP/1.1 200'"
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && head -n 1 <&3 | grep -q 'HTTP/1.1 200'"
         ]
       interval: 1m30s
       timeout: 10s
