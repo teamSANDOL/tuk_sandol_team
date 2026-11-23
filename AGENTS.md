@@ -287,6 +287,7 @@ STATE_TTL_SECONDS=600
 3. **타입 안전성**: `type: ignore`, `as any` 등 타입 무시 금지
 4. **서명 검증 필수**: Relay 콜백은 HMAC + timestamp + nonce 검증 (게이트웨이가 아니라 챗봇 서버의 애플리케이션 레이어에서 수행된다)
 5. **Offline Token 관리**: 20~25일 내 최소 1회 refresh 필요 (Idle Timeout)
+6. **학교 서버 요청 주의**: 학교 공식 페이지가 브라우저에서 부르는 공개 요청만 쓴다. 401·403·429를 받은 요청은 다시 부르지 않는다. 상태 확인은 엔드포인트마다 1회, 재시도·우회 금지. 목록과 제약은 [docs/operations/school-server-access.md](docs/operations/school-server-access.md)
 
 ---
 
