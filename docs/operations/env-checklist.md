@@ -6,6 +6,7 @@
 - [ ] `GATEWAY_TRUSTED_PROXIES`
 - [ ] `COMPOSE_PROJECT_NAME`
 - [ ] `SERVICE_DOMAIN`
+- [ ] `KC_INTERNAL_URL` (선택)
 - [ ] `SANDOL_DATA_DIR`
 - [ ] `KAKAO_TOKEN_ENCRYPTION_KEY`
 - [ ] `KC_DB_USERNAME`
@@ -21,6 +22,7 @@
 - `GATEWAY_TRUSTED_PROXIES`: 게이트웨이 앞단 프록시 IP 목록(쉼표 구분)입니다. 기본값 `172.30.1.101,172.30.1.110,172.30.1.31`(NPM, cloudflared CT110, CT131). 빈 값이나 형식 오류는 게이트웨이 기동이 실패하며, 수정 후 `docker compose restart gateway`로 반영합니다.
 - `COMPOSE_PROJECT_NAME`: 기본값 `sandol_team`을 그대로 써도 됩니다.
 - `SERVICE_DOMAIN`: Keycloak의 외부 hostname으로 사용할 서비스 공통 도메인입니다. compose가 이 값을 Keycloak `KC_HOSTNAME`으로 주입하며, 변수명을 일반화한 이유는 다른 서비스에서도 같은 도메인 값을 함께 재사용할 수 있게 하기 위해서입니다.
+- `KC_INTERNAL_URL`: 서비스→Keycloak 내부 호출 기준 주소(`/auth` 포함, 끝 슬래시 없음)입니다. 비우면 `http://keycloak:8080/auth`이며, static-info의 JWKS·토큰 URL과 meal의 `KC_LOCAL_URL`에 주입됩니다. Keycloak을 다른 서버로 분리할 때 이 값만 새 서버 사설 주소로 바꿉니다.
 - `SANDOL_DATA_DIR`: 운영용 bind mount 데이터 루트입니다. Ubuntu 서버 기준 `/home/ubuntu/data/sandol` 사용을 권장합니다. `~/data/...` 형태는 Compose에서 경로 확장이 불안정할 수 있어 쓰지 않고, 절대경로를 사용합니다.
 - `KAKAO_TOKEN_ENCRYPTION_KEY`: 생성 스크립트 출력값을 그대로 복붙합니다.
 - `KC_DB_USERNAME`: 보통 `keycloak` 그대로 사용합니다.
@@ -126,7 +128,7 @@
 - `DATABASE_URL`: 가장 쉬운 방식은 `.env.example` 값을 복붙한 뒤 비밀번호만 교체하는 것입니다.
 - `POSTGRES_*`: `DATABASE_URL`을 쓰더라도 DB 컨테이너와 healthcheck 때문에 같이 맞춰두는 편이 안전합니다.
 - `KC_SERVER_URL`: 외부에서 접근하는 Keycloak 주소.
-- `KC_LOCAL_URL`: compose 내부 통신용 주소. 기본값 `http://keycloak:8080/auth/` 유지 권장.
+- `KC_LOCAL_URL`: compose가 루트 `KC_INTERNAL_URL` 기준으로 주입하므로(environment가 env_file보다 우선) 서비스 `.env` 값은 무시됩니다.
 - `KC_CLIENT_ID`: 보통 `sandol-meal-service`.
 - `KC_CLIENT_SECRET`: Keycloak admin console에서 해당 client secret 복사.
 - `SERVICE_ACCOUNT_SUB`: Keycloak의 `service-account-sandol-meal-service` 사용자 sub를 복사합니다.
