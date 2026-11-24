@@ -52,6 +52,8 @@ services:
     env_file:
       - ./sandol_meal_service/.env
     environment:
+      # Keycloak 내부 호출 주소(끝 슬래시 필수). env_file의 KC_LOCAL_URL보다 우선한다
+      KC_LOCAL_URL: ${KC_INTERNAL_URL:-http://keycloak:8080/auth}/
       SECRET_KEY: ${SECRET_KEY}
       PYTHONUNBUFFERED: "1"
       MEAL_UPLOAD_ARCHIVE_DIR: /app/data/uploads
@@ -173,8 +175,8 @@ services:
       HOLIDAY_API_KEY: ${HOLIDAY_API_KEY:-}
       # Keycloak 공개 주소(토큰 issuer 검증용)와 컨테이너→keycloak 직결 내부 주소(JWKS·토큰 교환용)
       KC_SERVER_URL: https://${SERVICE_DOMAIN:-sandori.kr}/auth/
-      KC_JWKS_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/certs
-      KC_TOKEN_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/token
+      KC_JWKS_URL: ${KC_INTERNAL_URL:-http://keycloak:8080/auth}/realms/Sandori/protocol/openid-connect/certs
+      KC_TOKEN_URL: ${KC_INTERNAL_URL:-http://keycloak:8080/auth}/realms/Sandori/protocol/openid-connect/token
       PUBLIC_BASE_URL: https://${SERVICE_DOMAIN:-sandori.kr}
       STATIC_INFO_PUBLIC_BASE_URL: https://${SERVICE_DOMAIN:-sandori.kr}/static-info
       # 관리자 화면 활성화. 세션 키가 비어 있으면 fail-closed로 관리자 화면이 마운트되지 않음

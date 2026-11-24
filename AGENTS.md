@@ -248,6 +248,7 @@ alembic/            # DB 마이그레이션
 ```env
 SECRET_KEY=***                          # Gateway 서명용
 SERVICE_DOMAIN=sandori.kr               # 공통 서비스 도메인(각 서비스 공개 URL 기준)
+KC_INTERNAL_URL=http://keycloak:8080/auth  # 서비스→Keycloak 내부 호출 주소(/auth 포함). Keycloak 분리 시 이 값만 변경
 ```
 
 > Keycloak 공개 주소는 sandol-auth 레포의 `KC_PUBLIC_URL`(기본 `https://sandori.kr/auth`)로 따로 정한다. 이 레포의 `SERVICE_DOMAIN`과 같은 도메인을 가리키도록 맞추고, 이 값이 issuer를 결정하므로 바꾸면 기존 토큰이 무효화되어 전원 재로그인이 필요하다.
