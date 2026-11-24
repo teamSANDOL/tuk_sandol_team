@@ -180,7 +180,7 @@ docker compose config | grep '^    image:'
 ## depends_on / healthcheck 순서 확인
 
 - [ ] gateway가 핵심 서비스 healthcheck 이후 올라오는지 확인
-- [ ] meal-service가 meal-service-db 이후 올라오는지 확인(keycloak은 다른 프로젝트라 `depends_on` 대상이 아님. Keycloak이 먼저 떠 있어야 함)
+- [ ] meal-service가 meal-service-db 이후 올라오는지 확인(keycloak은 다른 프로젝트라 `depends_on` 대상이 아님. **sandol-auth가 healthy인 뒤에 루트를 `up`해야 함**: meal-service가 기동 시 Keycloak 서비스 계정 확인에 실패하면 종료하고, gateway가 meal-service healthy를 기다려 루트 `up`이 중단됨)
 - [ ] notice-notification이 amqp / notice DB 이후 올라오는지 확인
 - [ ] healthcheck endpoint/path가 현재 코드와 맞는지 확인
 
@@ -232,7 +232,7 @@ docker compose config | grep '^    image:'
 <details>
 <summary>설정 방법 보기</summary>
 
-- 기동 순서는 이 레포(네트워크 생성) → sandol-auth(`docker compose -f docker-compose.yml -f docker-compose.colocated.yml up -d`)입니다.
+- 기동 순서: 이 레포가 네트워크를 만든 뒤 sandol-auth를 올리고(`.env`의 `COMPOSE_FILE`로 colocated 적용, 또는 `-f docker-compose.yml -f docker-compose.colocated.yml`), healthy를 확인한 다음 이 레포를 `up`합니다.
 - sandol-auth의 비밀값은 그 레포의 `.env`에서 관리합니다. 이 레포의 `.env`에는 Keycloak 관련 키가 없습니다.
 
 </details>
