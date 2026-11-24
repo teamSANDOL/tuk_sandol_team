@@ -23,7 +23,14 @@
 
 - [ ] `KEYCLOAK_EDGE_SUBNET`(기본 `172.31.255.248/29`)이 호스트 네트워크와 겹치지 않음. `keycloak_edge` 네트워크는 루트 compose가 만들고, sandol-auth의 `KC_PROXY_TRUSTED_ADDRESSES`가 같은 변수를 쓰므로 두 `.env`에서 값을 같게 유지함
 - [ ] `keycloak_edge`에는 gateway와 keycloak만 붙이고, 다른 컨테이너를 붙이면 그 컨테이너가 XFF를 위조할 수 있음
-- [ ] 게이트웨이는 `keycloak-edge` 별칭(`keycloak.conf`의 `$up`)으로 접속해 Keycloak이 전용 대역 IP를 보게 함
+- [ ] 게이트웨이는 `keycloak-edge` 별칭(`KEYCLOAK_UPSTREAM` 기본값)으로 접속해 Keycloak이 전용 대역 IP를 보게 함
+
+## 게이트웨이 업스트림과 relay 차단 (TASK-186)
+
+- [ ] 루트 `.env`의 `KEYCLOAK_UPSTREAM`·`AUTH_RELAY_UPSTREAM`은 같은 서버면 비워 둠(기본 `keycloak-edge:8080`, `auth-relay:8000`). 별도 서버면 `<사설IP>:8080`, `<사설IP>:8000`이며 호스트명 대신 IP도 동작함. 바꾼 뒤 gateway 컨테이너 재시작
+- [ ] 공개 경로 `POST /relay/issue_login_link`가 404임(인증 없는 서버 간 API라 gateway에서 차단). `/relay/health`·로그인 콜백 등 나머지 `/relay/*`는 그대로 프록시됨
+- [ ] 분리 후 kakao-bot의 `AUTH_RELAY_URL`을 `http://<인증 서버 사설IP>:8000/relay`로 바꿈(relay 포트 직접 호출, gateway 경유 아님)
+- [ ] 인증 서버 방화벽에서 8080·8000은 메인 서버 IP만 허용, 9000(관리 포트)은 열지 않음. 상세는 sandol-auth `docs/migration.md`
 
 ## 관리자 계정
 

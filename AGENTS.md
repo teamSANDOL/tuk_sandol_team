@@ -22,6 +22,8 @@ MSA(Microservice Architecture) 기반으로 구성되어 Docker Compose로 통�
 | `sandol_user_service` | Keycloak | 사용자 인증/권한 중앙 관리 |
 
 > **인증 스택 분리 (TASK-185)**: Keycloak·keycloak-db·auth-relay·Keycloak DB 백업은 별도 레포 [`teamSANDOL/sandol-auth`](https://github.com/teamSANDOL/sandol-auth)의 독립 compose 프로젝트(`sandol-auth`)로 옮겼다. 이 레포의 compose에는 더 이상 없다. 같은 서버에서는 `docker-compose.colocated.yml`로 `sandol_network`에 붙여 이름(`keycloak`, `auth-relay`)으로 접근한다. 루트의 `sandol_user_service`·`sandol-auth-relay` 서브모듈은 전환 기간 동안만 남긴다.
+>
+> **게이트웨이 업스트림 (TASK-186)**: gateway는 `KEYCLOAK_UPSTREAM`(기본 `keycloak-edge:8080`), `AUTH_RELAY_UPSTREAM`(기본 `auth-relay:8000`)으로 프록시한다. 인증 스택을 다른 서버로 옮기면 루트 `.env`의 두 값만 새 서버 `<사설IP>:8080`, `<사설IP>:8000`으로 바꾸고 gateway를 재시작한다. `POST /relay/issue_login_link`는 인증이 없는 서버 간 API라 gateway 공개 경로에서 404로 막혀 있다. kakao-bot은 `AUTH_RELAY_URL`로 relay를 직접 호출한다(분리 후 `http://<사설IP>:8000/relay`).
 | `sandol-static-info-service` | FastAPI | 정적 정보 API |
 
 ---
@@ -259,7 +261,7 @@ KC_SERVER_URL=https://sandol.sio2.kr/auth/
 KC_CLIENT_ID=kakao-bot
 KC_CLIENT_SECRET=***
 TOKEN_ENCRYPTION_KEY=***                # Fernet 암호화 키
-AUTH_RELAY_URL=http://auth-relay:8000/relay
+AUTH_RELAY_URL=http://auth-relay:8000/relay   # 분리 후: http://<인증 서버 사설IP>:8000/relay (gateway 경유 금지, 공개 경로는 차단됨)
 MEAL_SERVICE_URL=http://meal-service:80/meal
 ```
 
