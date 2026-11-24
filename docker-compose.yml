@@ -34,8 +34,6 @@ services:
         condition: service_healthy
       notice-notification:
         condition: service_healthy
-      auth-relay:
-        condition: service_healthy
       studyroom-service:
         condition: service_healthy
     volumes:
@@ -85,8 +83,6 @@ services:
     depends_on:
       db-backup:
         condition: service_completed_successfully
-      keycloak:
-        condition: service_healthy
       meal-service-db:
         condition: service_healthy
 
@@ -116,8 +112,6 @@ services:
         max-size: "10m"
         max-file: "7"
     depends_on:
-      keycloak:
-        condition: service_healthy
       meal-service:
         condition: service_healthy
 
@@ -358,14 +352,6 @@ services:
     depends_on:
       - meal-service-db
 
-  postgres-exporter-keycloak:
-    <<: *postgres-exporter
-    container_name: postgres-exporter-keycloak
-    environment:
-      DATA_SOURCE_NAME: "postgresql://sandol_exporter:${PG_EXPORTER_PASSWORD}@keycloak-db:5432/keycloak?sslmode=disable"
-    depends_on:
-      - keycloak-db
-
   postgres-exporter-notice:
     <<: *postgres-exporter
     container_name: postgres-exporter-notice
@@ -417,118 +403,9 @@ services:
         max-size: "10m"
         max-file: "7"
 
-  keycloak-db:
-    container_name: keycloak-db
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: ${KC_DB_USERNAME}
-      POSTGRES_PASSWORD: ${KC_DB_PASSWORD}
-    volumes:
-      - keycloak_db_data:/var/lib/postgresql/data
-    networks:
-      - sandol_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d keycloak -U ${KC_DB_USERNAME}"]
-      interval: 30s
-      timeout: 60s
-      retries: 5
-      start_period: 20s
-    restart: always
-    logging:
-      driver: "local"
-      options:
-        max-size: "10m"
-        max-file: "7"
-
-  keycloak:
-    container_name: keycloak
-    image: quay.io/keycloak/keycloak:26.8.1
-    command: ["start"]
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_HOSTNAME: ${SERVICE_DOMAIN:-sandori.kr}
-      KC_HTTP_ENABLED: "true"
-      KC_HTTP_PORT: "8080"
-      KC_HTTP_RELATIVE_PATH: /auth
-      KC_PROXY_HEADERS: xforwarded
-      # keycloak_edge 서브넷과 같은 KEYCLOAK_EDGE_SUBNET 변수를 사용
-      KC_PROXY_TRUSTED_ADDRESSES: ${KEYCLOAK_EDGE_SUBNET:-172.31.255.248/29}
-      KC_HOSTNAME_STRICT: "true"
-      KC_HEALTH_ENABLED: "true"
-      KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
-      KC_DB_USERNAME: ${KC_DB_USERNAME}
-      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
-      # 앱의 Apple identity token → Keycloak 토큰 교환(external → internal)은 legacy token exchange(v1)만 지원
-      KC_FEATURES: token-exchange,admin-fine-grained-authz:v1
-      KC_LOG_CATEGORY__ORG_FREEMARKER__LEVEL: DEBUG
-    networks:
-      sandol_network: {}
-      keycloak_edge:
-        aliases:
-          - keycloak-edge
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && head -n 1 <&3 | grep -q 'HTTP/1.1 200'"
-        ]
-      interval: 1m30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: always
-    volumes:
-      - keycloak_data:/opt/keycloak/data
-      - ./sandol_user_service/web/keycloak-theme:/opt/keycloak/themes:ro
-      # Apple 로그인 확장 jar (sandol_user_service PR #6). Keycloak 버전을 올릴 때 jar 호환 버전도 확인
-      - type: bind
-        source: ./sandol_user_service/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar
-        target: /opt/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar
-        read_only: true
-        bind:
-          create_host_path: false
-    depends_on:
-      db-backup:
-        condition: service_completed_successfully
-      keycloak-db:
-        condition: service_healthy
-    logging:
-      driver: "local"
-      options:
-        max-size: "10m"
-        max-file: "7"
-
-  auth-relay:
-    container_name: auth-relay
-    image: sandol-auth-relay:${TAG:-latest}
-    env_file:
-      - ./sandol-auth-relay/.env
-    volumes:
-      - ${SANDOL_DATA_DIR:-/home/ubuntu/data/sandol}/auth-relay/clients.json:/app/app/config/clients.json:ro
-    networks:
-      - sandol_network
-    restart: on-failure
-    logging:
-      driver: "local"
-      options:
-        max-size: "10m"
-        max-file: "7"
-    depends_on:
-      keycloak:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/relay/health || exit 1"]
-      interval: 60s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
   # 마이그레이션 전 DB 스냅샷. one-shot으로 매 up마다 재실행되며, 실패하면
   # 마이그레이션을 돌리는 서비스들이 기동되지 않는다(fail-closed).
-  # 이미지는 pull 없이 재사용하려고 keycloak-db와 동일한 postgres:16-alpine을 쓴다.
+  # 이미지는 pull 없이 재사용하려고 meal-service-db와 같은 계열의 postgres:16-alpine을 쓴다.
   # pg_dump 16은 postgres 15 서버도 덤프한다.
   db-backup:
     container_name: sandol-db-backup
@@ -537,8 +414,6 @@ services:
     entrypoint: ["sh", "/db-backup.sh"]
     environment:
       BACKUP_KEEP: ${BACKUP_KEEP:-10}
-      KC_DB_USERNAME: ${KC_DB_USERNAME}
-      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
     volumes:
       - ./scripts/db-backup.sh:/db-backup.sh:ro
       - ./sandol_meal_service/.env:/env/meal.env:ro
@@ -551,8 +426,6 @@ services:
       meal-service-db:
         condition: service_healthy
       notice-notification-db:
-        condition: service_healthy
-      keycloak-db:
         condition: service_healthy
     logging:
       driver: "local"
@@ -635,8 +508,6 @@ volumes:
   prometheus_data: {}
   meal_service_db_data: {}
   notice_notification_db_data: {}
-  keycloak_db_data: {}
-  keycloak_data: {}
   studyroom_db_data: {}
 
 networks:

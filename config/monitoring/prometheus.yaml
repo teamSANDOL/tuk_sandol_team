@@ -23,6 +23,8 @@ scrape_configs:
       - targets: ["postgres-exporter-meal:9187"]
         labels:
           db: "meal_service"
+      # keycloak exporter는 sandol-auth 프로젝트에서 뜬다. 같은 서버에서는 colocated 오버라이드로 sandol_network에 붙어 이름이 풀린다.
+      # Keycloak을 다른 서버로 옮기면 이 target을 그 서버 주소로 바꾼다.
       - targets: ["postgres-exporter-keycloak:9187"]
         labels:
           db: "keycloak"

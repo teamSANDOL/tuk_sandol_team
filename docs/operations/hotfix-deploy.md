@@ -13,7 +13,7 @@
 
 ## Keycloak 테마 hotfix
 
-`sandol_user_service/web/keycloak-theme` 변경만 반영하는 경우입니다.
+`sandol_user_service/web/keycloak-theme` 변경만 반영하는 경우입니다. Keycloak·auth-relay는 별도 레포 [sandol-auth](https://github.com/teamSANDOL/sandol-auth)에서 관리하므로 **sandol-auth 디렉터리**에서 실행합니다(같은 서버 전환 기간에는 `docker compose -f docker-compose.yml -f docker-compose.colocated.yml ...`).
 
 ```bash
 git pull
@@ -21,7 +21,7 @@ git submodule update --init --recursive sandol_user_service
 docker compose up -d --force-recreate keycloak
 ```
 
-Keycloak 테마는 `docker-compose.yml`에서 다음 경로로 bind mount됩니다.
+Keycloak 테마는 sandol-auth의 `docker-compose.yml`에서 다음 경로로 bind mount됩니다.
 
 ```text
 ./sandol_user_service/web/keycloak-theme:/opt/keycloak/themes:ro
@@ -60,7 +60,7 @@ docker compose up -d --build --force-recreate kakao-bot-service
 
 ## 여러 서비스 hotfix
 
-여러 submodule과 compose 서비스를 한 번에 반영할 수 있습니다.
+여러 submodule과 compose 서비스를 한 번에 반영할 수 있습니다. 아래 예시는 sandol-auth 디렉터리 기준입니다(`keycloak`, `auth-relay`는 이 레포 compose에 없음).
 
 ```bash
 git pull
@@ -96,7 +96,7 @@ docker compose logs --tail=100 keycloak
 
 ```bash
 docker compose logs --tail=100 kakao-bot-service
-docker compose logs --tail=100 auth-relay
+docker compose logs --tail=100 auth-relay   # sandol-auth 디렉터리에서
 ```
 
 ## 주의사항

@@ -4,14 +4,14 @@
 
 - [ ] 운영은 `docker-compose.yml` 기준으로 사용할지 결정함
 - [ ] 개발은 `docker-compose.dev.yml` 기준으로 사용할지 결정함
-- [ ] auth만 따로 볼 때 `docker-compose.auth.yml`을 쓸지 결정함
+- [ ] Keycloak/auth-relay는 별도 레포 `sandol-auth`(이 레포의 compose에는 없음)에서 띄운다는 점을 인지함
 
 <details>
 <summary>설정 방법 보기</summary>
 
 - 운영 통합 실행은 보통 루트 `docker-compose.yml`을 기준으로 봅니다.
 - 개발 중 코드 마운트와 build가 필요하면 `docker-compose.dev.yml`을 씁니다.
-- Keycloak/auth-relay만 따로 띄워 확인할 때만 `docker-compose.auth.yml`을 봅니다.
+- Keycloak/auth-relay는 [sandol-auth](https://github.com/teamSANDOL/sandol-auth) 레포의 compose로 띄웁니다. 같은 서버에서는 `docker-compose.colocated.yml`을 겹쳐 `sandol_network`에 붙입니다. 전환 절차는 그 레포의 `docs/migration.md`를 봅니다.
 - 이 문서는 compose 파일 선택과 구조 점검용입니다. env 값 채우기는 `./env-checklist.md`에서 관리합니다.
 - 운영 데이터 디렉터리 생성 및 초기 파일 이관은 `./production-data-setup.md`를 함께 봅니다.
 
@@ -103,7 +103,7 @@ docker compose config | grep '^    image:'
 
 - [ ] gateway 포함 여부 확인
 - [ ] meal-service / kakao-bot / static-info / classroom / notice 포함 여부 확인
-- [ ] keycloak / keycloak-db / auth-relay 포함 여부 확인
+- [ ] keycloak / keycloak-db / auth-relay는 이 compose에 없고 sandol-auth 프로젝트가 떠 있는지 확인
 - [ ] loki / prometheus / alloy / grafana 포함 여부 확인
 
 <details>
@@ -111,22 +111,21 @@ docker compose config | grep '^    image:'
 
 - 운영에 꼭 필요한 서비스만 올릴지, 모니터링 스택까지 같이 올릴지 먼저 정합니다.
 - `docker-compose.yml`은 모니터링까지 같이 포함합니다.
-- auth만 따로 점검할 때는 `docker-compose.auth.yml`이 더 가볍습니다.
+- auth(Keycloak·auth-relay)는 sandol-auth 레포 compose를 따로 점검합니다.
 
 </details>
 
 ## 루트 공통 도메인 env 확인
 
 - [ ] 루트 `.env`에 `SERVICE_DOMAIN`이 설정되어 있음
-- [ ] Keycloak 서비스의 `KC_HOSTNAME`이 `${SERVICE_DOMAIN}`으로 연결되어 있음을 인지함
+- [ ] Keycloak의 `KC_HOSTNAME`은 sandol-auth의 `KC_PUBLIC_URL`로 정해지며 `SERVICE_DOMAIN`과 같은 도메인이어야 함을 인지함
 - [ ] 같은 도메인 값을 다른 서비스에서도 재사용할 수 있도록 공통 이름으로 관리 중임을 인지함
 
 <details>
 <summary>설정 방법 보기</summary>
 
-- 현재 compose 파일들은 Keycloak 컨테이너의 `KC_HOSTNAME`에 루트 `.env`의 `SERVICE_DOMAIN`을 주입합니다.
-- 변수명을 `KC_HOSTNAME`으로 두지 않은 이유는 Keycloak 전용 설정으로 묶지 않고, 다른 서비스들도 같은 서비스 도메인을 재사용할 수 있게 하기 위해서입니다.
-- 따라서 도메인 변경 시 Keycloak만 따로 보지 말고, gateway 경로 및 각 서비스의 외부 URL도 함께 점검하는 편이 안전합니다.
+- Keycloak 컨테이너의 `KC_HOSTNAME`은 sandol-auth 레포의 `KC_PUBLIC_URL`(기본 `https://sandori.kr/auth`)로 정해지고, 이 레포의 `SERVICE_DOMAIN`은 각 서비스의 공개 URL에 쓰입니다.
+- 따라서 도메인 변경 시 두 값을 함께 바꾸고, gateway 경로 및 gateway 경로 및 각 서비스의 외부 URL도 함께 점검하는 편이 안전합니다.
 
 </details>
 
@@ -134,7 +133,6 @@ docker compose config | grep '^    image:'
 
 - [ ] gateway 외부 포트 확인
 - [ ] grafana / prometheus / loki / alloy 노출 포트 확인
-- [ ] auth 전용 compose의 `auth-relay` 포트 노출 확인
 - [ ] 외부에서 직접 열 필요 없는 서비스가 노출되지 않는지 확인
 
 <details>
@@ -142,7 +140,6 @@ docker compose config | grep '^    image:'
 
 - 운영에선 보통 gateway만 외부 reverse proxy 뒤에 둡니다.
 - monitoring 포트는 외부 공개 여부를 따로 결정해야 합니다.
-- `docker-compose.auth.yml`은 `auth-relay`를 `8020:8000`으로 열고 있으니 용도를 인지하고 사용합니다.
 
 </details>
 
@@ -152,7 +149,7 @@ docker compose config | grep '^    image:'
 - [ ] kakao-bot SQLite DB bind mount 확인
 - [ ] meal-service 파일 마운트 점검 (`student_cafeteria.json`, `meal_types.json`)
 - [ ] notice DB volume 확인
-- [ ] keycloak DB / keycloak data volume 확인
+- [ ] keycloak DB / keycloak data volume은 이 compose에서 정의하지 않음(sandol-auth가 기존 볼륨 `<COMPOSE_PROJECT_NAME>_keycloak_*`에 붙음). 이 compose에서 볼륨 정의를 지워도 실제 볼륨은 삭제되지 않음
 - [ ] grafana / alloy / loki data volume 확인
 - [ ] dev compose에서 bind mount가 의도대로 걸리는지 확인
 - [ ] auth-relay `clients.json`와 static-info `school_info.json` bind mount 여부 확인
@@ -183,9 +180,8 @@ docker compose config | grep '^    image:'
 ## depends_on / healthcheck 순서 확인
 
 - [ ] gateway가 핵심 서비스 healthcheck 이후 올라오는지 확인
-- [ ] meal-service가 keycloak / meal-service-db 이후 올라오는지 확인
+- [ ] meal-service가 meal-service-db 이후 올라오는지 확인(keycloak은 다른 프로젝트라 `depends_on` 대상이 아님. Keycloak이 먼저 떠 있어야 함)
 - [ ] notice-notification이 amqp / notice DB 이후 올라오는지 확인
-- [ ] keycloak이 keycloak-db 이후 올라오는지 확인
 - [ ] healthcheck endpoint/path가 현재 코드와 맞는지 확인
 
 <details>
@@ -201,7 +197,7 @@ docker compose config | grep '^    image:'
 
 - [ ] 모든 서비스가 `sandol_network`에 붙는지 확인
 - [ ] 내부 URL이 compose 서비스명과 일치하는지 확인
-- [ ] `keycloak`, `auth-relay`, `meal-service-db`, `notice-notification-db`, `amqp` 서비스명이 실제 코드 기본값과 맞는지 확인
+- [ ] `keycloak`, `auth-relay`(sandol-auth가 `sandol_network`에 붙여 제공), `meal-service-db`, `notice-notification-db`, `amqp` 서비스명이 실제 코드 기본값과 맞는지 확인
 
 <details>
 <summary>설정 방법 보기</summary>
@@ -227,18 +223,17 @@ docker compose config | grep '^    image:'
 
 </details>
 
-## auth 전용 compose 주의사항
+## sandol-auth(인증 스택) 연동 주의사항
 
-- [ ] `docker-compose.auth.yml`의 하드코딩된 admin/keycloak 비밀번호 인지함
-- [ ] 운영에서는 auth 전용 compose를 그대로 쓰지 않을지 판단함
-- [ ] auth 전용 compose가 dev/테스트용인지 명확히 구분함
+- [ ] sandol-auth 프로젝트가 같은 서버에서 colocated 오버라이드로 떠 있는지 확인
+- [ ] `sandol_network`, `sandol_keycloak_edge`는 이 compose가 만든 네트워크이므로 sandol-auth보다 먼저 기동됨을 인지함
+- [ ] 이 compose를 `down`하면 sandol-auth의 컨테이너가 붙은 네트워크가 지워지지 않고 실패할 수 있음을 인지함
 
 <details>
 <summary>설정 방법 보기</summary>
 
-- `docker-compose.auth.yml`에는 `admin/admin`, `keycloak/keycloak` 같은 값이 파일에 직접 들어 있습니다.
-- 운영용이라면 이 파일을 그대로 쓰지 말고, 최소한 root env 기반 compose로 정리해야 합니다.
-- 이 체크는 secret 생성이 아니라 compose 파일 자체의 안전성 점검입니다.
+- 기동 순서는 이 레포(네트워크 생성) → sandol-auth(`docker compose -f docker-compose.yml -f docker-compose.colocated.yml up -d`)입니다.
+- sandol-auth의 비밀값은 그 레포의 `.env`에서 관리합니다. 이 레포의 `.env`에는 Keycloak 관련 키가 없습니다.
 
 </details>
 

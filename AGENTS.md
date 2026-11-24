@@ -20,6 +20,8 @@ MSA(Microservice Architecture) 기반으로 구성되어 Docker Compose로 통�
 | `sandol_notice_notification` | NestJS + PostgreSQL + RabbitMQ | 공지사항 알림 서버 |
 | `sandol_classroom_timetable_service` | Express.js | 강의실 시간표 API |
 | `sandol_user_service` | Keycloak | 사용자 인증/권한 중앙 관리 |
+
+> **인증 스택 분리 (TASK-185)**: Keycloak·keycloak-db·auth-relay·Keycloak DB 백업은 별도 레포 [`teamSANDOL/sandol-auth`](https://github.com/teamSANDOL/sandol-auth)의 독립 compose 프로젝트(`sandol-auth`)로 옮겼다. 이 레포의 compose에는 더 이상 없다. 같은 서버에서는 `docker-compose.colocated.yml`로 `sandol_network`에 붙여 이름(`keycloak`, `auth-relay`)으로 접근한다. 루트의 `sandol_user_service`·`sandol-auth-relay` 서브모듈은 전환 기간 동안만 남긴다.
 | `sandol-static-info-service` | FastAPI | 정적 정보 API |
 
 ---
@@ -245,10 +247,10 @@ alembic/            # DB 마이그레이션
 ### 공통
 ```env
 SECRET_KEY=***                          # Gateway 서명용
-SERVICE_DOMAIN=sandori.kr               # Keycloak KC_HOSTNAME 및 공통 서비스 도메인
+SERVICE_DOMAIN=sandori.kr               # 공통 서비스 도메인(각 서비스 공개 URL 기준)
 ```
 
-> `SERVICE_DOMAIN`은 docker compose에서 Keycloak의 `KC_HOSTNAME`으로 주입됩니다. 이름을 `KC_HOSTNAME`으로 고정하지 않은 이유는 Keycloak 전용 변수로 제한하지 않고, 동일한 서비스 도메인 값을 다른 서비스 설정에서도 재사용하기 위해서입니다.
+> Keycloak 공개 주소는 sandol-auth 레포의 `KC_PUBLIC_URL`(기본 `https://sandori.kr/auth`)로 따로 정한다. 이 레포의 `SERVICE_DOMAIN`과 같은 도메인을 가리키도록 맞춘다.
 
 ### kakao-bot-service
 ```env

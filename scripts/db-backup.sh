@@ -53,8 +53,6 @@ resolve_pg_conn /env/meal.env
 dump_pg meal_service meal-service-db "$RDB" "$RUSER" "$RPASS"
 resolve_pg_conn /env/notice.env
 dump_pg notice notice-notification-db "$RDB" "$RUSER" "$RPASS"
-dump_pg keycloak keycloak-db \
-    keycloak "${KC_DB_USERNAME:?KC_DB_USERNAME 필요}" "${KC_DB_PASSWORD:?KC_DB_PASSWORD 필요}"
 
 # kakao-bot은 SQLite. sqlite3의 온라인 백업 API를 쓰면 기동 중에도 일관된 스냅샷이 나온다.
 SQLITE_SRC="${KAKAO_SQLITE_PATH:-/sqlite/kakao_bot_service.db}"
