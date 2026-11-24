@@ -161,7 +161,7 @@
 - [ ] auth-relay `RELAY_TO_CHATBOT_HMAC_SECRET` == kakao-bot `RELAY_CLIENT_SECRETS`
 - [ ] 각 `KC_CLIENT_SECRET`가 실제 Keycloak client와 일치함
 - [ ] `SERVICE_ACCOUNT_SUB`가 실제 meal service account sub와 일치함
-- [ ] 루트 `SERVICE_DOMAIN`이 Keycloak 외부 도메인 및 각 서비스의 공개 URL 기준과 일치함
+- [ ] sandol-auth `KC_PUBLIC_URL`이 Keycloak 외부 주소 및 각 서비스의 `KC_SERVER_URL` 기준과 일치함
 - [ ] 실제 도메인/URL 값이 reverse proxy 경로와 일치함
 - [ ] DB 계정 정보가 각 서비스 DB 컨테이너와 일치함
 
@@ -170,7 +170,7 @@
 
 - HMAC secret은 auth-relay와 kakao-bot에서 완전히 같은 문자열이어야 합니다.
 - Kakao token encryption key는 루트와 kakao-bot 값이 같아야 합니다.
-- `SERVICE_DOMAIN`은 compose에서 Keycloak `KC_HOSTNAME`으로 연결되므로, `KC_SERVER_URL`, gateway route, 외부 공개 URL의 호스트와 함께 확인합니다.
+- sandol-auth의 `KC_PUBLIC_URL`은 Keycloak `KC_HOSTNAME`으로 연결되어 issuer를 결정하므로(바꾸면 전원 재로그인), `KC_SERVER_URL`, gateway route, 외부 공개 URL과 함께 확인합니다.
 - `KC_CLIENT_SECRET`는 Keycloak admin console의 client 설정 화면에서 다시 확인합니다.
 - URL 값은 gateway route와 실제 운영 도메인 기준으로 다시 맞춰봅니다.
 - DB 계정은 compose의 DB 컨테이너 env와 서비스 `.env`를 같이 비교합니다.
