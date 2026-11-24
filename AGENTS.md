@@ -247,6 +247,7 @@ alembic/            # DB 마이그레이션
 SECRET_KEY=***                          # Gateway 서명용
 SERVICE_DOMAIN=sandori.kr               # 공통 서비스 도메인
 KC_PUBLIC_URL=https://sandori.kr/auth   # Keycloak KC_HOSTNAME(공개 URL, issuer 결정)
+KC_INTERNAL_URL=http://keycloak:8080/auth  # 서비스→Keycloak 내부 호출 주소(/auth 포함). Keycloak 분리 시 이 값만 변경
 ```
 
 > `KC_PUBLIC_URL`은 docker compose에서 Keycloak의 `KC_HOSTNAME`으로 주입되는 scheme·경로(`/auth`) 포함 전체 URL이며 `SERVICE_DOMAIN`과 독립입니다. 이 값이 공개·내부 issuer를 모두 결정하므로 바꾸면 기존 토큰이 무효화되어 전원 재로그인이 필요합니다.
