@@ -245,10 +245,11 @@ alembic/            # DB 마이그레이션
 ### 공통
 ```env
 SECRET_KEY=***                          # Gateway 서명용
-SERVICE_DOMAIN=sandori.kr               # Keycloak KC_HOSTNAME 및 공통 서비스 도메인
+SERVICE_DOMAIN=sandori.kr               # 공통 서비스 도메인
+KC_PUBLIC_URL=https://sandori.kr/auth   # Keycloak KC_HOSTNAME(공개 URL, issuer 결정)
 ```
 
-> `SERVICE_DOMAIN`은 docker compose에서 Keycloak의 `KC_HOSTNAME`으로 주입됩니다. 이름을 `KC_HOSTNAME`으로 고정하지 않은 이유는 Keycloak 전용 변수로 제한하지 않고, 동일한 서비스 도메인 값을 다른 서비스 설정에서도 재사용하기 위해서입니다.
+> `KC_PUBLIC_URL`은 docker compose에서 Keycloak의 `KC_HOSTNAME`으로 주입되는 scheme·경로(`/auth`) 포함 전체 URL이며 `SERVICE_DOMAIN`과 독립입니다. 이 값이 공개·내부 issuer를 모두 결정하므로 바꾸면 기존 토큰이 무효화되어 전원 재로그인이 필요합니다.
 
 ### kakao-bot-service
 ```env
