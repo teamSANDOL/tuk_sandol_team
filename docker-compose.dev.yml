@@ -298,15 +298,16 @@ services:
       - ./config/rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins:ro
     networks:
       - sandol_network
+    # TASK-195: rabbitmq-diagnostics는 호출마다 Erlang VM을 새로 띄워(유휴 약 2초, 부하 시 5초 초과) timeout이 반복되면
+    # 50초 만에 unhealthy가 되고 compose up이 "dependency failed to start"로 중단됐다.
+    # VM을 띄우지 않는 TCP 점검으로 대체한다: 5672(AMQP)와 15692(prometheus 플러그인 listener)가 열려 있는지만 본다.
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "rabbitmq-diagnostics status && rabbitmq-plugins list -E -m | grep -qx rabbitmq_prometheus && rabbitmq-diagnostics listeners | grep -q 15692"
-        ]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/5672 && exec 4<>/dev/tcp/127.0.0.1/15692"]
+      interval: 15s
+      timeout: 10s
       retries: 5
+      start_period: 60s
+      start_interval: 3s
     logging:
       driver: "local"
       options:
