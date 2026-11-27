@@ -26,7 +26,7 @@
 ## 게이트웨이 업스트림과 relay 차단 (TASK-186)
 
 - [ ] 루트 `.env`의 `KEYCLOAK_UPSTREAM`·`AUTH_RELAY_UPSTREAM`은 비워 둠(기본 `keycloak-edge:8080`, `auth-relay:8000`). 별도 서버로 옮길 때만 `<사설IP>:8080`, `<사설IP>:8000`이며 바꾼 뒤 gateway 컨테이너 재시작
-- [ ] 공개 경로 `POST /relay/issue_login_link`가 404임. `/relay/health`·로그인 콜백 등 나머지 `/relay/*`는 그대로 프록시됨
+- [ ] 공개 경로 `POST /relay/issue_login_link`가 서명 없이는 401임(relay enforce). `/relay/health`·로그인 콜백 등 나머지 `/relay/*`는 그대로 프록시됨
 
 ## 관리자 계정
 
