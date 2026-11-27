@@ -144,7 +144,7 @@ Kakao Bot Service가 Auth Relay에 요청:
 {
   "chatbot_user_id": "kakao_user_id",
   "callback_url": "http://kakao-bot-service/callback",
-  "client_key": "kakao-bot",
+  "client_key": "sandol-kakao-bot",
   "redirect_after": "https://example.com/success"
 }
 ```
@@ -256,7 +256,7 @@ KC_INTERNAL_URL=http://keycloak:8080/auth  # 서비스→Keycloak 내부 호출 
 ```env
 DEBUG=False
 KC_SERVER_URL=https://sandol.sio2.kr/auth/
-KC_CLIENT_ID=kakao-bot
+KC_CLIENT_ID=sandol-kakao-bot
 KC_CLIENT_SECRET=***
 TOKEN_ENCRYPTION_KEY=***                # Fernet 암호화 키
 AUTH_RELAY_URL=http://auth-relay:8000/relay
