@@ -19,6 +19,9 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY}
       GATEWAY_TRUSTED_PROXIES:  # 값 없이 이름만: .env 값 전달, 미설정이면 스크립트 기본값
+      # Keycloak·auth-relay 업스트림(host:port). 인증 스택을 다른 서버로 옮기면 .env에서 그 주소로 바꾼다.
+      KEYCLOAK_UPSTREAM: ${KEYCLOAK_UPSTREAM:-keycloak-edge:8080}
+      AUTH_RELAY_UPSTREAM: ${AUTH_RELAY_UPSTREAM:-auth-relay:8000}
     depends_on:
       meal-service:
         condition: service_healthy
@@ -36,7 +39,7 @@ services:
         condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
-    command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
+    command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; env KEYCLOAK_UPSTREAM; env AUTH_RELAY_UPSTREAM; daemon off;"]
     networks:
       - sandol_network
       - keycloak_edge
