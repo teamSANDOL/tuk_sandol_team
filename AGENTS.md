@@ -22,6 +22,10 @@ MSA(Microservice Architecture) 기반으로 구성되어 Docker Compose로 통�
 | `sandol_user_service` | Keycloak | 사용자 인증/권한 중앙 관리 |
 | `sandol-static-info-service` | FastAPI | 정적 정보 API |
 
+> **게이트웨이 업스트림 (TASK-186)**: gateway는 `KEYCLOAK_UPSTREAM`(기본 `keycloak-edge:8080`), `AUTH_RELAY_UPSTREAM`(기본 `auth-relay:8000`)으로 프록시한다. 인증 스택을 다른 서버로 옮길 때만 루트 `.env`의 두 값을 새 서버 `<사설IP>:8080`, `<사설IP>:8000`으로 바꾸고 gateway를 재시작한다. `POST /relay/issue_login_link`는 인증이 없는 서버 간 API라 gateway 공개 경로에서 404로 막혀 있으며, kakao-bot은 `AUTH_RELAY_URL`로 relay를 직접 호출한다.
+>
+> 선택 변수(모두 비면 기존 동작): `KEYCLOAK_UPSTREAM_SCHEME`·`AUTH_RELAY_UPSTREAM_SCHEME`(http 기본, https), `*_UPSTREAM_HOST_HEADER`(업스트림 Host 지정, 비면 http는 클라이언트 Host·https는 업스트림 호스트명), `*_UPSTREAM_SECRET_HEADER`(X-Origin-Verify 비밀 값, 비면 미전송), `KEYCLOAK_ADMIN_PUBLIC`(off|false|0|no면 관리 콘솔 공개 경로 404), `UPSTREAM_CA_BUNDLE`(사설 CA PEM 경로, 비면 시스템 CA).
+
 ---
 
 ## Build / Lint / Test Commands
@@ -144,7 +148,7 @@ Kakao Bot Service가 Auth Relay에 요청:
 {
   "chatbot_user_id": "kakao_user_id",
   "callback_url": "http://kakao-bot-service/callback",
-  "client_key": "kakao-bot",
+  "client_key": "sandol-kakao-bot",
   "redirect_after": "https://example.com/success"
 }
 ```
@@ -245,16 +249,18 @@ alembic/            # DB 마이그레이션
 ### 공통
 ```env
 SECRET_KEY=***                          # Gateway 서명용
-SERVICE_DOMAIN=sandori.kr               # Keycloak KC_HOSTNAME 및 공통 서비스 도메인
+SERVICE_DOMAIN=sandori.kr               # 공통 서비스 도메인
+KC_PUBLIC_URL=https://sandori.kr/auth   # Keycloak KC_HOSTNAME(공개 URL, issuer 결정). 비우면 https://$SERVICE_DOMAIN/auth
+KC_INTERNAL_URL=http://keycloak:8080/auth  # 서비스→Keycloak 내부 호출 주소(/auth 포함). Keycloak 분리 시 이 값만 변경
 ```
 
-> `SERVICE_DOMAIN`은 docker compose에서 Keycloak의 `KC_HOSTNAME`으로 주입됩니다. 이름을 `KC_HOSTNAME`으로 고정하지 않은 이유는 Keycloak 전용 변수로 제한하지 않고, 동일한 서비스 도메인 값을 다른 서비스 설정에서도 재사용하기 위해서입니다.
+> `KC_PUBLIC_URL`은 docker compose에서 Keycloak의 `KC_HOSTNAME`으로 주입되는 scheme·경로(`/auth`) 포함 전체 URL이며 `SERVICE_DOMAIN`과 독립입니다. 이 값이 공개·내부 issuer를 모두 결정하므로 바꾸면 기존 토큰이 무효화되어 전원 재로그인이 필요합니다.
 
 ### kakao-bot-service
 ```env
 DEBUG=False
 KC_SERVER_URL=https://sandol.sio2.kr/auth/
-KC_CLIENT_ID=kakao-bot
+KC_CLIENT_ID=sandol-kakao-bot
 KC_CLIENT_SECRET=***
 TOKEN_ENCRYPTION_KEY=***                # Fernet 암호화 키
 AUTH_RELAY_URL=http://auth-relay:8000/relay

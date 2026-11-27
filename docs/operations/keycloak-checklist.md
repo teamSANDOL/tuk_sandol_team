@@ -3,7 +3,7 @@
 ## Realm 기본 설정
 
 - [ ] realm 이름이 `Sandori`로 되어 있음
-- [ ] 루트 `.env`의 `SERVICE_DOMAIN` 값이 실제 Keycloak hostname과 일치함
+- [ ] 루트 `.env`의 `KC_PUBLIC_URL` 값이 실제 Keycloak 공개 URL(`/auth` 포함)과 일치함
 - [ ] 외부 접근 주소가 `KC_SERVER_URL`과 일치함
 - [ ] reverse proxy 경로가 `/auth`로 맞춰져 있음
 
@@ -12,8 +12,7 @@
 
 - Keycloak admin console에 로그인합니다.
 - realm 선택 화면에서 실제 사용하는 realm 이름이 `Sandori`인지 확인합니다.
-- 루트 compose에서는 `SERVICE_DOMAIN` 값이 Keycloak `KC_HOSTNAME`으로 주입됩니다.
-- 변수명을 `KC_HOSTNAME`으로 두지 않은 이유는 동일한 도메인 값을 다른 서비스에서도 재사용할 수 있도록 공통 이름으로 관리하기 위해서입니다.
+- 루트 compose에서는 `KC_PUBLIC_URL` 값(전체 URL)이 Keycloak `KC_HOSTNAME`으로 주입되며 issuer를 결정합니다. 바꾸면 전원 재로그인이 필요합니다.
 - hostname, external URL, reverse proxy 경로가 현재 운영 도메인과 `/auth` 기준으로 맞는지 확인합니다.
 
 </details>
@@ -22,7 +21,12 @@
 
 - [ ] `KEYCLOAK_EDGE_SUBNET`(기본 `172.31.255.248/29`)이 호스트 네트워크와 겹치지 않음. 이 변수 하나가 `keycloak_edge` 서브넷과 `KC_PROXY_TRUSTED_ADDRESSES`에 함께 쓰이므로 따로 수정하지 않음
 - [ ] `keycloak_edge`에는 gateway와 keycloak만 붙이고, 다른 컨테이너를 붙이면 그 컨테이너가 XFF를 위조할 수 있음
-- [ ] 게이트웨이는 `keycloak-edge` 별칭(`keycloak.conf`의 `$up`)으로 접속해 Keycloak이 전용 대역 IP를 보게 함
+- [ ] 게이트웨이는 `keycloak-edge` 별칭(`KEYCLOAK_UPSTREAM` 기본값)으로 접속해 Keycloak이 전용 대역 IP를 보게 함
+
+## 게이트웨이 업스트림과 relay 차단 (TASK-186)
+
+- [ ] 루트 `.env`의 `KEYCLOAK_UPSTREAM`·`AUTH_RELAY_UPSTREAM`은 비워 둠(기본 `keycloak-edge:8080`, `auth-relay:8000`). 별도 서버로 옮길 때만 `<사설IP>:8080`, `<사설IP>:8000`이며 바꾼 뒤 gateway 컨테이너 재시작
+- [ ] 공개 경로 `POST /relay/issue_login_link`가 404임. `/relay/health`·로그인 콜백 등 나머지 `/relay/*`는 그대로 프록시됨
 
 ## 관리자 계정
 

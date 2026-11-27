@@ -19,6 +19,18 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY}
       GATEWAY_TRUSTED_PROXIES:  # 값 없이 이름만: .env 값 전달, 미설정이면 스크립트 기본값
+      # Keycloak·auth-relay 업스트림(host:port). 인증 스택을 다른 서버로 옮기면 .env에서 그 주소로 바꾼다.
+      KEYCLOAK_UPSTREAM: ${KEYCLOAK_UPSTREAM:-keycloak-edge:8080}
+      AUTH_RELAY_UPSTREAM: ${AUTH_RELAY_UPSTREAM:-auth-relay:8000}
+      # 아래는 빈 값이면 게이트웨이 기본 동작(http, Host=$host, 비밀 헤더 없음, 관리 콘솔 허용, 시스템 CA)
+      KEYCLOAK_UPSTREAM_SCHEME: ${KEYCLOAK_UPSTREAM_SCHEME:-}
+      KEYCLOAK_UPSTREAM_HOST_HEADER: ${KEYCLOAK_UPSTREAM_HOST_HEADER:-}
+      KEYCLOAK_UPSTREAM_SECRET_HEADER: ${KEYCLOAK_UPSTREAM_SECRET_HEADER:-}
+      AUTH_RELAY_UPSTREAM_SCHEME: ${AUTH_RELAY_UPSTREAM_SCHEME:-}
+      AUTH_RELAY_UPSTREAM_HOST_HEADER: ${AUTH_RELAY_UPSTREAM_HOST_HEADER:-}
+      AUTH_RELAY_UPSTREAM_SECRET_HEADER: ${AUTH_RELAY_UPSTREAM_SECRET_HEADER:-}
+      KEYCLOAK_ADMIN_PUBLIC: ${KEYCLOAK_ADMIN_PUBLIC:-}
+      UPSTREAM_CA_BUNDLE: ${UPSTREAM_CA_BUNDLE:-}
     depends_on:
       meal-service:
         condition: service_healthy
@@ -36,7 +48,7 @@ services:
         condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
-    command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; daemon off;"]
+    command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; env KEYCLOAK_UPSTREAM; env AUTH_RELAY_UPSTREAM; env KEYCLOAK_UPSTREAM_SCHEME; env KEYCLOAK_UPSTREAM_HOST_HEADER; env KEYCLOAK_UPSTREAM_SECRET_HEADER; env AUTH_RELAY_UPSTREAM_SCHEME; env AUTH_RELAY_UPSTREAM_HOST_HEADER; env AUTH_RELAY_UPSTREAM_SECRET_HEADER; env KEYCLOAK_ADMIN_PUBLIC; daemon off;"]
     networks:
       - sandol_network
       - keycloak_edge
@@ -54,6 +66,8 @@ services:
     env_file:
       - ./sandol_meal_service/.env
     environment:
+      # Keycloak 내부 호출 주소(끝 슬래시 필수). env_file의 KC_LOCAL_URL보다 우선한다
+      KC_LOCAL_URL: ${KC_INTERNAL_URL:-http://keycloak:8080/auth}/
       SECRET_KEY: ${SECRET_KEY}
       PYTHONUNBUFFERED: "1"
       MEAL_UPLOAD_ARCHIVE_DIR: /app/data/uploads
@@ -179,8 +193,8 @@ services:
       HOLIDAY_API_KEY: ${HOLIDAY_API_KEY:-}
       # Keycloak 공개 주소(토큰 issuer 검증용)와 컨테이너→keycloak 직결 내부 주소(JWKS·토큰 교환용)
       KC_SERVER_URL: https://${SERVICE_DOMAIN:-sandori.kr}/auth/
-      KC_JWKS_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/certs
-      KC_TOKEN_URL: http://keycloak:8080/auth/realms/Sandori/protocol/openid-connect/token
+      KC_JWKS_URL: ${KC_INTERNAL_URL:-http://keycloak:8080/auth}/realms/Sandori/protocol/openid-connect/certs
+      KC_TOKEN_URL: ${KC_INTERNAL_URL:-http://keycloak:8080/auth}/realms/Sandori/protocol/openid-connect/token
       PUBLIC_BASE_URL: https://${SERVICE_DOMAIN:-sandori.kr}
       STATIC_INFO_PUBLIC_BASE_URL: https://${SERVICE_DOMAIN:-sandori.kr}/static-info
       # 관리자 화면 활성화. 세션 키가 비어 있으면 fail-closed로 관리자 화면이 마운트되지 않음
@@ -439,7 +453,7 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
       # --- 호스트 및 경로 설정 ---
-      KC_HOSTNAME: ${SERVICE_DOMAIN:-sandori.kr}
+      KC_HOSTNAME: ${KC_PUBLIC_URL:-https://${SERVICE_DOMAIN:-sandori.kr}/auth}
       KC_HTTP_ENABLED: "true"
       KC_HTTP_PORT: "8080"
       KC_HTTP_RELATIVE_PATH: /auth
