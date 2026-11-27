@@ -123,7 +123,7 @@ docker compose config | grep '^    image:'
 <details>
 <summary>설정 방법 보기</summary>
 
-- 현재 compose 파일들은 Keycloak 컨테이너의 `KC_HOSTNAME`에 루트 `.env`의 `KC_PUBLIC_URL`(기본 `https://sandori.kr/auth`)을 주입합니다.
+- 현재 compose 파일들은 Keycloak 컨테이너의 `KC_HOSTNAME`에 루트 `.env`의 `KC_PUBLIC_URL`(기본 `https://${SERVICE_DOMAIN:-sandori.kr}/auth`)을 주입합니다.
 - `SERVICE_DOMAIN`과는 독립이며, 값을 바꾸면 issuer가 달라져 전원 재로그인이 필요합니다.
 - 변경 시 gateway 경로 및 각 서비스의 `KC_SERVER_URL`도 함께 점검하는 편이 안전합니다.
 

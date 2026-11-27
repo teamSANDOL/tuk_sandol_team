@@ -250,7 +250,7 @@ alembic/            # DB 마이그레이션
 ```env
 SECRET_KEY=***                          # Gateway 서명용
 SERVICE_DOMAIN=sandori.kr               # 공통 서비스 도메인
-KC_PUBLIC_URL=https://sandori.kr/auth   # Keycloak KC_HOSTNAME(공개 URL, issuer 결정)
+KC_PUBLIC_URL=https://sandori.kr/auth   # Keycloak KC_HOSTNAME(공개 URL, issuer 결정). 비우면 https://$SERVICE_DOMAIN/auth
 KC_INTERNAL_URL=http://keycloak:8080/auth  # 서비스→Keycloak 내부 호출 주소(/auth 포함). Keycloak 분리 시 이 값만 변경
 ```
 
