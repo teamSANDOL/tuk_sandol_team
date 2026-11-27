@@ -14,7 +14,7 @@ Keycloak(realm `Sandori`)에 "Apple로 로그인"을 붙이는 운영 절차입�
 | 구성 요소 | 위치 |
 |---|---|
 | Apple IdP 확장 | `sandol_user_service/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar` (Keycloak 26.8.1용 팀 fork, Apache-2.0, LICENSE 동봉) |
-| 마운트·기능 플래그 | 루트 `docker-compose.yml`의 `keycloak` 서비스: 위 JAR을 `/opt/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar`에 읽기 전용으로 마운트, `KC_FEATURES: token-exchange,admin-fine-grained-authz:v1` |
+| 마운트·기능 플래그 | [sandol-auth](https://github.com/teamSANDOL/sandol-auth)의 `docker-compose.yml` `keycloak` 서비스(루트 compose에서 이관): 위 JAR을 `/opt/keycloak/providers/apple-identity-provider-1.17.0-sandol.1.jar`에 읽기 전용으로 마운트, `KC_FEATURES: token-exchange,admin-fine-grained-authz:v1` |
 | 로그인 버튼 | `sandol_user_service/web/keycloak-theme/sandori/login/` (`login.ftl`, `sandori-login.css`, `resources/img/apple-logo-white.svg`) |
 
 Keycloak 26.8.1용 JAR은 [sandol_user_service PR #8](https://github.com/teamSANDOL/sandol_user_service/pull/8)에 포함되어 있습니다. 배포 전에 서브모듈을 상위 저장소에 기록된 커밋으로 갱신하고 위 경로에 JAR이 있는지 확인합니다.
@@ -62,10 +62,10 @@ Keycloak 26.8.1용 JAR은 [sandol_user_service PR #8](https://github.com/teamSAN
 
 ## 2. 서버 반영
 
-루트 `docker-compose.yml`과 `sandol_user_service` 서브모듈에 이미 반영되어 있습니다. 서버에서는 최신 코드를 받은 뒤 Keycloak을 다시 만듭니다.
+sandol-auth 레포의 `docker-compose.yml`과 `sandol_user_service` 서브모듈에 이미 반영되어 있습니다. 서버에서는 sandol-auth에서 최신 코드를 받은 뒤 Keycloak을 다시 만듭니다. 이 절의 `docker compose` 명령은 모두 sandol-auth 디렉터리에서 실행합니다(같은 서버에서 colocated를 쓰면 `-f docker-compose.yml -f docker-compose.colocated.yml`을 붙입니다).
 
 ```bash
-cd /root/tuk_sandol_team   # 운영 경로에 맞게
+cd /root/sandol-auth   # sandol-auth 경로에 맞게
 git pull && git submodule update --init sandol_user_service
 
 # 테마 CSS·이미지가 바뀌었으면 gzip 캐시를 먼저 비운다(아래 주의 참고)
@@ -136,4 +136,4 @@ Keycloak 이벤트 로그는 `docker compose logs keycloak | grep -E 'IDENTITY_P
 ## 되돌리기
 
 1. 관리 콘솔에서 Apple IdP를 **Disabled**로 바꿉니다. IdP 설정이 남은 채 jar만 빼면 어떻게 동작하는지 확인하지 않았으니, 이 순서를 지킵니다.
-2. 루트 `docker-compose.yml`에서 providers 마운트와 `KC_FEATURES` 줄을 지우고 `docker compose up -d --no-deps keycloak`을 실행합니다.
+2. sandol-auth `docker-compose.yml`에서 providers 마운트와 `KC_FEATURES` 줄을 지우고 `docker compose up -d --no-deps keycloak`을 실행합니다.

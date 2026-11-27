@@ -6,12 +6,9 @@
 - [ ] `GATEWAY_TRUSTED_PROXIES`
 - [ ] `COMPOSE_PROJECT_NAME`
 - [ ] `SERVICE_DOMAIN`
+- [ ] `KC_INTERNAL_URL` (선택)
 - [ ] `SANDOL_DATA_DIR`
 - [ ] `KAKAO_TOKEN_ENCRYPTION_KEY`
-- [ ] `KC_DB_USERNAME`
-- [ ] `KC_DB_PASSWORD`
-- [ ] `KEYCLOAK_ADMIN_USERNAME`
-- [ ] `KEYCLOAK_ADMIN_PASSWORD`
 - [ ] `PG_EXPORTER_PASSWORD`
 
 <details>
@@ -20,18 +17,18 @@
 - `SECRET_KEY`: `python3 scripts/generate_secrets.py`로 생성한 값을 사용합니다.
 - `GATEWAY_TRUSTED_PROXIES`: 게이트웨이 앞단 프록시 IP 목록(쉼표 구분)입니다. 기본값 `172.30.1.101,172.30.1.110,172.30.1.31`(NPM, cloudflared CT110, CT131). 빈 값이나 형식 오류는 게이트웨이 기동이 실패하며, 수정 후 `docker compose restart gateway`로 반영합니다.
 - `COMPOSE_PROJECT_NAME`: 기본값 `sandol_team`을 그대로 써도 됩니다.
-- `SERVICE_DOMAIN`: Keycloak의 외부 hostname으로 사용할 서비스 공통 도메인입니다. compose가 이 값을 Keycloak `KC_HOSTNAME`으로 주입하며, 변수명을 일반화한 이유는 다른 서비스에서도 같은 도메인 값을 함께 재사용할 수 있게 하기 위해서입니다.
+- `SERVICE_DOMAIN`: 서비스 공통 도메인입니다. 각 서비스의 공개 URL 기준으로 쓰입니다. Keycloak의 공개 주소는 sandol-auth 레포의 `KC_PUBLIC_URL`로 따로 정하며 같은 도메인을 가리켜야 합니다.
+- `KC_INTERNAL_URL`: 서비스→Keycloak 내부 호출 기준 주소(`/auth` 포함, 끝 슬래시 없음)입니다. 비우면 `http://keycloak:8080/auth`이며, static-info의 JWKS·토큰 URL과 meal의 `KC_LOCAL_URL`에 주입됩니다. Keycloak을 다른 서버로 분리할 때 이 값만 새 서버 사설 주소로 바꿉니다.
 - `SANDOL_DATA_DIR`: 운영용 bind mount 데이터 루트입니다. Ubuntu 서버 기준 `/home/ubuntu/data/sandol` 사용을 권장합니다. `~/data/...` 형태는 Compose에서 경로 확장이 불안정할 수 있어 쓰지 않고, 절대경로를 사용합니다.
 - `KAKAO_TOKEN_ENCRYPTION_KEY`: 생성 스크립트 출력값을 그대로 복붙합니다.
-- `KC_DB_USERNAME`: 보통 `keycloak` 그대로 사용합니다.
-- `KC_DB_PASSWORD`: 생성 스크립트 출력값을 사용합니다.
-- `KEYCLOAK_ADMIN_USERNAME`: 보통 `admin` 그대로 사용합니다.
-- `KEYCLOAK_ADMIN_PASSWORD`: 생성 스크립트 출력값을 사용합니다.
-- `PG_EXPORTER_PASSWORD`: 생성 스크립트(`python3 scripts/generate_secrets.py`) 출력값을 사용합니다. 출력 중 해당 행을 `.env`에 적은 뒤 `./scripts/create-pg-exporter-role.sh`를 실행하면 세 DB에 계정이 생깁니다. 값이 비어 있으면 스크립트가 이 순서를 다시 안내하고 종료합니다. 스크립트는 `.env`를 읽기만 하고 직접 고치지 않습니다. 여러 번 실행해도 결과가 같습니다.
+- Keycloak 계정(`KC_DB_*`, `KEYCLOAK_ADMIN_*`)은 sandol-auth 레포의 `.env`로 옮겼습니다. 기존 값을 그대로 복사해야 기존 DB에 붙습니다.
+- `PG_EXPORTER_PASSWORD`: 생성 스크립트(`python3 scripts/generate_secrets.py`) 출력값을 사용합니다. 출력 중 해당 행을 `.env`에 적은 뒤 `./scripts/create-pg-exporter-role.sh`를 실행하면 meal·notice DB에 계정이 생깁니다(keycloak-db는 sandol-auth의 `scripts/create-pg-exporter-role.sh`). 값이 비어 있으면 스크립트가 이 순서를 다시 안내하고 종료합니다. 스크립트는 `.env`를 읽기만 하고 직접 고치지 않습니다. 여러 번 실행해도 결과가 같습니다.
 
 </details>
 
 ## `sandol-auth-relay/.env`
+
+> auth-relay는 sandol-auth 프로젝트에서 실행되며 같은 경로의 `sandol-auth-relay/.env`를 그 레포 안에서 읽습니다. 전환 기간에 루트 서브모듈에 남은 파일은 복사 원본으로만 씁니다.
 
 - [ ] `BASE_URL`
 - [ ] `JWT_SECRET`
@@ -126,7 +123,7 @@
 - `DATABASE_URL`: 가장 쉬운 방식은 `.env.example` 값을 복붙한 뒤 비밀번호만 교체하는 것입니다.
 - `POSTGRES_*`: `DATABASE_URL`을 쓰더라도 DB 컨테이너와 healthcheck 때문에 같이 맞춰두는 편이 안전합니다.
 - `KC_SERVER_URL`: 외부에서 접근하는 Keycloak 주소.
-- `KC_LOCAL_URL`: compose 내부 통신용 주소. 기본값 `http://keycloak:8080/auth/` 유지 권장.
+- `KC_LOCAL_URL`: compose가 루트 `KC_INTERNAL_URL` 기준으로 주입하므로(environment가 env_file보다 우선) 서비스 `.env` 값은 무시됩니다.
 - `KC_CLIENT_ID`: 보통 `sandol-meal-service`.
 - `KC_CLIENT_SECRET`: Keycloak admin console에서 해당 client secret 복사.
 - `SERVICE_ACCOUNT_SUB`: Keycloak의 `service-account-sandol-meal-service` 사용자 sub를 복사합니다.
@@ -166,7 +163,7 @@
 - [ ] auth-relay `RELAY_TO_CHATBOT_HMAC_SECRET` == kakao-bot `RELAY_CLIENT_SECRETS`
 - [ ] 각 `KC_CLIENT_SECRET`가 실제 Keycloak client와 일치함
 - [ ] `SERVICE_ACCOUNT_SUB`가 실제 meal service account sub와 일치함
-- [ ] 루트 `SERVICE_DOMAIN`이 Keycloak 외부 도메인 및 각 서비스의 공개 URL 기준과 일치함
+- [ ] sandol-auth `KC_PUBLIC_URL`이 Keycloak 외부 주소 및 각 서비스의 `KC_SERVER_URL` 기준과 일치함
 - [ ] 실제 도메인/URL 값이 reverse proxy 경로와 일치함
 - [ ] DB 계정 정보가 각 서비스 DB 컨테이너와 일치함
 
@@ -175,7 +172,7 @@
 
 - HMAC secret은 auth-relay와 kakao-bot에서 완전히 같은 문자열이어야 합니다.
 - Kakao token encryption key는 루트와 kakao-bot 값이 같아야 합니다.
-- `SERVICE_DOMAIN`은 compose에서 Keycloak `KC_HOSTNAME`으로 연결되므로, `KC_SERVER_URL`, gateway route, 외부 공개 URL의 호스트와 함께 확인합니다.
+- sandol-auth의 `KC_PUBLIC_URL`은 Keycloak `KC_HOSTNAME`으로 연결되어 issuer를 결정하므로(바꾸면 전원 재로그인), `KC_SERVER_URL`, gateway route, 외부 공개 URL과 함께 확인합니다.
 - `KC_CLIENT_SECRET`는 Keycloak admin console의 client 설정 화면에서 다시 확인합니다.
 - URL 값은 gateway route와 실제 운영 도메인 기준으로 다시 맞춰봅니다.
 - DB 계정은 compose의 DB 컨테이너 env와 서비스 `.env`를 같이 비교합니다.

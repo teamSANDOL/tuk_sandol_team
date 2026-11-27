@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# postgres-exporter 가 쓸 read-only 계정을 DB 세 곳에 만든다.
+# postgres-exporter 가 쓸 read-only 계정을 DB 두 곳에 만든다.
 #
 #   ./scripts/create-pg-exporter-role.sh
 #
@@ -17,7 +17,6 @@ ROLE="sandol_exporter"
 # 컨테이너명:superuser:db
 TARGETS=(
   "meal-service-db:postgres:meal_service"
-  "keycloak-db:keycloak:keycloak"
   "sandol-notice-notification-db:root:notice"
 )
 

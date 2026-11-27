@@ -67,7 +67,7 @@ sequenceDiagram
 {
   "chatbot_user_id": "chatbot-user-123",
   "callback_url": "https://sandol.example.com/chatbot-service/users/callback",
-  "client_key": "sandol-chatbot-service",
+  "client_key": "sandol-kakao-bot",
   "redirect_after": "/login/success"
 }
 ```
@@ -112,9 +112,9 @@ Relay -> Bot 콜백 payload 예시:
 ```json
 {
   "issuer": "https://sandol.example.com/auth/realms/Sandori",
-  "aud": "sandol-chatbot-service",
+  "aud": "sandol-kakao-bot",
   "chatbot_user_id": "chatbot-user-123",
-  "client_key": "sandol-chatbot-service",
+  "client_key": "sandol-kakao-bot",
   "relay_access_token": "<access_token>",
   "offline_refresh_token": "<refresh_token>",
   "expires_in": 300,

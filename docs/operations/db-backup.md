@@ -9,11 +9,12 @@
 | --- | --- | --- |
 | meal-service-db | `pg_dump -Fc` | `meal_service.dump` |
 | notice-notification-db | `pg_dump -Fc` | `notice.dump` |
-| keycloak-db | `pg_dump -Fc` | `keycloak.dump` |
 | 카카오 봇 SQLite | `sqlite3 .backup` | `kakao_bot_service.db` |
 
 각 DB의 계정과 비밀번호는 서로 다르며, 스크립트가 서비스별 `.env`를 읽기 전용으로
 마운트해 직접 꺼내 씁니다. 운영자가 계정을 따로 외울 필요가 없습니다.
+
+Keycloak DB(keycloak-db)는 이 스크립트 대상이 아닙니다. sandol-auth 레포의 `db-backup` 서비스가 별도로 `keycloak.dump`를 `$SANDOL_DATA_DIR/backups-auth`에 만듭니다(Keycloak 기동 전 one-shot, fail-closed).
 
 결과는 `SANDOL_BACKUP_DIR`(기본값 `$SANDOL_DATA_DIR/backups`) 아래에 UTC 타임스탬프
 디렉터리로 쌓입니다.

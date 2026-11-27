@@ -20,6 +20,10 @@ MSA(Microservice Architecture) 기반으로 구성되어 Docker Compose로 통�
 | `sandol_notice_notification` | NestJS + PostgreSQL + RabbitMQ | 공지사항 알림 서버 |
 | `sandol_classroom_timetable_service` | Express.js | 강의실 시간표 API |
 | `sandol_user_service` | Keycloak | 사용자 인증/권한 중앙 관리 |
+
+> **인증 스택 분리 (TASK-185)**: Keycloak·keycloak-db·auth-relay·Keycloak DB 백업은 별도 레포 [`teamSANDOL/sandol-auth`](https://github.com/teamSANDOL/sandol-auth)의 독립 compose 프로젝트(`sandol-auth`)로 옮겼다. 이 레포의 compose에는 더 이상 없다. 같은 서버에서는 `docker-compose.colocated.yml`로 `sandol_network`에 붙여 이름(`keycloak`, `auth-relay`)으로 접근한다. 루트의 `sandol_user_service`·`sandol-auth-relay` 서브모듈은 전환 기간 동안만 남긴다.
+>
+> **게이트웨이 업스트림 (TASK-186)**: gateway는 `KEYCLOAK_UPSTREAM`(기본 `keycloak-edge:8080`), `AUTH_RELAY_UPSTREAM`(기본 `auth-relay:8000`)으로 프록시한다. 인증 스택을 다른 서버로 옮기면 루트 `.env`의 두 값만 새 서버 `<사설IP>:8080`, `<사설IP>:8000`으로 바꾸고 gateway를 재시작한다. `POST /relay/issue_login_link`는 인증이 없는 서버 간 API라 gateway 공개 경로에서 404로 막혀 있다. kakao-bot은 `AUTH_RELAY_URL`로 relay를 직접 호출한다(분리 후 `http://<사설IP>:8000/relay`).
 | `sandol-static-info-service` | FastAPI | 정적 정보 API |
 
 ---
@@ -144,7 +148,7 @@ Kakao Bot Service가 Auth Relay에 요청:
 {
   "chatbot_user_id": "kakao_user_id",
   "callback_url": "http://kakao-bot-service/callback",
-  "client_key": "kakao-bot",
+  "client_key": "sandol-kakao-bot",
   "redirect_after": "https://example.com/success"
 }
 ```
@@ -245,19 +249,20 @@ alembic/            # DB 마이그레이션
 ### 공통
 ```env
 SECRET_KEY=***                          # Gateway 서명용
-SERVICE_DOMAIN=sandori.kr               # Keycloak KC_HOSTNAME 및 공통 서비스 도메인
+SERVICE_DOMAIN=sandori.kr               # 공통 서비스 도메인(각 서비스 공개 URL 기준)
+KC_INTERNAL_URL=http://keycloak:8080/auth  # 서비스→Keycloak 내부 호출 주소(/auth 포함). Keycloak 분리 시 이 값만 변경
 ```
 
-> `SERVICE_DOMAIN`은 docker compose에서 Keycloak의 `KC_HOSTNAME`으로 주입됩니다. 이름을 `KC_HOSTNAME`으로 고정하지 않은 이유는 Keycloak 전용 변수로 제한하지 않고, 동일한 서비스 도메인 값을 다른 서비스 설정에서도 재사용하기 위해서입니다.
+> Keycloak 공개 주소는 sandol-auth 레포의 `KC_PUBLIC_URL`(기본 `https://sandori.kr/auth`)로 따로 정한다. 이 레포의 `SERVICE_DOMAIN`과 같은 도메인을 가리키도록 맞추고, 이 값이 issuer를 결정하므로 바꾸면 기존 토큰이 무효화되어 전원 재로그인이 필요하다.
 
 ### kakao-bot-service
 ```env
 DEBUG=False
 KC_SERVER_URL=https://sandol.sio2.kr/auth/
-KC_CLIENT_ID=kakao-bot
+KC_CLIENT_ID=sandol-kakao-bot
 KC_CLIENT_SECRET=***
 TOKEN_ENCRYPTION_KEY=***                # Fernet 암호화 키
-AUTH_RELAY_URL=http://auth-relay:8000/relay
+AUTH_RELAY_URL=http://auth-relay:8000/relay   # 분리 후: http://<인증 서버 사설IP>:8000/relay (gateway 경유 금지, 공개 경로는 차단됨)
 MEAL_SERVICE_URL=http://meal-service:80/meal
 ```
 

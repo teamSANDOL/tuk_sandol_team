@@ -46,6 +46,7 @@
 - [sandol_kakao_bot_service/README.md](./sandol_kakao_bot_service/README.md)
 - [sandol_meal_service/README.md](./sandol_meal_service/README.md)
 - [sandol-auth-relay/README.md](./sandol-auth-relay/README.md)
+- [sandol-auth](https://github.com/teamSANDOL/sandol-auth): Keycloak·auth-relay 독립 compose 레포(TASK-185)
 - [sandol-static-info-service/README.md](./sandol-static-info-service/README.md)
 - [sandol_classroom_timetable_service/README.md](./sandol_classroom_timetable_service/README.md)
 - [sandol_notice_notification/README.md](./sandol_notice_notification/README.md)

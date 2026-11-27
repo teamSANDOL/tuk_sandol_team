@@ -12,6 +12,7 @@
 6. [DB 백업 운영 가이드](./db-backup.md)
 7. [Nginx Proxy Manager 전환 런북](./nginx-proxy-manager-cutover.md)
 8. [Apple 로그인 연동 가이드](./apple-login-setup.md)
+9. 인증 스택(Keycloak·auth-relay) 분리 구성과 전환 절차: [teamSANDOL/sandol-auth](https://github.com/teamSANDOL/sandol-auth) (`README.md`, `docs/migration.md`)
 
 ## 권장 순서
 

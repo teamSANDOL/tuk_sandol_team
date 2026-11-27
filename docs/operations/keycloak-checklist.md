@@ -1,9 +1,11 @@
 # Keycloak 체크리스트
 
+> Keycloak 스택은 별도 레포 [teamSANDOL/sandol-auth](https://github.com/teamSANDOL/sandol-auth)로 분리되었습니다. compose·`.env`·백업·전환 절차는 그 레포의 README와 `docs/migration.md`를 기준으로 하고, 이 문서는 realm·프록시 점검 항목으로 남깁니다.
+
 ## Realm 기본 설정
 
 - [ ] realm 이름이 `Sandori`로 되어 있음
-- [ ] 루트 `.env`의 `SERVICE_DOMAIN` 값이 실제 Keycloak hostname과 일치함
+- [ ] sandol-auth `.env`의 `KC_PUBLIC_URL`이 실제 Keycloak 공개 주소(`https://<도메인>/auth`)와 일치함
 - [ ] 외부 접근 주소가 `KC_SERVER_URL`과 일치함
 - [ ] reverse proxy 경로가 `/auth`로 맞춰져 있음
 
@@ -12,17 +14,23 @@
 
 - Keycloak admin console에 로그인합니다.
 - realm 선택 화면에서 실제 사용하는 realm 이름이 `Sandori`인지 확인합니다.
-- 루트 compose에서는 `SERVICE_DOMAIN` 값이 Keycloak `KC_HOSTNAME`으로 주입됩니다.
-- 변수명을 `KC_HOSTNAME`으로 두지 않은 이유는 동일한 도메인 값을 다른 서비스에서도 재사용할 수 있도록 공통 이름으로 관리하기 위해서입니다.
+- sandol-auth compose에서는 `KC_PUBLIC_URL` 값이 Keycloak `KC_HOSTNAME`으로 주입됩니다.
 - hostname, external URL, reverse proxy 경로가 현재 운영 도메인과 `/auth` 기준으로 맞는지 확인합니다.
 
 </details>
 
 ## 프록시 신뢰 주소
 
-- [ ] `KEYCLOAK_EDGE_SUBNET`(기본 `172.31.255.248/29`)이 호스트 네트워크와 겹치지 않음. 이 변수 하나가 `keycloak_edge` 서브넷과 `KC_PROXY_TRUSTED_ADDRESSES`에 함께 쓰이므로 따로 수정하지 않음
+- [ ] `KEYCLOAK_EDGE_SUBNET`(기본 `172.31.255.248/29`)이 호스트 네트워크와 겹치지 않음. `keycloak_edge` 네트워크는 루트 compose가 만들고, sandol-auth의 `KC_PROXY_TRUSTED_ADDRESSES`가 같은 변수를 쓰므로 두 `.env`에서 값을 같게 유지함
 - [ ] `keycloak_edge`에는 gateway와 keycloak만 붙이고, 다른 컨테이너를 붙이면 그 컨테이너가 XFF를 위조할 수 있음
-- [ ] 게이트웨이는 `keycloak-edge` 별칭(`keycloak.conf`의 `$up`)으로 접속해 Keycloak이 전용 대역 IP를 보게 함
+- [ ] 게이트웨이는 `keycloak-edge` 별칭(`KEYCLOAK_UPSTREAM` 기본값)으로 접속해 Keycloak이 전용 대역 IP를 보게 함
+
+## 게이트웨이 업스트림과 relay 차단 (TASK-186)
+
+- [ ] 루트 `.env`의 `KEYCLOAK_UPSTREAM`·`AUTH_RELAY_UPSTREAM`은 같은 서버면 비워 둠(기본 `keycloak-edge:8080`, `auth-relay:8000`). 별도 서버면 `<사설IP>:8080`, `<사설IP>:8000`이며 호스트명 대신 IP도 동작함. 바꾼 뒤 gateway 컨테이너 재시작
+- [ ] 공개 경로 `POST /relay/issue_login_link`가 404임(인증 없는 서버 간 API라 gateway에서 차단). `/relay/health`·로그인 콜백 등 나머지 `/relay/*`는 그대로 프록시됨
+- [ ] 분리 후 kakao-bot의 `AUTH_RELAY_URL`을 `http://<인증 서버 사설IP>:8000/relay`로 바꿈(relay 포트 직접 호출, gateway 경유 아님)
+- [ ] 인증 서버 방화벽에서 8080·8000은 메인 서버 IP만 허용, 9000(관리 포트)은 열지 않음. 상세는 sandol-auth `docs/migration.md`
 
 ## 관리자 계정
 
@@ -33,7 +41,7 @@
 <details>
 <summary>설정 방법 보기</summary>
 
-- 루트 `.env`에 `KEYCLOAK_ADMIN_USERNAME`, `KEYCLOAK_ADMIN_PASSWORD`를 넣습니다.
+- sandol-auth `.env`에 `KEYCLOAK_ADMIN_USERNAME`, `KEYCLOAK_ADMIN_PASSWORD`를 넣습니다(기존 realm이 있으면 부트스트랩 계정은 무시됩니다).
 - 컨테이너 기동 후 admin console에 실제로 로그인해 확인합니다.
 - dev/default 비밀번호를 그대로 쓰지 않았는지 다시 확인합니다.
 
