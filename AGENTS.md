@@ -23,6 +23,8 @@ MSA(Microservice Architecture) 기반으로 구성되어 Docker Compose로 통�
 | `sandol-static-info-service` | FastAPI | 정적 정보 API |
 
 > **게이트웨이 업스트림 (TASK-186)**: gateway는 `KEYCLOAK_UPSTREAM`(기본 `keycloak-edge:8080`), `AUTH_RELAY_UPSTREAM`(기본 `auth-relay:8000`)으로 프록시한다. 인증 스택을 다른 서버로 옮길 때만 루트 `.env`의 두 값을 새 서버 `<사설IP>:8080`, `<사설IP>:8000`으로 바꾸고 gateway를 재시작한다. `POST /relay/issue_login_link`는 인증이 없는 서버 간 API라 gateway 공개 경로에서 404로 막혀 있으며, kakao-bot은 `AUTH_RELAY_URL`로 relay를 직접 호출한다.
+>
+> 선택 변수(모두 비면 기존 동작): `KEYCLOAK_UPSTREAM_SCHEME`·`AUTH_RELAY_UPSTREAM_SCHEME`(http 기본, https), `*_UPSTREAM_HOST_HEADER`(업스트림 Host 지정, 비면 http는 클라이언트 Host·https는 업스트림 호스트명), `*_UPSTREAM_SECRET_HEADER`(X-Origin-Verify 비밀 값, 비면 미전송), `KEYCLOAK_ADMIN_PUBLIC`(off|false|0|no면 관리 콘솔 공개 경로 404), `UPSTREAM_CA_BUNDLE`(사설 CA PEM 경로, 비면 시스템 CA).
 
 ---
 

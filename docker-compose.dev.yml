@@ -22,6 +22,15 @@ services:
       # Keycloak·auth-relay 업스트림(host:port). 인증 스택을 다른 서버로 옮기면 .env에서 그 주소로 바꾼다.
       KEYCLOAK_UPSTREAM: ${KEYCLOAK_UPSTREAM:-keycloak-edge:8080}
       AUTH_RELAY_UPSTREAM: ${AUTH_RELAY_UPSTREAM:-auth-relay:8000}
+      # 아래는 빈 값이면 게이트웨이 기본 동작(http, Host=$host, 비밀 헤더 없음, 관리 콘솔 허용, 시스템 CA)
+      KEYCLOAK_UPSTREAM_SCHEME: ${KEYCLOAK_UPSTREAM_SCHEME:-}
+      KEYCLOAK_UPSTREAM_HOST_HEADER: ${KEYCLOAK_UPSTREAM_HOST_HEADER:-}
+      KEYCLOAK_UPSTREAM_SECRET_HEADER: ${KEYCLOAK_UPSTREAM_SECRET_HEADER:-}
+      AUTH_RELAY_UPSTREAM_SCHEME: ${AUTH_RELAY_UPSTREAM_SCHEME:-}
+      AUTH_RELAY_UPSTREAM_HOST_HEADER: ${AUTH_RELAY_UPSTREAM_HOST_HEADER:-}
+      AUTH_RELAY_UPSTREAM_SECRET_HEADER: ${AUTH_RELAY_UPSTREAM_SECRET_HEADER:-}
+      KEYCLOAK_ADMIN_PUBLIC: ${KEYCLOAK_ADMIN_PUBLIC:-}
+      UPSTREAM_CA_BUNDLE: ${UPSTREAM_CA_BUNDLE:-}
     depends_on:
       meal-service:
         condition: service_healthy
@@ -39,7 +48,7 @@ services:
         condition: service_healthy
     volumes:
       - ./sandol-gateway/gateway:/etc/nginx/conf.d
-    command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; env KEYCLOAK_UPSTREAM; env AUTH_RELAY_UPSTREAM; daemon off;"]
+    command: ["/bin/sh", "/etc/nginx/conf.d/render-trusted-proxies.sh", "/usr/local/openresty/bin/openresty", "-g", "env SECRET_KEY; env KEYCLOAK_UPSTREAM; env AUTH_RELAY_UPSTREAM; env KEYCLOAK_UPSTREAM_SCHEME; env KEYCLOAK_UPSTREAM_HOST_HEADER; env KEYCLOAK_UPSTREAM_SECRET_HEADER; env AUTH_RELAY_UPSTREAM_SCHEME; env AUTH_RELAY_UPSTREAM_HOST_HEADER; env AUTH_RELAY_UPSTREAM_SECRET_HEADER; env KEYCLOAK_ADMIN_PUBLIC; daemon off;"]
     networks:
       - sandol_network
       - keycloak_edge
