@@ -1,0 +1,3 @@
+- targets: ["postgres-exporter-keycloak:9187"]
+  labels:
+    db: "keycloak"

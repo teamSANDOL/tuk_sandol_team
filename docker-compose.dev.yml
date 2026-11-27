@@ -345,6 +345,7 @@ services:
     container_name: prometheus
     volumes:
       - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - ./config/monitoring/targets:/etc/prometheus/targets:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
