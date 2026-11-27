@@ -23,9 +23,10 @@ scrape_configs:
       - targets: ["postgres-exporter-meal:9187"]
         labels:
           db: "meal_service"
-      - targets: ["postgres-exporter-keycloak:9187"]
-        labels:
-          db: "keycloak"
       - targets: ["postgres-exporter-notice:9187"]
         labels:
           db: "notice"
+    # keycloak 은 분리 이전을 위해 file_sd 로 뺐다. targets/keycloak.yml 만 바꾸면 되고 재시작은 필요 없다.
+    file_sd_configs:
+      - files:
+          - /etc/prometheus/targets/keycloak.yml

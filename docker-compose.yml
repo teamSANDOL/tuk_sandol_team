@@ -335,6 +335,7 @@ services:
     mem_limit: 384m
     volumes:
       - ./config/monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - ./config/monitoring/targets:/etc/prometheus/targets:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -385,6 +386,10 @@ services:
       - /sys:/sys:ro
       - /proc:/rootfs/proc:ro
       - /var/lib/docker:/rootfs/var/lib/docker:ro
+    environment:
+      # 값 없이 이름만: .env 값 전달, 미설정이면 config.alloy 의 기본값
+      LOKI_URL:
+      PROMETHEUS_REMOTE_WRITE_URL:
     command: run --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
     depends_on:
       - loki
